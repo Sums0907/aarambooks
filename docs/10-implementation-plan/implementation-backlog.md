@@ -6,6 +6,17 @@ Convert the approved AaramBooks conceptual and technical architecture into an ac
 ---
 
 ## 1. Milestone 0: Engineering Foundation
+
+### Milestone 0A — Engineering Foundation Hardening
+**Goal:** Prevent deployment inconsistencies, port collisions, and configuration conflicts.
+- [ ] Implement Configuration Management Standard (Pydantic settings, `.env.example`).
+- [ ] Implement Port Management Standard and Central Registry.
+- [ ] Implement Docker Standards (Service names, overrides).
+- [ ] Implement Database Isolation Standards (Schemas, users).
+- [ ] Enforce Service Identity Standard (Unique, explicit naming).
+- [ ] Enforce Deployment Readiness Checklist.
+
+### Milestone 0B — Brain Core Foundation
 **Goal:** Establish the underlying infrastructure, code repositories, and pipelines before building intelligence.
 - [ ] Initialize code repositories and CI/CD pipelines.
 - [ ] Setup developer environments and mock business data endpoints.
