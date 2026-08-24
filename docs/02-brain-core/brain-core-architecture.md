@@ -1,284 +1,371 @@
-# Aaram Brain Core Architecture
+# Brain Core Architecture
 
 ## 1. Purpose
 
-This document defines the foundational architecture of Aaram Brain Core within the AaramBooks ecosystem.
+Aaram Brain Core is the shared intelligence foundation of the AaramBooks ecosystem.
 
-The purpose of Brain Core is to define the shared intelligence foundation that enables multiple intelligence domains to operate consistently.
+Its purpose is to provide reusable intelligence capabilities that allow multiple intelligence domains to understand business situations, reason over trusted information, support decisions, and enable intelligent actions.
 
-This document establishes:
+Brain Core exists to transform business truth into intelligence.
 
-- The role of Brain Core.
-- The relationship between Brain Core and Intelligence Domains.
-- Core intelligence responsibilities.
-- Architectural boundaries.
-
-Implementation details, database design, API design, model selection, and technology decisions are intentionally excluded.
-
----
-
-# 2. Aaram Brain Definition
-
-Aaram Brain is the intelligence and decision layer of AaramBooks.
-
-Aaram Brain operates on top of trusted business information created by operational systems.
-
-The foundational principle is:
+The foundational rule is:
 
 > Business systems create truth. Aaram Brain creates intelligence from that truth.
 
-Aaram Brain does not replace business systems.
-
-Aaram Brain does not own operational truth.
-
-Aaram Brain creates intelligence capabilities that help understand, reason, recommend, and automate.
-
 ---
 
-# 3. Purpose of Brain Core
+# 2. Position Within AaramBooks
 
-Brain Core is the shared intelligence foundation of Aaram Brain.
+AaramBooks consists of three distinct architectural layers:
 
-Its purpose is to provide reusable intelligence capabilities that can support multiple Intelligence Domains.
+```text
+                    AaramBooks Ecosystem
 
-Brain Core enables:
-
-- Common business understanding.
-- Consistent intelligence capabilities.
-- Reusable reasoning foundations.
-- Controlled expansion of future intelligence domains.
-
----
-
-# 4. Brain Core Position in Architecture
-
-The Aaram Brain architecture is:
-
-```
-Aaram Brain
-
-        |
-
-+----------------+
-| Brain Core     |
-+----------------+
-
-        |
-
-+-----------------------------+
-| Intelligence Domains        |
-+-----------------------------+
-
-        |
-        |
-+-----------------------------+
-| NDR Intelligence            |
-| Customer Query Intelligence |
-+-----------------------------+
++------------------------------------------------+
+|              Intelligence Applications         |
+|                                                |
+|  NDR Intelligence                              |
+|  Customer Query Intelligence                   |
+|  Future Intelligence Domains                   |
++------------------------------------------------+
+                       |
+                       |
++------------------------------------------------+
+|                 Aaram Brain Core               |
+|                                                |
+|  Context Understanding                         |
+|  Knowledge Understanding                       |
+|  Reasoning                                     |
+|  Decision Support                              |
+|  Intelligent Action Enablement                |
+|  Memory Framework                              |
+|  Model Abstraction                             |
++------------------------------------------------+
+                       |
+                       |
++------------------------------------------------+
+|              Business Domain Systems           |
+|                                                |
+|  AaramIdentity                                 |
+|  AaramInventory                                |
+|  AaramPacking                                 |
+|  Future Business Systems                       |
++------------------------------------------------+
 ```
 
-Brain Core provides shared capabilities.
+Business systems maintain operational truth.
 
-Intelligence Domains apply those capabilities to specific business objectives.
+Brain Core provides intelligence foundations.
+
+Intelligence domains apply that intelligence to specific business objectives.
 
 ---
 
-# 5. Brain Core Responsibilities
+# 3. Core Responsibility
 
-Brain Core is responsible for foundational intelligence capabilities.
+Brain Core is responsible for common intelligence capabilities that should be shared across the AaramBooks ecosystem.
 
 Its responsibilities include:
 
 - Understanding business context.
-- Supporting reasoning capabilities.
+- Maintaining reusable business knowledge.
+- Supporting reasoning over trusted information.
 - Enabling decision intelligence.
-- Supporting reusable intelligence patterns.
-- Providing foundations for future intelligence expansion.
+- Supporting intelligent action workflows.
+- Maintaining intelligence memory principles.
+- Providing abstraction between intelligence capabilities and underlying models.
 
 ---
 
-# 6. Brain Core Boundaries
+# 4. Non-Responsibilities
 
-## 6.1 What Brain Core Owns
+Brain Core does not own business truth.
 
-Brain Core owns:
+Brain Core does not:
 
-- Shared intelligence capabilities.
-- Common intelligence understanding.
-- Reusable reasoning foundations.
-- Intelligence architecture principles.
+- Replace business systems.
+- Maintain duplicate operational records.
+- Execute domain workflows as a business authority.
+- Define business ownership.
+- Modify domain responsibilities.
+- Become the source of operational decisions.
 
----
-
-## 6.2 What Brain Core Does Not Own
-
-Brain Core does not own:
-
-- Business domain truth.
-- Inventory truth.
-- Identity information.
-- Warehouse execution truth.
-- Customer business ownership.
-- Operational workflows.
+Business systems remain authoritative for their respective domains.
 
 ---
 
-# 7. Relationship With Business Systems
+# 5. Architectural Separation
 
-Business systems remain the source of operational truth.
+## 5.1 Business Truth Layer
 
-The relationship model:
+Owned by:
 
-```
-Business Systems
+Business Domain Systems.
 
-        |
+Responsibilities:
 
-Operational Truth
+- Create operational records.
+- Execute business processes.
+- Maintain domain rules.
+- Preserve transaction truth.
 
-        |
+Examples:
 
-Brain Core
+Inventory state belongs to AaramInventory.
 
-        |
+Warehouse execution truth belongs to AaramPacking.
 
-Intelligence Capabilities
-```
+Identity and access truth belongs to AaramIdentity.
 
-Brain Core understands and processes business context without becoming the owner of that context.
+---
+
+## 5.2 Intelligence Foundation Layer
+
+Owned by:
+
+Aaram Brain Core.
+
+Responsibilities:
+
+- Understand information.
+- Connect related knowledge.
+- Analyse situations.
+- Generate intelligence.
+- Support decisions.
+
+Brain Core consumes truth but does not own it.
+
+---
+
+## 5.3 Intelligence Application Layer
+
+Owned by:
+
+Intelligence Domains.
+
+Responsibilities:
+
+- Apply intelligence to specific business objectives.
+- Define domain-specific outcomes.
+- Create specialized workflows.
+
+Examples:
+
+NDR Intelligence applies Brain Core capabilities to delivery failure resolution.
+
+Customer Query Intelligence applies Brain Core capabilities to customer interactions.
+
+---
+
+# 6. Brain Core Design Principles
+
+## 6.1 Intelligence Over Truth
+
+Brain Core enhances understanding of business information.
+
+It does not replace the systems that create that information.
+
+---
+
+## 6.2 Reusable Intelligence Foundation
+
+Common intelligence capabilities should be created once and reused across multiple domains.
+
+Examples:
+
+- Context understanding.
+- Knowledge interpretation.
+- Reasoning.
+- Decision support.
+
+---
+
+## 6.3 Domain Neutrality
+
+Brain Core should remain independent from specific business objectives.
+
+It provides capabilities.
+
+Intelligence domains provide purpose.
+
+---
+
+## 6.4 Explainable Intelligence
+
+Intelligence outputs should be understandable.
+
+Every recommendation should be traceable to:
+
+- Available business information.
+- Relevant knowledge.
+- Reasoning process.
+- Decision context.
+
+---
+
+## 6.5 Controlled Intelligence
+
+Brain Core enables intelligent assistance.
+
+Business authority remains with business systems and approved workflows.
+
+---
+
+# 7. Internal Capability Areas
+
+Brain Core is composed of independent intelligence capabilities.
+
+## Context Engine
+
+Responsible for understanding the situation in which intelligence is required.
+
+Focus:
+
+- Business context.
+- User context.
+- Entity relationships.
+- Operational context.
+
+---
+
+## Knowledge Engine
+
+Responsible for maintaining ecosystem understanding.
+
+Focus:
+
+- Business knowledge.
+- Domain knowledge.
+- Policies.
+- Documentation understanding.
+
+---
+
+## Reasoning Engine
+
+Responsible for analysing information.
+
+Focus:
+
+- Pattern understanding.
+- Relationship analysis.
+- Situation interpretation.
+
+---
+
+## Decision Engine
+
+Responsible for supporting intelligent decisions.
+
+Focus:
+
+- Recommendations.
+- Alternatives.
+- Decision support.
+
+---
+
+## Action Engine
+
+Responsible for enabling intelligent outcomes.
+
+Focus:
+
+- Action suggestions.
+- Workflow assistance.
+- Controlled execution support.
+
+---
+
+## Memory Framework
+
+Responsible for defining how intelligence knowledge and experiences are retained.
+
+Focus:
+
+- Memory boundaries.
+- Learning principles.
+- Historical intelligence.
+
+---
+
+## Model Gateway
+
+Responsible for abstracting intelligence capabilities from underlying AI providers.
+
+Focus:
+
+- Capability independence.
+- Flexibility.
+- Evolution.
 
 ---
 
 # 8. Relationship With Intelligence Domains
 
-Intelligence Domains are specialized capabilities built using Brain Core.
+Intelligence Domains consume Brain Core capabilities.
 
-Each Intelligence Domain:
+Example:
 
-- Has a specific business objective.
-- Uses relevant business context.
-- Provides specialized intelligence.
-- Maintains its own intelligence responsibility.
-
-Brain Core provides common capabilities.
-
-Intelligence Domains provide business-focused intelligence.
-
----
-
-# 9. Brain Core Principles
-
-## 9.1 Intelligence Without Ownership
-
-Brain Core creates intelligence without becoming the owner of business truth.
-
----
-
-## 9.2 Reusable Intelligence Foundation
-
-Capabilities should be designed to support multiple intelligence domains.
-
----
-
-## 9.3 Context Before Decision
-
-Intelligence requires understanding of business context before generating recommendations.
-
----
-
-## 9.4 Controlled Intelligence Expansion
-
-New intelligence capabilities should build on Brain Core principles.
-
----
-
-## 9.5 Separation of Intelligence and Operations
-
-Brain Core assists operations but does not replace operational ownership.
-
----
-
-# 10. Brain Core Evolution Model
-
-Brain Core evolves as the intelligence foundation of AaramBooks.
-
-Future expansion should:
-
-- Add reusable intelligence capabilities.
-- Support new Intelligence Domains.
-- Preserve business system ownership.
-- Avoid duplicate operational responsibilities.
-
-The evolution model:
-
-```
-Business Systems
+```text
+Customer Query Intelligence
 
         |
+        |
+        v
 
-Trusted Business Truth
+Context Engine
+Knowledge Engine
+Reasoning Engine
+Decision Engine
+Action Engine
 
         |
-
-Brain Core
-
         |
+        v
 
-Intelligence Domains
-
-        |
-
-Business Improvement
+Customer Resolution Intelligence
 ```
 
----
+Brain Core provides the foundation.
 
-# 11. Brain Core Governance
-
-Every Brain Core capability should be evaluated against:
-
-## Purpose
-
-What intelligence capability does this provide?
+The Intelligence Domain defines the business objective.
 
 ---
 
-## Reusability
+# 9. Evolution Principles
 
-Can this support multiple intelligence domains?
+Future Brain Core expansion should follow these rules:
 
----
-
-## Ownership
-
-Does this preserve business domain ownership?
-
----
-
-## Boundary
-
-Does this remain an intelligence capability rather than operational ownership?
+- New capabilities should be reusable.
+- Domain-specific logic should remain outside Brain Core.
+- Business truth ownership must remain unchanged.
+- Intelligence capabilities should evolve independently.
+- New intelligence domains should consume existing foundations before creating new ones.
 
 ---
 
-## Value
+# 10. Success Definition
 
-Does this improve business understanding or decision-making?
+Brain Core succeeds when:
+
+- Business systems remain authoritative.
+- Intelligence becomes reusable across applications.
+- Business knowledge becomes accessible.
+- Decisions become more informed.
+- Automation becomes safer and more controlled.
+- New intelligence domains can be created without rebuilding intelligence foundations.
 
 ---
 
-# 12. Final Definition
+# 11. Final Architecture Statement
 
-Aaram Brain Core is the shared intelligence foundation of AaramBooks.
+Aaram Brain Core is the intelligence foundation of AaramBooks.
 
-It provides reusable intelligence capabilities while allowing specialized Intelligence Domains to solve specific business problems.
+It does not create business truth.
 
-Business systems continue to own truth.
+It understands business truth, reasons over it, and enables intelligence across the ecosystem.
 
-Brain Core creates the foundation for intelligence.
-
-Intelligence Domains create business value from that intelligence.
-
-The governing principle remains:
+The architecture principle remains:
 
 > Business systems create truth. Aaram Brain creates intelligence from that truth.
