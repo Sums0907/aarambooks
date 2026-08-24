@@ -34,6 +34,10 @@ API contracts define:
 
 Contracts do not define ownership transfer.
 
+Aaram Brain APIs expose intelligence capabilities.
+They must not become replacements for business domain APIs.
+Operational truth remains owned by business systems.
+
 ## Architectural Outcome
 
 API Contracts enable evolution through controlled communication while preserving:

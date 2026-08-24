@@ -13,6 +13,9 @@ Aaram Brain creates intelligence from that truth.
 
 Events communicate changes in business truth. They do not create or transfer ownership.
 
+Events communicate business truth changes and collaboration signals.
+Events do not own business truth and must not become duplicate operational databases.
+
 ## Role of Events
 
 Events provide ecosystem awareness of meaningful business occurrences.
