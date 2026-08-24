@@ -413,3 +413,106 @@ AaramBooks is an AI-native business operating system where independent business 
 The foundational rule of the ecosystem is:
 
 > Business systems create truth. Aaram Brain creates intelligence from that truth.
+
+---
+
+# 14. Documentation Directory Structure
+
+```text
+/Users/sumatidhingra/aarambooks/docs
+├── 00-project-context
+│   ├── aarambooks-overview.md
+│   ├── current-state.md
+│   ├── scope-boundaries.md
+│   ├── terminology.md
+│   └── vision-and-goals.md
+├── 01-architecture
+│   ├── aarambooks-ecosystem-architecture.md
+│   ├── domain-ownership.md
+│   ├── integration-philosophy.md
+│   ├── module-responsibilities.md
+│   └── system-boundaries.md
+├── 02-brain-core
+│   ├── action-engine.md
+│   ├── ai-model-gateway.md
+│   ├── brain-core-overview.md
+│   ├── brain-core-principles.md
+│   ├── context-engine.md
+│   ├── conversation-engine.md
+│   ├── decision-engine.md
+│   ├── knowledge-engine.md
+│   └── memory-framework.md
+├── 03-intelligence-domains
+│   ├── customer-query-intelligence
+│   │   ├── escalation-rules.md
+│   │   ├── query-domain-overview.md
+│   │   ├── query-types.md
+│   │   ├── resolution-framework.md
+│   │   └── success-metrics.md
+│   └── ndr-intelligence
+│       ├── ndr-decision-rules.md
+│       ├── ndr-domain-overview.md
+│       ├── ndr-integrations.md
+│       ├── ndr-success-metrics.md
+│       └── ndr-workflows.md
+├── 04-data-models
+│   ├── action-model.md
+│   ├── audit-model.md
+│   ├── conversation-model.md
+│   ├── customer-context-model.md
+│   ├── decision-model.md
+│   ├── interaction-model.md
+│   └── knowledge-model.md
+├── 05-integrations
+│   ├── aaram-identity
+│   │   └── integration-contract.md
+│   ├── aaram-inventory
+│   │   └── integration-contract.md
+│   ├── aaram-packing
+│   │   └── integration-contract.md
+│   ├── ai-providers
+│   │   └── provider-strategy.md
+│   ├── logistics
+│   │   └── integration-contract.md
+│   └── shopdeck
+│       ├── api-requirements.md
+│       ├── data-mapping.md
+│       ├── shopdeck-overview.md
+│       └── webhook-requirements.md
+├── 06-api-contracts
+│   ├── action-api.md
+│   ├── api-design-principles.md
+│   ├── authentication.md
+│   ├── conversation-api.md
+│   ├── customer-context-api.md
+│   └── external-api-contracts.md
+├── 07-events
+│   ├── event-architecture.md
+│   ├── event-naming-standard.md
+│   ├── event-versioning.md
+│   ├── inbound-events.md
+│   └── outbound-events.md
+├── 08-security-governance
+│   ├── ai-safety-rules.md
+│   ├── audit-requirements.md
+│   ├── data-privacy.md
+│   ├── human-escalation-policy.md
+│   └── permission-model.md
+├── 09-decisions
+│   ├── ADR-001-brain-separation.md
+│   ├── ADR-002-ai-does-not-own-truth.md
+│   ├── ADR-003-event-driven-integration.md
+│   └── ADR-004-model-provider-independence.md
+├── 10-implementation-plan
+│   ├── deployment-plan.md
+│   ├── development-phases.md
+│   ├── sprint-plan.md
+│   └── testing-strategy.md
+└── ai-context
+    ├── AG_ARCHITECTURE_RULES.md
+    ├── AG_CURRENT_TASK.md
+    ├── AG_DO_NOT_DO.md
+    ├── AG_MASTER_CONTEXT.md
+    ├── AG_TERMINOLOGY.md
+    └── aarambooks-master-context-handoff.md
+```
