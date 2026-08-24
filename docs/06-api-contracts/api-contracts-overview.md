@@ -2,39 +2,43 @@
 
 ## Purpose
 
-API Contract Architecture defines the conceptual communication agreements that allow AaramBooks systems and intelligence layers to collaborate while preserving ownership boundaries.
+API Contract Architecture defines the conceptual agreements that govern communication between AaramBooks ecosystem layers.
 
-API contracts create controlled communication between independent domains. They define shared expectations without transferring ownership of business truth.
+API contracts allow independent systems to collaborate without transferring ownership of business truth.
 
-## Architectural Principle
-
-AaramBooks follows:
+The foundation principle is:
 
 > Business systems create truth. Aaram Brain creates intelligence from that truth.
 
-API contracts preserve this by ensuring:
+API contracts exist to ensure that communication is controlled, understandable, and aligned with architectural ownership.
 
-- Business systems own operational truth.
-- Aaram Brain consumes trusted information.
-- Intelligence domains use Brain capabilities.
-- Intelligence applications consume intelligence outcomes.
+## Architectural Position
+
+AaramBooks separates:
+
+- Business systems that maintain operational truth.
+- Aaram Brain that creates intelligence.
+- Intelligence domains that solve specialized problems.
+- Intelligence applications that deliver business experiences.
+
+Contracts connect these layers while preserving responsibility boundaries.
 
 ## Contract Responsibility
 
-Contracts define communication boundaries, not business ownership.
+API contracts define:
 
-Information shared through a contract remains owned by the originating business domain.
+- What a system or intelligence capability makes available.
+- Who can consume that capability.
+- The responsibility of producers and consumers.
+- The boundary of collaboration.
 
-Aaram Brain does not become an operational system because it consumes business information.
+Contracts do not define ownership transfer.
 
-## Communication Layers
+## Architectural Outcome
 
-Conceptual contract relationships exist between:
+API Contracts enable evolution through controlled communication while preserving:
 
-- Business Systems and Aaram Brain.
-- Brain Core and Intelligence Domains.
-- Intelligence Domains and Intelligence Applications.
-
-## Outcome
-
-API Contracts enable collaboration, future evolution, and controlled intelligence exchange while preserving the separation between truth and intelligence.
+- Single ownership of truth.
+- Domain independence.
+- Intelligence without operational ownership.
+- Future extensibility.
