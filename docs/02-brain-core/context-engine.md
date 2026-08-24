@@ -1,279 +1,284 @@
-# Aaram Brain Context Engine Architecture
+# Context Engine
 
 ## 1. Purpose
 
-This document defines the architectural role of the Context Engine within Aaram Brain Core.
+The Context Engine is a core capability of Aaram Brain Core responsible for understanding the situation in which intelligence is required.
 
-The purpose of the Context Engine is to define how Aaram Brain understands and organizes business context required for intelligence capabilities.
+Its purpose is to provide the necessary business, operational, and interaction context required for meaningful intelligence.
 
-This document establishes:
+The Context Engine does not create business truth.
 
-- The purpose of contextual understanding.
-- The responsibility of the Context Engine.
-- The relationship between context and intelligence.
-- The boundaries of contextual responsibility.
+It understands and organizes trusted information created by business systems.
 
-Implementation details, database design, API design, data models, and technology decisions are intentionally excluded.
+The foundational rule is:
 
----
-
-# 2. Context Engine Definition
-
-The Context Engine is a foundational capability within Aaram Brain Core responsible for enabling business context understanding.
-
-Business systems create operational truth.
-
-The Context Engine helps Aaram Brain understand that truth within the appropriate business context.
-
-The principle is:
-
-> Intelligence requires context before reasoning.
-
-Without context, information remains isolated.
-
-With context, information becomes meaningful for decision-making.
+> Business systems create truth. Aaram Brain creates intelligence from that truth.
 
 ---
 
-# 3. Position Within Aaram Brain
+# 2. Position Within Brain Core
 
-The Context Engine exists within Brain Core.
+The Context Engine provides the foundation for all other Brain Core capabilities.
 
-The relationship model:
-
-```
-Business Systems
+```text
+Aaram Brain Core
 
         |
-
-Operational Truth
-
         |
-
-Context Engine
-
++----------------+
+| Context Engine |
++----------------+
         |
-
-Aaram Brain Intelligence
-
         |
-
-Recommendations & Decisions
++----------------+
+| Knowledge      |
+| Reasoning      |
+| Decision       |
+| Action         |
++----------------+
 ```
 
-The Context Engine does not replace business systems.
-
-It creates understanding around information received from trusted business domains.
+Without context, intelligence cannot correctly understand business situations.
 
 ---
 
-# 4. Purpose of Context Understanding
+# 3. Core Responsibility
 
-The Context Engine enables Aaram Brain to understand:
+The Context Engine is responsible for creating an understanding of:
 
-- Business situations.
-- Operational conditions.
-- Relationships between information.
-- Relevant business meaning.
-- Decision context.
-
-The objective is not only to know information.
-
-The objective is to understand what the information represents.
+- Who is involved.
+- What is happening.
+- Where the situation exists.
+- When it occurred.
+- Which business domain is involved.
+- What historical information is relevant.
+- What constraints apply.
 
 ---
 
-# 5. Context Engine Responsibilities
+# 4. Context Definition
 
-The Context Engine is responsible for:
+Context represents the complete understanding required for intelligence processing.
 
-- Establishing business context.
-- Organizing relevant information.
-- Connecting information with business meaning.
-- Supporting intelligence domain understanding.
-- Providing contextual foundation for reasoning.
+Context may include:
 
----
+## 4.1 Business Context
 
-# 6. Context Engine Boundaries
+Understanding the business situation.
 
-## 6.1 What Context Engine Owns
+Examples:
 
-The Context Engine owns:
-
-- Context understanding capability.
-- Context organization capability.
-- Business interpretation capability.
-- Intelligence context foundation.
+- Customer interaction.
+- Order situation.
+- Inventory condition.
+- Delivery scenario.
+- Operational event.
 
 ---
 
-## 6.2 What Context Engine Does Not Own
+## 4.2 Entity Context
 
-The Context Engine does not own:
+Understanding relationships between business entities.
 
-- Business truth.
-- Operational records.
-- Inventory ownership.
-- Identity ownership.
-- Warehouse execution.
-- Business workflows.
+Examples:
 
-The owning business domain remains the authority for its information.
+- Customer and order relationship.
+- Product and inventory relationship.
+- Delivery and customer relationship.
 
 ---
 
-# 7. Relationship With Business Domains
+## 4.3 User Context
 
-Business domains provide trusted operational information.
+Understanding the person or system requesting intelligence.
 
-The Context Engine uses that information to build understanding.
+Examples:
 
-Example relationship:
+- User role.
+- User responsibility.
+- Access scope.
+- Business purpose.
 
-```
+---
+
+## 4.4 Temporal Context
+
+Understanding time-based relevance.
+
+Examples:
+
+- Current situation.
+- Historical events.
+- Previous interactions.
+- Business timelines.
+
+---
+
+## 4.5 Domain Context
+
+Understanding which business domain is involved.
+
+Examples:
+
+- Inventory context.
+- Warehouse context.
+- Customer service context.
+- Delivery context.
+
+---
+
+# 5. Relationship With Business Systems
+
+Business systems remain the owners of operational truth.
+
+The Context Engine consumes information from business domains to create intelligence context.
+
+Example:
+
+```text
 AaramInventory
 
-        |
+Creates:
+- Inventory truth
+- Stock state
+- Product information
 
-Inventory Truth
 
         |
+        v
+
 
 Context Engine
 
-        |
-
-Inventory Understanding
+Creates:
+- Inventory understanding
+- Relevant situation context
+- Intelligence-ready interpretation
 ```
 
-The Context Engine understands information but does not become the inventory owner.
+The Context Engine does not become an inventory authority.
 
 ---
 
-# 8. Relationship With Intelligence Domains
+# 6. Context Responsibilities
 
-Intelligence Domains depend on contextual understanding to provide specialized intelligence.
+## 6.1 Context Collection
 
-The Context Engine provides:
-
-- Relevant business context.
-- Situational understanding.
-- Contextual relationships.
-
-Intelligence Domains provide:
-
-- Domain-specific reasoning.
-- Recommendations.
-- Intelligence outcomes.
+Identify relevant information required for understanding a situation.
 
 ---
 
-# 9. Context Principles
+## 6.2 Context Organization
 
-## 9.1 Truth Comes From Business Domains
-
-Context is created from trusted business information.
-
-The Context Engine does not create operational truth.
+Arrange information into meaningful relationships.
 
 ---
 
-## 9.2 Context Enables Intelligence
+## 6.3 Context Relevance
 
-Better understanding enables better reasoning and recommendations.
-
----
-
-## 9.3 Context Must Respect Ownership
-
-Contextual understanding must preserve domain ownership boundaries.
+Determine which information is meaningful for a specific intelligence requirement.
 
 ---
 
-## 9.4 Context Should Be Reusable
+## 6.4 Context Continuity
 
-Context capabilities should support multiple Intelligence Domains.
-
----
-
-# 10. Context Evolution Model
-
-The Context Engine should evolve by improving Aaram Brain's understanding capability.
-
-Future expansion should:
-
-- Improve business understanding.
-- Support additional Intelligence Domains.
-- Preserve operational ownership.
-- Avoid becoming a replacement business system.
-
-The evolution model:
-
-```
-Business Truth
-
-        |
-
-Context Understanding
-
-        |
-
-Reasoning Capability
-
-        |
-
-Intelligent Decisions
-```
+Maintain understanding across related interactions and situations.
 
 ---
 
-# 11. Context Governance
+# 7. Context Boundaries
 
-Every Context Engine capability should be evaluated against:
+The Context Engine must not:
 
-## Purpose
+- Create operational records.
+- Change business states.
+- Own domain rules.
+- Replace domain databases.
+- Make final business decisions.
 
-What understanding capability does this provide?
+It provides understanding, not authority.
 
 ---
 
-## Ownership
+# 8. Context and Intelligence Domains
 
-Does the business domain continue owning its truth?
+Intelligence domains use Context Engine capabilities for specific objectives.
+
+Example:
+
+## NDR Intelligence
+
+Requires context such as:
+
+- Delivery situation.
+- Customer history.
+- Previous attempts.
+- Operational constraints.
+
+---
+
+## Customer Query Intelligence
+
+Requires context such as:
+
+- Customer identity.
+- Order information.
+- Product information.
+- Previous interactions.
+
+---
+
+# 9. Context Quality Principles
+
+Effective intelligence depends on:
+
+## Accuracy
+
+Context must reflect trusted business information.
+
+---
+
+## Completeness
+
+Relevant information should be available.
 
 ---
 
 ## Relevance
 
-Does this improve intelligence quality?
+Only meaningful information should influence intelligence.
 
 ---
 
-## Boundary
+## Traceability
 
-Does this remain an intelligence capability?
-
----
-
-## Reusability
-
-Can multiple Intelligence Domains benefit from it?
+Context should be understandable and explainable.
 
 ---
 
-# 12. Final Definition
+# 10. Future Evolution
 
-The Context Engine is the foundational understanding capability of Aaram Brain.
+The Context Engine will evolve as the ecosystem grows.
 
-It transforms trusted business information into meaningful business context without taking ownership away from operational systems.
+Future capabilities may include:
+
+- Cross-domain understanding.
+- Dynamic situation awareness.
+- Relationship discovery.
+- Business scenario interpretation.
+
+Evolution must preserve the principle:
+
+> Context improves understanding; it does not replace truth ownership.
+
+---
+
+# 11. Final Architecture Statement
+
+The Context Engine is the situational understanding layer of Aaram Brain Core.
+
+It transforms distributed business information into meaningful intelligence context while preserving business domain ownership.
 
 Business systems create truth.
 
-The Context Engine creates understanding.
-
-Aaram Brain creates intelligence from that understanding.
-
-The governing principle remains:
-
-> Business systems create truth. Aaram Brain creates intelligence from that truth.
+The Context Engine creates understanding from that truth.
