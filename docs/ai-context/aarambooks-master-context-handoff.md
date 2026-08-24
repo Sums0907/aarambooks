@@ -435,13 +435,14 @@ The foundational rule of the ecosystem is:
 ├── 02-brain-core
 │   ├── action-engine.md
 │   ├── ai-model-gateway.md
-│   ├── brain-core-overview.md
+│   ├── brain-core-architecture.md
 │   ├── brain-core-principles.md
 │   ├── context-engine.md
 │   ├── conversation-engine.md
 │   ├── decision-engine.md
 │   ├── knowledge-engine.md
-│   └── memory-framework.md
+│   ├── memory-framework.md
+│   └── reasoning-engine.md
 ├── 03-intelligence-domains
 │   ├── customer-query-intelligence
 │   │   ├── escalation-rules.md
