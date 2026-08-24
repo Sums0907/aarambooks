@@ -6,55 +6,60 @@ This register tracks low-level, implementation-specific technical decisions that
 ---
 
 ## TDR-001: Backend Architecture Pattern
-- **Status:** [OPEN]
+- **Status:** [CLOSED]
 - **Options Considered:**
   - *Option A: Monorepo with separated modules.* All Intelligence Domains and Brain Core live in one repository but remain strictly decoupled via internal code interfaces.
   - *Option B: Polyrepo microservices.* Each Intelligence Domain and Brain Core gets its own repository and is deployed as an independent network service.
 - **Recommendation:** Option A (Monorepo with separated modules).
 - **Trade-offs:** A monorepo reduces CI/CD overhead and simplifies cross-module interface testing for the initial MVP. Polyrepo forces strict physical network boundaries but adds significant DevOps and deployment complexity for Milestone 0.
-- **Final Decision:** [OPEN]
+- **Final Decision:** Monorepo with separated modules.
+- **Final Rationale:** Prioritizing velocity and simplified CI/CD for MVP-1. We will enforce logical decoupling via directory structure and interface boundaries rather than physical network boundaries.
 
 ---
 
 ## TDR-002: Database Strategy (Memory Framework)
-- **Status:** [OPEN]
+- **Status:** [CLOSED]
 - **Options Considered:**
   - *Option A: PostgreSQL with pgvector.* A unified relational database that handles both structured session state and vector embeddings.
   - *Option B: Polyglot persistence (Redis + Pinecone/Weaviate).* Redis for fast transient session state; a dedicated vector database for knowledge embeddings and semantic memory.
 - **Recommendation:** Option A (PostgreSQL with pgvector).
 - **Trade-offs:** Option A provides operational simplicity and reduces the number of moving parts during MVP-1. Option B provides specialized performance at scale but introduces infrastructure fragmentation and complex data synchronization.
-- **Final Decision:** [OPEN]
+- **Final Decision:** PostgreSQL with pgvector.
+- **Final Rationale:** Reduces infrastructure fragmentation. Operational simplicity is critical for Milestone 0. PostgreSQL with pgvector is sufficient to handle both state and vector search for the MVP volumes.
 
 ---
 
 ## TDR-003: Internal Communication Protocol
-- **Status:** [OPEN]
+- **Status:** [CLOSED]
 - **Options Considered:**
   - *Option A: REST/JSON over HTTP.* Standard, ubiquitous, and easy to debug.
   - *Option B: gRPC/Protobuf.* Strongly typed contracts, lower latency, and highly efficient serialization.
   - *Option C: Event-driven (Kafka/RabbitMQ).* Fully asynchronous pub/sub.
 - **Recommendation:** Option B (gRPC).
 - **Trade-offs:** gRPC enforces strict, code-generated API contracts (via Protobuf) between Intelligence Domains and Brain Core, naturally aligning with the API Contract Boundary rules. REST is easier to test manually but lacks native strict contract enforcement. Event-driven architecture adds unnecessary latency for synchronous conversational responses.
-- **Final Decision:** [OPEN]
+- **Final Decision:** REST/OpenAPI for MVP, gRPC deferred if required.
+- **Final Rationale:** While gRPC provides strict contracts, REST/OpenAPI is faster to bootstrap and debug during MVP-1. We will enforce contracts using OpenAPI schemas rather than Protobuf initially. gRPC adoption is deferred until performance or strict binary contracts become an absolute necessity.
 
 ---
 
 ## TDR-004: AI Provider Strategy (Model Gateway)
-- **Status:** [OPEN]
+- **Status:** [CLOSED]
 - **Options Considered:**
   - *Option A: Single Provider (e.g., OpenAI API).* Use GPT-4o for all reasoning, intent parsing, and conversation generation.
   - *Option B: Multi-Provider / Agnostic (e.g., LiteLLM adapter).* Abstract API calls through a router that can dynamically switch between OpenAI, Anthropic, and open-source models.
 - **Recommendation:** Option B (Multi-Provider adapter).
 - **Trade-offs:** Option B requires slightly more setup but prevents vendor lock-in, fulfilling the core mandate of the Model Gateway. Option A is faster to implement initially but risks tight coupling to one vendor's prompt structure and API design.
-- **Final Decision:** [OPEN]
+- **Final Decision:** Multi-provider Model Gateway.
+- **Final Rationale:** Vendor independence is a hard architectural rule. Implementing a multi-provider gateway abstraction from day one ensures we do not tightly couple reasoning logic to a single external LLM provider.
 
 ---
 
 ## TDR-005: Deployment Architecture
-- **Status:** [OPEN]
+- **Status:** [CLOSED]
 - **Options Considered:**
   - *Option A: Serverless Functions (AWS Lambda / Google Cloud Functions).* Highly scalable, zero maintenance for idle time.
   - *Option B: Containerized Orchestration (Docker / Kubernetes / ECS).* Long-running containers managing continuous state.
 - **Recommendation:** Option B (Containerized Orchestration).
 - **Trade-offs:** AI reasoning and memory context assembly often suffer from severe serverless cold starts. Long-running containers provide predictable latency for continuous conversational intelligence, although they require more active infrastructure management.
-- **Final Decision:** [OPEN]
+- **Final Decision:** Containerized deployment using Docker-based approach. Kubernetes deferred.
+- **Final Rationale:** Containerization solves the cold-start latency problem for conversational AI, but full Kubernetes orchestration is too heavy for MVP-1. A simple Docker-based deployment provides the necessary environment consistency without the operational overhead of K8s.
