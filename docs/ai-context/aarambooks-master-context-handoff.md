@@ -427,7 +427,7 @@ The foundational rule of the ecosystem is:
 │   ├── terminology.md
 │   └── vision-and-goals.md
 ├── 01-architecture
-│   ├── aarambooks-ecosystem-architecture.md
+│   ├── ecosystem-architecture.md
 │   ├── domain-ownership.md
 │   ├── integration-philosophy.md
 │   ├── module-responsibilities.md
