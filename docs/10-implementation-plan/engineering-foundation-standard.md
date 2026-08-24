@@ -23,6 +23,32 @@ To prevent port collisions on host networks and developer machines:
 - **Port allocation rules:** Port ranges must be logically assigned (e.g., 8000-8099 for core services, 8100-8199 for adapters).
 - **Prevention of service conflicts:** New services must verify port availability before defining their default bindings.
 
+### Port Registry
+
+Existing Aaram system reservations:
+
+**AaramPacking:**
+- Backend 8001
+- Frontend 8002
+- Admin Frontend 8003
+
+**AaramInventory:**
+- Backend 8100
+- Frontend 5173
+
+**AaramIdentity:**
+- Backend 9000
+- Frontend 9001
+
+**AaramBooks Brain (Reserved):**
+- Range 8000-8099
+- Brain API initial port 8000
+
+**Rules:**
+- No service may select ports outside the registry without approval.
+- Database ports should remain internal Docker network ports unless explicitly required.
+- Future services must reserve ports before implementation.
+
 ---
 
 ## 3. Docker Standards
@@ -81,7 +107,50 @@ Prevent service conflicts, deployment confusion, and ownership ambiguity across 
 
 ---
 
-## 7. Deployment Readiness Checklist
+## 7. Environment Isolation Standard
+
+Define separate environments:
+- Development
+- Testing / CI
+- Staging
+- Production
+
+For each environment define:
+- Separate database
+- Separate credentials
+- Separate configuration
+- Separate data ownership
+
+Database naming convention:
+`{project}_{module}_{environment}`
+
+Examples:
+- aarambooks_brain_core_dev
+- aarambooks_brain_core_test
+- aarambooks_brain_core_staging
+- aarambooks_brain_core_prod
+
+Rules:
+- Never share databases between environments.
+- Never commit environment secrets.
+- `.env.example` is the only committed template.
+- Production secrets must come from deployment secret management.
+
+### Environment Promotion Rule
+
+Rules:
+- Code moves between environments.
+- Data does not move automatically between environments.
+- Development data must never be promoted to staging or production.
+- Production data must never be copied into lower environments without approved sanitization and privacy controls.
+- Test data must remain isolated from operational data.
+
+Purpose:
+Prevent accidental exposure of customer, order, inventory, operational, or intelligence data across environments.
+
+---
+
+## 8. Deployment Readiness Checklist
 Before any service or module is deployed to a shared environment:
 - [ ] Configuration reviewed (No hardcoded values detected).
 - [ ] Ports registered in the central architecture registry.

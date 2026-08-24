@@ -14,6 +14,7 @@ Convert the approved AaramBooks conceptual and technical architecture into an ac
 - [ ] Implement Docker Standards (Service names, overrides).
 - [ ] Implement Database Isolation Standards (Schemas, users).
 - [ ] Enforce Service Identity Standard (Unique, explicit naming).
+- [ ] Enforce Environment Isolation Standard (Isolation & Promotion rules).
 - [ ] Enforce Deployment Readiness Checklist.
 
 ### Milestone 0B — Brain Core Foundation

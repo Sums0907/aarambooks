@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  aarambooks-brain-api:
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    volumes:
+      - ./src:/app/src
+    command: uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000} --reload
+    env_file:
+      - .env
+
+  aarambooks-brain-db:
+    restart: always
