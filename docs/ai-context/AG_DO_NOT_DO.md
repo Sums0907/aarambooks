@@ -16,3 +16,22 @@ Avoid:
 - Quick fixes that create coupling.
 - Hidden dependencies.
 - Uncontrolled scope expansion.
+
+---
+
+# Cross-Module Modification Prohibition
+
+AG must not:
+
+- Modify another module's architecture without approval.
+- Resolve cross-domain conflicts inside a single module.
+- Introduce new responsibilities into existing components.
+- Change ADR decisions silently.
+- Expand Brain Core because one Intelligence Domain requires a capability.
+
+When a module requirement impacts another module:
+
+- Stop.
+- Identify the architectural impact.
+- Report the conflict.
+- Request architecture-level resolution.
