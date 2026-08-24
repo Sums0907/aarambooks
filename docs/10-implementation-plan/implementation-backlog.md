@@ -5,79 +5,86 @@ Convert the approved AaramBooks conceptual and technical architecture into an ac
 
 ---
 
-## 1. MVP Scope (Phase 1)
-The initial production release focuses on foundational intelligence and two specific high-value problem domains:
-1. **Brain Core Foundation:** Establishing the Model Gateway, Context Engine, Memory Framework, and Action Engine.
-2. **Customer Context Foundation:** Read-only integration with ShopDeck and AaramIdentity.
-3. **NDR Intelligence Domain:** Automating Non-Delivery Report resolution logic.
-4. **Customer Query Intelligence Domain:** Automating conversational support for orders, delivery, products, and returns.
+## 1. Milestone 0: Engineering Foundation
+**Goal:** Establish the underlying infrastructure, code repositories, and pipelines before building intelligence.
+- [ ] Initialize code repositories and CI/CD pipelines.
+- [ ] Setup developer environments and mock business data endpoints.
+- [ ] Define Internal API Protocol (gRPC/REST) for communication between Intelligence Domains and Brain Core.
+- [ ] Establish initial Memory Framework database structure.
 
 ---
 
-## 2. Implementation Phases & Build Sequence
+## 2. MVP-1 Scope (Initial Release)
+The first production release focuses strictly on foundational intelligence and a highly scoped conversation domain.
+1. **Brain Core Foundation:** Establishing the Model Gateway, Context Engine, and Memory Framework. (Action Engine deferred).
+2. **Customer Context Foundation:** Read-only integrations with ShopDeck and AaramIdentity.
+3. **Customer Query Intelligence Domain (Limited Scope):** Automating conversational support strictly for basic read-only queries (e.g., Order Status, Delivery Updates).
 
-### Phase 1.1: Core Infrastructure & Gateway
-**Goal:** Establish the foundation for AI inference, state memory, and internal routing.
-- [ ] Implement Model Gateway abstraction layer.
-- [ ] Provision external AI providers (LLM provider selected from Open Decisions).
-- [ ] Deploy initial Memory Framework database (Technology selected from Open Decisions).
-- [ ] Establish foundational API Contracts (gRPC/REST) between Brain Core and domain boundaries.
+---
 
-### Phase 1.2: Business System Integrations (Read-Only)
-**Goal:** Enable Brain Core's Context and Knowledge Engines to fetch operational truth.
-- [ ] Implement ShopDeck API Integrations (Customer Profile, Order Status, Product Catalog).
-- [ ] Implement Logistics API Integrations (Shipment statuses for NDRs).
+## 3. MVP-1 Implementation Phases & Build Sequence
+
+### Phase 1.1: Context Engine Validation (First Intelligence Capability)
+**Goal:** Prove that Brain Core can successfully read, fuse, and interpret operational truth.
+- [ ] Implement ShopDeck API Integrations (Customer Profile, Order Status).
 - [ ] Build Context Engine aggregation and fusion logic.
+- [ ] Validate Context Engine output against test customer scenarios.
 
-### Phase 1.3: Intelligence Domains (Orchestration)
-**Goal:** Build the specific state machines and domain logic for the MVP scopes.
-- [ ] Implement NDR Intelligence State Model (Intake, Contextual Understanding, Resolution Recommendation).
+### Phase 1.2: Core Infrastructure & Gateway
+**Goal:** Establish the foundation for AI inference and state memory.
+- [ ] Implement Model Gateway abstraction layer.
+- [ ] Provision external AI providers.
+- [ ] Connect Context Engine output to Model Gateway for grounded reasoning.
+
+### Phase 1.3: Customer Query Intelligence (Read-Only Orchestration)
+**Goal:** Build the specific state machine for conversational queries.
 - [ ] Implement Customer Query Intelligence Session Manager (Multi-turn conversational tracking).
-- [ ] Implement Knowledge Engine retrieval logic over static business rules (Policies, SOPs).
-- [ ] Implement Reasoning & Decision Engine recommendation pathways.
-
-### Phase 1.4: Action Execution & Feedback
-**Goal:** Close the loop by allowing Intelligence Domains to trigger operational changes.
-- [ ] Build Action Engine request formatter (Standardized intent payloads).
-- [ ] Implement Business Domain Validation (e.g., ShopDeck receiving and validating a refund request).
-- [ ] Implement Outcome Intelligence (Feedback loop logging resolutions back to the Memory Framework).
+- [ ] Connect Session Manager to Memory Framework.
+- [ ] Build intent parsing for Order Status and Delivery queries.
+- [ ] Formulate read-only customer responses (Action Engine execution is out of scope).
 
 ---
 
-## 3. Dependencies
-- **Data Availability:** ShopDeck and Logistics APIs must be available and stable for Context Engine read access.
-- **Vendor Selection:** Model Gateway cannot be finalized until the specific LLM vendors are procured.
+## 4. MVP-2 Scope (Deferred)
+The second release will expand scope and introduce execution capabilities.
+1. **NDR Intelligence Domain:** Automating Non-Delivery Report resolution logic.
+2. **Action Engine Execution:** Closing the loop by allowing Intelligence Domains to trigger operational changes in Business Systems (e.g., triggering refunds or delivery retries).
+3. **Knowledge Engine & Complex Queries:** Support for return policies, product catalog queries, and damaged product complaints.
+
+---
+
+## 5. Dependencies
+- **Data Availability:** ShopDeck APIs must be available and stable for Context Engine read access during MVP-1.
+- **Vendor Selection:** Model Gateway cannot be finalized until specific LLM vendors are procured.
 - **Communication Channels:** Customer Query Intelligence requires the Voice/Chat channel architecture to be finalized to build the intake layer.
 
 ---
 
-## 4. First Components to Build
-1. **Model Gateway:** Essential prerequisite for any reasoning or intent parsing capabilities.
-2. **Context Engine (ShopDeck Adapter):** Required to provide grounding operational truth to the reasoning models.
+## 6. First Components to Build (MVP-1)
+1. **Context Engine (ShopDeck Adapter):** The absolute first capability to validate; it grounds all future AI reasoning in operational truth.
+2. **Model Gateway:** Essential prerequisite for reasoning capabilities.
 3. **Memory Framework:** Required to store session state and multi-turn conversation context.
 
 ---
 
-## 5. First Integrations Required
+## 7. First Integrations Required (MVP-1)
 1. **ShopDeck Orders API (Read-only):** To pull line items and delivery status.
 2. **ShopDeck Customer API (Read-only):** To pull basic identity and profile truth.
-3. **Courier/Logistics Webhooks (Read-only):** To ingest inbound NDR events.
 
 ---
 
-## 6. Technical Decisions to Close Before Development
+## 8. Technical Decisions to Close Before Development
 Before coding begins, the following open decisions must be formally closed:
-1. **Database Selection:** Physical database for the Memory Framework (e.g., Vector DB for embeddings, NoSQL for session state).
-2. **Internal API Protocol:** Selecting between gRPC, REST, or message queues for communication between Intelligence Domains and Brain Core.
-3. **External AI Providers:** Procurement of the foundational LLM (OpenAI, Anthropic, Gemini, etc.) for the Model Gateway.
-4. **Supported Channels:** Defining the initial intake channel (WhatsApp, Web, or Email) to build the intake adapters.
+1. **Database Selection:** Physical database for the Memory Framework.
+2. **Internal API Protocol:** Selecting between gRPC, REST, or message queues.
+3. **External AI Providers:** Procurement of the foundational LLM for the Model Gateway.
+4. **Supported Channels:** Defining the initial intake channel (WhatsApp, Web, or Email).
 
 ---
 
-## 7. Development Readiness Checklist
+## 9. Development Readiness Checklist
 - [ ] Architecture baseline and design documents frozen and approved.
-- [ ] API Contracts (Brain Core, Business Systems, Intelligence Domains) drafted and reviewed.
+- [ ] API Contracts drafted and reviewed.
 - [ ] Technical Decisions to Close Before Development resolved.
-- [ ] Developer environments configured (Access to mock ShopDeck/Logistics APIs).
+- [ ] Developer environments configured.
 - [ ] CI/CD pipeline and code repositories initialized.
-- [ ] Model Gateway API keys secured and provisioned.
