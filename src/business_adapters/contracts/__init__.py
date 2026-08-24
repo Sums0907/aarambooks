@@ -1,0 +1,1 @@
+# Business Adapter Contracts
