@@ -135,3 +135,18 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Validation:** 22/22 tests passed across the Brain Core test suite, demonstrating Provider Registry capability isolation and ContextAssembler fusion logic against mock providers.
 - **Status:** RESOLVED (Phase 2 Exit Criteria passed)
 - **Related Incident / Decision:** Phase 2 (Context Engine & Provider Registry)
+
+---
+
+### Incident ID: INC-20260826-003 (Phase 3 Execution)
+- **Date:** 2026-08-26
+- **Milestone:** Phase 3
+- **Component:** Cognitive Logical Abstractions
+- **Problem:** Define Aaram-owned intelligence boundaries (Memory, Knowledge, Gateway, Decision Engine) entirely decoupled from commodity physical infrastructure.
+- **Error / Symptom:** N/A (Feature Implementation)
+- **Root Cause:** N/A
+- **Fix:** Implemented pure Python Abstract Base Classes (ABCs) and rigid Pydantic Models (`ConfigDict(frozen=True)`) for Memory, Knowledge, Gateway, and Decision structures. Strictly avoided any SQL databases, vector SDKs, or physical LLM integrations. Created deterministic mock unit tests proving these boundaries are provider-agnostic. Added missing test `__init__.py` files to resolve pytest module collection conflicts.
+- **Files Changed:** `src/brain_core/memory/interfaces.py`, `src/brain_core/knowledge/interfaces.py`, `src/brain_core/gateway/interfaces.py`, `src/brain_core/decision/interfaces.py`, and corresponding tests.
+- **Validation:** 30/30 tests passed across the entire Brain Core test suite, demonstrating robust interface definitions and immutable decision structures.
+- **Status:** RESOLVED (Phase 3 Exit Criteria passed)
+- **Related Incident / Decision:** Phase 3 (Cognitive Logical Abstractions)
