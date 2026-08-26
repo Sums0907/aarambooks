@@ -28,3 +28,4 @@ class ShipmentContext(FrozenContextModel):
 class InventoryContext(FrozenContextModel):
     """Minimal representation of inventory until a concrete API fixture is provided."""
     item_id: str
+    quantity_on_hand: float = 0.0

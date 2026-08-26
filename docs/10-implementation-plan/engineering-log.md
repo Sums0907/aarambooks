@@ -150,3 +150,18 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Validation:** 30/30 tests passed across the entire Brain Core test suite, demonstrating robust interface definitions and immutable decision structures.
 - **Status:** RESOLVED (Phase 3 Exit Criteria passed)
 - **Related Incident / Decision:** Phase 3 (Cognitive Logical Abstractions)
+
+---
+
+### Incident ID: INC-20260826-004 (Phase 4A Execution)
+- **Date:** 2026-08-26
+- **Milestone:** Phase 4
+- **Component:** Inventory Adapter & Brain Core Models
+- **Problem:** Connect AaramInventory for `quantity_on_hand` context and resolve Phase 1 `InventoryContext` schema discrepancy.
+- **Error / Symptom:** Initial adapter attempt encountered a mathematically frozen Phase 1 model that lacked the required `quantity_on_hand` field, forcing an illegal runtime mutation.
+- **Root Cause:** Phase 1 models deliberately deferred operational fields until concrete discovery.
+- **Fix:** Evolved Phase 1 `InventoryContext` to natively declare `quantity_on_hand: float = 0.0`. Repaired AaramInventory adapter to cleanly fetch M2M tokens, resolve warehouse ID, extract fractional balances, and instantiate the context natively without runtime mutations.
+- **Files Changed:** `src/brain_core/models/contexts.py`, `tests/brain_core/models/test_contexts.py`, `src/business_adapters/inventory/adapter.py`, `tests/business_adapters/inventory/test_adapter.py`
+- **Validation:** 40/40 tests passed cleanly. Explicit negative tests confirm zero/multiple warehouse failures.
+- **Status:** RESOLVED (Phase 4A Exit Criteria passed)
+- **Related Incident / Decision:** Phase 4A (Inventory Integration Final Pre-Implementation Audit)

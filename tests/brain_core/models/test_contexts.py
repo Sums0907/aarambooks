@@ -35,10 +35,39 @@ def test_shipment_context_frozen():
         ctx.shipment_id = "ship-456"
 
 def test_inventory_context_valid():
+    # 1. InventoryContext(item_id="x") remains valid.
+    # 2. Missing quantity_on_hand defaults to 0.0.
     ctx = InventoryContext(item_id="item-123")
     assert ctx.item_id == "item-123"
+    assert ctx.quantity_on_hand == 0.0
+
+def test_inventory_context_explicit_and_fractional():
+    # 3. Explicit quantity_on_hand values are preserved.
+    # 4. Fractional values are supported.
+    ctx = InventoryContext(item_id="item-123", quantity_on_hand=15.5)
+    assert ctx.item_id == "item-123"
+    assert ctx.quantity_on_hand == 15.5
 
 def test_inventory_context_frozen():
+    # 5. The model remains frozen.
     ctx = InventoryContext(item_id="item-123")
     with pytest.raises(ValidationError):
         ctx.item_id = "item-456"
+    with pytest.raises(ValidationError):
+        ctx.quantity_on_hand = 10.0
+
+def test_inventory_context_no_extra_fields():
+    # 6. Unknown extra fields remain rejected.
+    # 8. No confidence_score exists on InventoryContext.
+    with pytest.raises(ValidationError) as exc:
+        InventoryContext(item_id="item-123", confidence_score=99)
+    assert "confidence_score" in str(exc.value)
+
+    with pytest.raises(ValidationError):
+        InventoryContext(item_id="item-123", hypothetical_field="value")
+
+def test_inventory_context_schema():
+    # 7. quantity_on_hand is part of the declared Pydantic model/schema.
+    schema = InventoryContext.model_json_schema()
+    assert "quantity_on_hand" in schema["properties"]
+    assert schema["properties"]["quantity_on_hand"]["type"] == "number"
