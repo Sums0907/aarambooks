@@ -72,7 +72,7 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 - **Dependencies:** Phase 1.
 - **Source docs:** `docs/02-brain-core/memory-framework.md`, `docs/02-brain-core/knowledge-engine.md`, `docs/02-brain-core/ai-model-gateway.md`, `docs/02-brain-core/decision-engine.md`
 - **Files MUST read:** Phase 1 schemas.
-- **Files allowed to create:** `src/brain_core/memory/interfaces.py`, `src/brain_core/knowledge/interfaces.py`, `src/brain_core/gateway/interfaces.py`
+- **Files allowed to create:** `src/brain_core/memory/interfaces.py`, `src/brain_core/knowledge/interfaces.py`, `src/brain_core/gateway/interfaces.py`, `src/brain_core/decision/interfaces.py`
 - **Files allowed to modify:** None.
 - **Files MUST NOT modify:** Any physical DB drivers, vendor SDKs.
 - **Exact implementation tasks:** Create Python ABCs (Abstract Base Classes) for Memory Read/Write, Knowledge Search, and LLM Generation. Implement the pure logical Decision Engine tree schemas.
