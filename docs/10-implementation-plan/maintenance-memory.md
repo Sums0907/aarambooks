@@ -40,6 +40,7 @@ Its purpose is to preserve knowledge that a future maintainer would otherwise ha
 12. **Do not use this document to bypass** ADR/TDR governance.
 13. **Do not silently convert assumptions into facts**. Clearly distinguish: observed, verified, inferred, temporary assumption.
 14. **When a maintenance discovery indicates that architecture or an existing decision may be wrong**, flag it for formal review rather than silently changing the architecture.
+15. **Never use blanket `git add src/ tests/ docs/` during phase implementation.** Phase commits must explicitly stage ONLY the exact files permitted by the frozen phase boundary to prevent bleeding pre-existing or parallel work into the wrong phase.
 
 ==================================================
 3. How to Use This Document

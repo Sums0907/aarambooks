@@ -107,3 +107,16 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Related Incident / Decision:** N/A (Awaiting official ShopDeck API documentation or a sanitized raw JSON API response).
 
 ---
+
+### Incident ID: INC-20260826-001 (Phase 1 Execution)
+- **Date:** 2026-08-26
+- **Milestone:** Phase 1
+- **Component:** Brain Core Models & Action Engine Contracts
+- **Problem:** Implement strict, provider-independent mathematical structures for Context and Actions.
+- **Error / Symptom:** N/A (Feature Implementation)
+- **Root Cause:** N/A
+- **Fix:** Implemented pure Python Pydantic models for Contexts (Customer, Order, Shipment, Inventory) and Actions (ActionRequest, ActionResponse). Adhered strictly to immutability (ConfigDict frozen=True, extra=forbid). No speculative fields added for Order/Shipment/Inventory due to lack of source API fixtures, adhering strictly to the "DO NOT INVENT" rule.
+- **Files Changed:** `src/brain_core/models/contexts.py`, `src/brain_core/action_engine/contracts.py`, `tests/brain_core/models/test_contexts.py`, `tests/brain_core/action_engine/test_contracts.py`
+- **Validation:** 15 pytest unit tests verifying validation, frozen states, and rejection of extra fields. 100% pass rate.
+- **Status:** RESOLVED (Phase 1 Exit Criteria passed)
+- **Related Incident / Decision:** Phase 1 (Core Semantic Contracts & Action Boundaries)
