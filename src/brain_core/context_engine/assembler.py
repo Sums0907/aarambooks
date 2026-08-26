@@ -71,4 +71,3 @@ class ContextAssembler:
             intelligence=None,
             assembled_at=datetime.now(UTC)
         )
-
