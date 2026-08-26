@@ -18,14 +18,15 @@ This register tracks low-level, implementation-specific technical decisions that
 ---
 
 ## TDR-002: Database Strategy (Memory Framework)
-- **Status:** [CLOSED]
+- **Status:** [DEFERRED]
 - **Options Considered:**
   - *Option A: PostgreSQL with pgvector.* A unified relational database that handles both structured session state and vector embeddings.
   - *Option B: Polyglot persistence (Redis + Pinecone/Weaviate).* Redis for fast transient session state; a dedicated vector database for knowledge embeddings and semantic memory.
-- **Recommendation:** Option A (PostgreSQL with pgvector).
-- **Trade-offs:** Option A provides operational simplicity and reduces the number of moving parts during MVP-1. Option B provides specialized performance at scale but introduces infrastructure fragmentation and complex data synchronization.
-- **Final Decision:** PostgreSQL with pgvector.
-- **Final Rationale:** Reduces infrastructure fragmentation. Operational simplicity is critical for Milestone 0. PostgreSQL with pgvector is sufficient to handle both state and vector search for the MVP volumes.
+  - *Option C: Managed Database-as-a-Service.* Using a fully managed third-party vector/NoSQL database provider.
+- **Recommendation:** Defer to implementation phase.
+- **Trade-offs:** Locking in a database now violates the Build-vs-Buy strategy. Aaram must own the logical memory semantics and abstractions, not necessarily the physical storage technology.
+- **Final Decision:** Deferred to Implementation Phase.
+- **Final Rationale:** Under the Build-vs-Buy strategy, vector and database infrastructure are commodity components (BUY/USE). The exact physical storage technology will be selected during implementation based on available managed services, ensuring it remains behind the Aaram-owned Memory Framework abstraction.
 
 ---
 
@@ -47,10 +48,10 @@ This register tracks low-level, implementation-specific technical decisions that
 - **Options Considered:**
   - *Option A: Single Provider (e.g., OpenAI API).* Use GPT-4o for all reasoning, intent parsing, and conversation generation.
   - *Option B: Multi-Provider / Agnostic (e.g., LiteLLM adapter).* Abstract API calls through a router that can dynamically switch between OpenAI, Anthropic, and open-source models.
-- **Recommendation:** Option B (Multi-Provider adapter).
-- **Trade-offs:** Option B requires slightly more setup but prevents vendor lock-in, fulfilling the core mandate of the Model Gateway. Option A is faster to implement initially but risks tight coupling to one vendor's prompt structure and API design.
-- **Final Decision:** Multi-provider Model Gateway.
-- **Final Rationale:** Vendor independence is a hard architectural rule. Implementing a multi-provider gateway abstraction from day one ensures we do not tightly couple reasoning logic to a single external LLM provider.
+- **Recommendation:** Option B (Use an off-the-shelf Multi-Provider Gateway).
+- **Trade-offs:** Option B prevents vendor lock-in, fulfilling the core mandate of the Model Gateway. Building a custom gateway from scratch violates the Build-vs-Buy strategy. Option A is faster to implement initially but risks tight coupling to one vendor's API design.
+- **Final Decision:** Integrate an off-the-shelf multi-provider Model Gateway.
+- **Final Rationale:** Vendor independence is a hard architectural rule. To prevent vendor lock-in without reinventing the wheel, we will BUY/USE an off-the-shelf commodity model gateway (e.g., LiteLLM or similar) rather than implementing a custom routing infrastructure from scratch. Aaram owns the interface abstraction, not the gateway infrastructure.
 
 ---
 
