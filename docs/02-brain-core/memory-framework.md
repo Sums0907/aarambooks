@@ -15,6 +15,8 @@ The foundational rule is:
 > Business systems create truth. Aaram Brain creates intelligence from
 > that truth.
 
+Aaram owns the Memory Framework semantics and logical structures. External or replaceable providers may be used for the underlying database, session, and cache infrastructure.
+
 ## 2. Memory Categories
 
 ### Knowledge Memory

@@ -21,6 +21,8 @@ The Model Gateway provides:
 -   Provider independence.
 -   Capability consistency.
 
+Aaram owns the Model Gateway contract and logical abstraction. The implementation of this boundary may use appropriate commodity infrastructure or an off-the-shelf gateway.
+
 ## 3. Boundaries
 
 The Model Gateway does not define:

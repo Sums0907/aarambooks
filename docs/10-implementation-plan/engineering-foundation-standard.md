@@ -158,3 +158,43 @@ Before any service or module is deployed to a shared environment:
 - [ ] Database migrations verified and tested in a clean environment.
 - [ ] Health checks added (`/health` or `/ready` endpoints returning valid statuses).
 - [ ] Service Identity Standard applied (no generic naming).
+
+---
+
+## 9. Filename Responsibility Convention
+
+File naming must follow responsibility-based boundaries to prevent ambiguity.
+
+### Examples:
+
+- **`router.py`**: HTTP boundary and route definitions.
+- **`assembler.py`**: Context composition capability and core orchestration.
+- **`schemas.py`**: Data contracts and serialization structures.
+- **`models.py`**: Internal representations and ORM definitions.
+
+### Rules:
+
+Avoid generic filenames that do not indicate responsibility:
+- `api.py`
+- `service.py`
+- `server.py`
+- `backend.py`
+
+---
+
+## 10. Master Engineering Log
+
+To prevent the loss of critical implementation and debugging history between development sessions, all significant engineering incidents, root causes, fixes, and validation events must be permanently recorded in the [Master Engineering Log](engineering-log.md).
+
+This log acts as the persistent, human-readable engineering history for AaramBooks. Developers and automated agents must adhere to the logging rules defined within it when discovering or resolving major architectural or implementation issues.
+
+---
+
+## 11. Raw Data Protection Standard
+
+**RAW EXTERNAL / OPERATIONAL DATA MUST NEVER BE COMMITTED TO GITHUB.**
+
+1. **Definition of Raw Data:** Includes ShopDeck exports, API responses, Customer data, Order data, Phone numbers, Addresses, Financial/payment information, Production/staging datasets, and any other real operational records.
+2. **Local Usage:** Raw data may be used locally strictly for adapter development, mapping analysis, debugging, and integration investigation.
+3. **Git Boundary:** Raw data must remain outside Git. It is explicitly ignored via `.gitignore` (`sample-data/**/raw/`).
+4. **Fixture Usage:** Sanitized/synthetic fixtures may be committed when PII is removed/replaced, credentials/tokens are removed, production identifiers are removed, and the fixture remains structurally useful for testing.

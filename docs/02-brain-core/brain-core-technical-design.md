@@ -27,7 +27,7 @@ The engine pulls data from operational business systems to build a transient sna
 ## 2. Memory Framework
 
 **Responsibilities:**
-Enables Brain Core to retain context and learn across disparate interactions without becoming a transactional ledger. Memory improves intelligence; memory never becomes operational truth.
+Enables Brain Core to retain context and learn across disparate interactions without becoming a transactional ledger. Memory improves intelligence; memory never becomes operational truth. Aaram owns the memory semantics and logical framework, while appropriate commodity infrastructure (such as external databases or managed vector storage) may be used for the physical persistence layer.
 
 **Memory Types:**
 - **Conversation Memory:** The semantic log and state of an ongoing multi-turn interaction.
@@ -49,7 +49,7 @@ Acts as the intelligence layer over static business rules, policies, and product
 - **Knowledge Grounding:** Ensuring AI responses are strictly bound by approved company policies.
 
 **Clarification:**
-Business Domains own the knowledge content (the actual policies and documents). Brain Core owns the intelligence, indexing, and retrieval capabilities over that knowledge.
+Business Domains own the knowledge content (the actual policies and documents). Brain Core owns the intelligence semantics, orchestration, and retrieval capabilities over that knowledge. An off-the-shelf implementation or external provider may be used for the underlying vector storage and mathematical retrieval infrastructure, provided the Aaram-owned logical abstraction remains provider-independent.
 
 ---
 
@@ -118,7 +118,7 @@ The gateway manages connections to external providers for:
 - TTS (Text-to-Speech).
 - Telephony integration capabilities.
 
-It enforces vendor independence, token limits, PII masking, safety filtering, and telemetry logging before queries leave the ecosystem.
+It enforces vendor independence, token limits, PII masking, safety filtering, and telemetry logging before queries leave the ecosystem. Aaram strictly owns the Model Gateway contract and abstraction, while the underlying routing implementation may utilize an external or off-the-shelf gateway product.
 
 ---
 

@@ -187,6 +187,8 @@ Allow ecosystem understanding to grow as AaramBooks expands.
 
 # 7. Knowledge Boundaries
 
+Aaram owns the Knowledge Engine semantics, business rules, and intelligence orchestration. Appropriate commodity infrastructure (such as vector storage or managed retrieval APIs) may be used for the underlying storage and mathematical search operations, ensuring the Aaram-owned abstraction remains provider-independent.
+
 The Knowledge Engine must not:
 
 - Become a business database.

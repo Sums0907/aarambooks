@@ -22,7 +22,7 @@ Convert the approved AaramBooks conceptual and technical architecture into an ac
 - [ ] Initialize code repositories and CI/CD pipelines.
 - [ ] Setup developer environments and mock business data endpoints.
 - [ ] Define Internal API Protocol (gRPC/REST) for communication between Intelligence Domains and Brain Core.
-- [ ] Establish initial Memory Framework database structure.
+- [ ] Define the logical Memory Framework schema and select/integrate appropriate commodity infrastructure for persistence (rather than building custom databases).
 
 ---
 
@@ -44,13 +44,13 @@ The first production release focuses strictly on foundational intelligence and a
 
 ### Phase 1.2: Core Infrastructure & Gateway
 **Goal:** Establish the foundation for AI inference and state memory.
-- [ ] Implement Model Gateway abstraction layer.
+- [ ] Implement Model Gateway abstraction layer (Aaram owns the contract/abstraction, while the underlying implementation may integrate an external/off-the-shelf gateway).
 - [ ] Provision external AI providers.
 - [ ] Connect Context Engine output to Model Gateway for grounded reasoning.
 
 ### Phase 1.3: Customer Query Intelligence (Read-Only Orchestration)
 **Goal:** Build the specific state machine for conversational queries.
-- [ ] Implement Customer Query Intelligence Session Manager (Multi-turn conversational tracking).
+- [ ] Implement Customer Query Intelligence Session Manager (Aaram owns conversation/session semantics and orchestration, while messaging and session storage infrastructure may be external).
 - [ ] Connect Session Manager to Memory Framework.
 - [ ] Build intent parsing for Order Status and Delivery queries.
 - [ ] Formulate read-only customer responses (Action Engine execution is out of scope).

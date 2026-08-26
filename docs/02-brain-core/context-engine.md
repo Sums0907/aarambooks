@@ -282,3 +282,18 @@ It transforms distributed business information into meaningful intelligence cont
 Business systems create truth.
 
 The Context Engine creates understanding from that truth.
+
+---
+
+# 12. Architectural Implementation Constraints
+
+During the implementation of the Context Engine, the following strict architectural constraints were established:
+
+- **Context snapshot concept:** The engine operates on ephemeral snapshots of context, not persistent state.
+- **Context Engine does not own operational truth:** It relies entirely on external systems for state.
+- **Business systems remain truth owners:** Downstream systems (e.g., ShopDeck, AaramInventory) own the data retrieved.
+- **Context Engine assembles contextual snapshots:** The engine's sole capability is composition and aggregation.
+- **Security Context separation:** Identity (AaramIdentity) and Roles are strictly separated from Customer Context.
+- **Customer Context separation:** Customer context is sourced from Business Systems, entirely distinct from authentication.
+- **Domain boundaries:** Order, Inventory, and Fulfillment context domains are treated as independent source modules.
+- **Context provenance requirement:** Every piece of assembled context must include metadata detailing its `SourceSystem` and `retrieval_timestamp`.

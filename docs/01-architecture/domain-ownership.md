@@ -111,25 +111,27 @@ AaramIdentity owns identity and access responsibility across the AaramBooks ecos
 
 ## Responsibilities
 
-AaramIdentity is responsible for:
+AaramIdentity owns:
 
-- User identity.
-- Authentication responsibility.
-- Authorization responsibility.
-- Roles responsibility.
-- Permissions responsibility.
+- Authentication
+- Authorization
+- Roles
+- Permissions
+- Sessions
 
 ---
 
 ## Does Not Own
 
-AaramIdentity does not own:
+AaramIdentity does NOT own:
 
-- Business operations.
-- Inventory information.
-- Warehouse execution.
-- Customer business processes.
-- Domain-specific workflows.
+- Customer profile
+- Customer history
+- Orders
+- Purchases
+- Business relationship data
+
+**Crucial Boundary:** Security Context from AaramIdentity must remain separate from Customer Context.
 
 ---
 
