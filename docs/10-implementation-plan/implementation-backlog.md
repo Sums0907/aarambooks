@@ -50,7 +50,7 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 - **Dependencies:** Phase 1.
 - **Source docs:** `docs/02-brain-core/context-engine.md`, `docs/02-brain-core/provider-registry-architecture.md`
 - **Files MUST read:** Phase 1 schemas.
-- **Files allowed to create:** `src/brain_core/context_engine/*.py`, `src/brain_core/registry/*.py`
+- **Files allowed to create:** `src/brain_core/context_engine/*.py`, `src/brain_core/registry/*.py`, `src/shared/context_contracts/capability.py`, `src/shared/context_contracts/source.py`
 - **Files allowed to modify:** `src/brain_core/context_engine/__init__.py`
 - **Files MUST NOT modify:** Logic belonging to Memory, Reasoning, or Action engines.
 - **Exact implementation tasks:** Build the `ProviderRegistry` class. Build the `ContextAssembler` that aggregates data, resolves conflicts, and outputs a unified Context model.
