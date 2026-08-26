@@ -163,7 +163,7 @@ Future integrations must adhere to the ecosystem boundaries:
 
 ## 10. Implementation Decisions Still Open
 
-The following physical implementation and technology decisions must be finalized before coding begins. 
+The following physical implementation and technology decisions are deferred until their respective components are built. They are implementation choices, not architectural prerequisites.
 
 ### Backend Architecture Pattern
 - **Decision Required:** Modular Monolith vs. Microservices.

@@ -38,9 +38,15 @@ The first production release focuses strictly on foundational intelligence and a
 
 ### Phase 1.1: Context Engine Validation (First Intelligence Capability)
 **Goal:** Prove that Brain Core can successfully read, fuse, and interpret operational truth.
-- [ ] Implement ShopDeck API Integrations (Customer Profile, Order Status).
-- [ ] Build Context Engine aggregation and fusion logic.
-- [ ] Validate Context Engine output against test customer scenarios.
+
+**PREREQUISITE:** Obtain/verify authoritative ShopDeck API documentation or authentic raw API payload.
+
+**BLOCKED:** 
+- Concrete ShopDeck adapter implementation (Customer Profile, Order Status) is blocked until the identity/payload contract is verified. (Never assume phone number is the ShopDeck primary identifier or that CSV structure equals REST API structure).
+
+**ALLOWED IN PARALLEL:**
+- [ ] Build generic Context Engine aggregation, fusion logic, and provider abstractions that do not depend on undocumented ShopDeck behavior.
+- [ ] Validate Context Engine output against synthetic test customer scenarios.
 
 ### Phase 1.2: Core Infrastructure & Gateway
 **Goal:** Establish the foundation for AI inference and state memory.
@@ -68,7 +74,7 @@ The second release will expand scope and introduce execution capabilities.
 ## 5. Dependencies
 - **Data Availability:** ShopDeck APIs must be available and stable for Context Engine read access during MVP-1.
 - **Vendor Selection:** Model Gateway cannot be finalized until specific LLM vendors are procured.
-- **Communication Channels:** Customer Query Intelligence requires the Voice/Chat channel architecture to be finalized to build the intake layer.
+- **Communication Channels:** Aaram owns the Customer Query Intelligence boundary. Specific external communication providers (Voice/Chat channels) must be selected for implementation, but are replaceable integrations rather than architectural dependencies.
 
 ---
 
@@ -85,18 +91,22 @@ The second release will expand scope and introduce execution capabilities.
 
 ---
 
-## 8. Technical Decisions to Close Before Development
-Before coding begins, the following open decisions must be formally closed:
-1. **Database Selection:** Physical database for the Memory Framework.
-2. **Internal API Protocol:** Selecting between gRPC, REST, or message queues.
-3. **External AI Providers:** Procurement of the foundational LLM for the Model Gateway.
-4. **Supported Channels:** Defining the initial intake channel (WhatsApp, Web, or Email).
+## 8. Decisions
+
+### Architectural Decisions (Required Before Development)
+1. **Internal API Protocol:** Selecting between gRPC, REST, or message queues.
+
+### Implementation / Technology Selections (Deferred to Implementation Phase)
+The following are vendor/infrastructure selections, not architectural prerequisites. They should be finalized when the relevant implementation begins:
+1. **Database Selection:** Physical persistence technology for the Memory Framework.
+2. **External AI Providers:** Procurement of the foundational LLMs for the Model Gateway.
+3. **Supported Channels:** Defining the specific intake communication provider (WhatsApp, Web, or Email).
 
 ---
 
 ## 9. Development Readiness Checklist
 - [ ] Architecture baseline and design documents frozen and approved.
 - [ ] API Contracts drafted and reviewed.
-- [ ] Technical Decisions to Close Before Development resolved.
+- [ ] Architectural Decisions resolved.
 - [ ] Developer environments configured.
 - [ ] CI/CD pipeline and code repositories initialized.
