@@ -39,15 +39,15 @@ Track significant implementation, testing, integration, deployment, and debuggin
 *(Copy the template below to create new entries)*
 
 ### Incident ID: [ID-YYYYMMDD-HHMM]
-- **Date:** 
-- **Milestone:** 
-- **Component:** 
-- **Problem:** 
-- **Error / Symptom:** 
-- **Root Cause:** 
-- **Fix:** 
-- **Files Changed:** 
-- **Validation:** 
+- **Date:**
+- **Milestone:**
+- **Component:**
+- **Problem:**
+- **Error / Symptom:**
+- **Root Cause:**
+- **Fix:**
+- **Files Changed:**
+- **Validation:**
 ### Incident ID: INC-20260824-001
 - **Date:** 2026-08-24
 - **Milestone:** 1.1 Context Engine Registry
@@ -98,7 +98,7 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Milestone:** 1.1 Context Engine Registry
 - **Component:** ShopDeck Customer Provider
 - **Problem:** Missing authoritative identity fields in ShopDeck data samples.
-- **Error / Symptom:** The raw `customers-export.csv` provides only `"Name"` and `"Phone No"`. Without an explicit system primary key (like an `id` or `uuid`), mapping an authoritative `customer_reference` is impossible. 
+- **Error / Symptom:** The raw `customers-export.csv` provides only `"Name"` and `"Phone No"`. Without an explicit system primary key (like an `id` or `uuid`), mapping an authoritative `customer_reference` is impossible.
 - **Root Cause:** A CSV export is a flattened reporting view, not equivalent to the true ShopDeck REST API payload structure.
 - **Fix:** Formally blocked the implementation of the ShopDeck Customer Provider. Asserted that `"Phone No"` must **NOT** be assumed to be the system's `customer_reference`. `customer_reference` remains generically defined as the provider-authoritative customer reference.
 - **Files Changed:** None (implementation intentionally blocked).
@@ -120,3 +120,19 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Validation:** 15 pytest unit tests verifying validation, frozen states, and rejection of extra fields. 100% pass rate.
 - **Status:** RESOLVED (Phase 1 Exit Criteria passed)
 - **Related Incident / Decision:** Phase 1 (Core Semantic Contracts & Action Boundaries)
+
+---
+
+### Incident ID: INC-20260826-002 (Phase 2 Execution)
+- **Date:** 2026-08-26
+- **Milestone:** Phase 2
+- **Component:** Context Engine & Provider Registry
+- **Problem:** Implement deterministic context fusion logic and strict capability-based provider resolution.
+- **Error / Symptom:** N/A (Feature Implementation)
+- **Root Cause:** N/A
+- **Fix:** Implemented ContextAssembler utilizing `asyncio.gather` for deterministic parallel context fetching. Refactored `AssembledContext` and `ContextAssemblyRequest` to strictly consume Phase 1 frozen Pydantic models. Strictly propagated `ProviderNotRegisteredError` instead of swallowing errors, abiding by the documented architecture rules. Defined Phase 2 unit tests with deterministic mock providers simulating success, partial lookup, and missing provider failure.
+- **Files Changed:** `src/brain_core/context_engine/schemas.py`, `src/brain_core/context_engine/assembler.py`, `tests/brain_core/context_engine/test_registry.py`, `tests/brain_core/context_engine/test_assembler.py`
+- **Validation:** 22/22 tests passed across the Brain Core test suite, demonstrating Provider Registry capability isolation and ContextAssembler fusion logic against mock providers.
+- **Status:** RESOLVED (Phase 2 Exit Criteria passed)
+- **Related Incident / Decision:** Phase 2 (Context Engine & Provider Registry)
+

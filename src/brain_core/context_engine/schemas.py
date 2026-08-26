@@ -3,10 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 from src.shared.context_contracts.source import SourceSystem, ContextSource
-from src.shared.context_contracts.customer import CustomerContext
-from src.shared.context_contracts.order import OrderContext
-from src.shared.context_contracts.inventory import InventoryContext
-from src.shared.context_contracts.fulfillment import FulfillmentContext
+from src.brain_core.models.contexts import CustomerContext, OrderContext, InventoryContext, ShipmentContext
 
 class ContextAssemblyRequest(BaseModel):
     user_id: Optional[str] = None      
@@ -31,6 +28,6 @@ class AssembledContext(BaseModel):
     customer: Optional[CustomerContext] = None
     order: Optional[OrderContext] = None
     inventory: Optional[InventoryContext] = None
-    fulfillment: Optional[FulfillmentContext] = None
+    fulfillment: Optional[ShipmentContext] = None
     intelligence: Optional[IntelligenceContext] = None
     assembled_at: datetime
