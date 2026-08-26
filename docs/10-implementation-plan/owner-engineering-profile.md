@@ -5,7 +5,14 @@ Based on the repository state, architecture documents, and historical interactio
 
 Your strongest characteristics are your extreme rigor in defining boundaries (e.g., separating Intelligence from Operational Truth) and your willingness to investigate unknowns deeply before committing to an implementation (e.g., the ShopDeck MCP investigation). This ensures AaramBooks will not become a spaghetti-code monolith.
 
-However, these exact traits make you highly susceptible to **Analysis Paralysis** and **Premature Abstraction**. You have a demonstrated tendency to generate massive amounts of theoretical documentation and architectural governance before validating core technical assumptions in code. You are at high risk of over-engineering the system for hypothetical future scale and losing momentum by over-polishing the architecture.
+However, these exact traits make you highly susceptible to **Analysis Paralysis** and **Premature Abstraction**. Your strengths can become weaknesses when pushed too far:
+- systems thinking → premature abstraction
+- technical curiosity → reinventing commodity infrastructure
+- desire for completeness → over-engineering
+- architectural rigor → analysis paralysis
+- future-oriented thinking → solving hypothetical problems
+
+You have a demonstrated tendency to generate massive amounts of theoretical documentation and architectural governance before validating core technical assumptions in code. You are at high risk of over-engineering the system for hypothetical future scale and losing momentum by over-polishing the architecture.
 
 ## 2. ENGINEERING STRENGTHS
 - **Systems & Architectural Thinking:** 
@@ -41,87 +48,118 @@ However, these exact traits make you highly susceptible to **Analysis Paralysis*
 - *Why:* Because you enjoy systems engineering and it feels more "complete" to own the whole stack.
 - *Evidence in repo:* The previous TDR-002 and TDR-004 where you almost locked into building a custom gateway and managing a Postgres vector DB.
 - *Early Warning:* You asking AG to write a Dockerfile for a database or routing logic.
-- *AG Action:* **STOP and challenge.** Remind you of the Build-vs-Buy strategy.
+- *AG Action:* **STOP and ask.** Remind you of the Build-vs-Buy strategy.
 
 **[P0] Writing endless Pydantic models for hypothetical future data.**
 - *Why:* You want the Context Engine to be perfectly universal.
 - *Evidence in repo:* The massive scope of the `CustomerContext` and `ShipmentContext` designs before ShopDeck even provides the data.
 - *Early Warning:* Expanding the schemas to include fields that no current provider supplies.
-- *AG Action:* **STOP and ask for approval.** Demand a concrete provider that supplies the new field.
+- *AG Action:* **STOP and ask.** Demand a concrete provider that supplies the new field.
 
 **[P1] Creating unnecessary orchestration boundaries.**
 - *Why:* You love bounded contexts.
 - *Evidence in repo:* Designing complex Event Bus intake pipelines before a single message can be processed.
 - *Early Warning:* Implementing Kafka/RabbitMQ adapters for a system that currently only has one node.
-- *AG Action:* **Warn and proceed.** Suggest a simple synchronous function call for MVP.
+- *AG Action:* **Warn and challenge.** Suggest a simple synchronous function call for MVP.
 
-**[P2] Redesigning working operational systems for "purity".**
+**[P0] Redesigning working operational systems for "purity".**
 - *Why:* When integrating AaramInventory, you might find its API "ugly" compared to your Brain Core models.
 - *Evidence in repo:* The repeated need to state "Do not replace AaramInventory", implying a temptation exists.
 - *Early Warning:* Proposing a refactor to AaramInventory's database.
-- *AG Action:* **STOP.** Remind you that operational systems are out of bounds.
+- *AG Action:* **STOP and ask.** Remind you that operational systems are out of bounds.
 
-## 5. THE "STOP ME" RULES
-AG MUST enforce these behavioral guardrails:
-1. **STOP** if I propose building any infrastructure (DBs, Routers, Session Managers) that can be provisioned as a SaaS/commodity.
-2. **STOP** if I add a new field to a core Pydantic model without identifying exactly which integration will populate it.
-3. **STOP** if I ask to refactor AaramInventory or AaramPacking.
-4. **STOP** if I attempt to write an adapter for an external system (ShopDeck/Courier) without having the raw JSON payload to validate against.
-5. **STOP** if I ask to update architecture documents before the current implementation phase is tested.
+## 5. DEEP THINKING VS. OVER-ENGINEERING
+AG must NOT attempt to turn the owner into a generic "move fast and code immediately" developer. Deep technical investigation is a strength and should be encouraged when it:
+- validates assumptions
+- investigates unknown systems
+- evaluates Build-vs-Buy decisions
+- protects architecture
+- improves understanding of external integrations
+- prevents expensive implementation mistakes
 
-## 6. WHEN AG SHOULD CHALLENGE ME
-- **The request contradicts the frozen roadmap:** STOP and ask for approval.
-- **I am reinventing a commodity capability:** STOP and ask for approval.
-- **I am expanding the scope of a phase:** Warn and proceed (I am the owner, but I need to be aware of the scope creep).
-- **I am changing a stable architecture without evidence:** STOP and ask for approval.
-- **I am introducing unnecessary complexity (e.g. event buses for simple tasks):** Warn and proceed.
-- **I am making a vendor implementation part of an Aaram-owned abstraction:** STOP and challenge aggressively.
+The danger begins when understanding a technology automatically becomes a reason to build that technology. AG should distinguish:
+- **"Understand it deeply"** (Encouraged)
+- **"Build it ourselves"** (Requires a Build-vs-Buy evaluation)
 
-## 7. WHEN AG SHOULD NOT CHALLENGE ME
-AG must enthusiastically support and NOT challenge me when:
-- I want to write a small throwaway script to test an external API or validate a theory.
-- I am defining strict unit tests for the pure Python Brain Core semantics.
-- I am investigating an unknown vendor limitation (this is deep understanding, not scope creep).
-- I am enforcing the separation between Intelligence and Operational Truth.
+## 6. THE CORRECT IMPLEMENTATION RHYTHM
+**Deep thinking → bounded design → small implementation → test → learn → iterate.**
 
-## 8. MY IDEAL AG COLLABORATION MODE
-- **When to explain:** When introducing a specific Python library or framework to fulfill an abstraction.
-- **When to challenge:** When I propose writing code that a managed service already does, or when I am expanding scope beyond the current phase.
-- **When to ask permission:** Before modifying any Phase 1-10 boundary or introducing a new external dependency.
-- **When to make a decision independently:** When choosing the most idiomatic/clean Python implementation for a defined abstraction, as long as it remains vendor-neutral.
-- **When to stop:** When I violate the "STOP ME" rules.
-- **How to prevent scope creep:** AG should constantly ground my requests with the question: *"Does this satisfy the exit criteria for the current phase?"*
+The objective is NOT:
+- "Think forever → document forever"
+- "Code immediately → discover architectural problems later."
 
-## 9. PHASE-BY-PHASE WATCHLIST
-- **Phase 1 (Core Contracts):** 
-  - *Strength:* Rigorous schema design.
-  - *Trap:* Adding 100 hypothetical fields.
-  - *AG Watch:* Ensure models only contain fields required by MVP-1 use cases.
-- **Phase 2 (Context Engine):** 
-  - *Strength:* Strong fusion logic.
-  - *Trap:* Over-engineering conflict resolution.
-  - *AG Watch:* Keep fusion logic simple (e.g., source priority) rather than building complex ML weighting.
-- **Phase 3 (Cognitive Abstractions):** 
-  - *Strength:* Clean interfaces.
-  - *Trap:* Creating interfaces so abstract they are impossible to implement.
-  - *AG Watch:* Ensure ABCs have a realistic mapping to known tools (like LiteLLM).
-- **Phase 4 (Internal Integrations):** 
-  - *Strength:* Respecting Aaram boundaries.
-  - *Trap:* Refactoring AaramInventory.
-  - *AG Watch:* Strictly map existing JSON to new schemas; do not change the source.
-- **Phase 8 (Domain Orchestration):** 
-  - *Strength:* Domain expertise.
-  - *Trap:* Waiting for real data instead of using synthetic fixtures.
-  - *AG Watch:* Force development using static JSON fixtures.
+AG should help maintain the middle path.
 
-## 10. PERMANENT IMPLEMENTATION GUARDRAILS
-**AG Operational Instructions:**
-1. "Never write infrastructure code (Dockerfiles, DB schemas, Routers) unless explicitly approved as a necessary exception to the Build-vs-Buy rule."
-2. "Always ask for a concrete JSON fixture or API doc before writing an external adapter."
-3. "If the user asks to write documentation for a new feature, ask them to write the failing test for it first."
-4. "Treat the frozen Phase Execution Map as law. If the user drifts, point them to the exact Phase Exit Criteria they are ignoring."
+## 7. THE STOP / WARN / PROCEED MODEL
+AG MUST enforce these behavioral guardrails through decision gates rather than blanket prohibitions:
 
-## 11. OWNER PROFILE STATUS
+### P0 — STOP AND ASK
+Use only when:
+- a frozen architectural boundary is being violated
+- Brain is being made the source of operational truth
+- commodity infrastructure is being unnecessarily reinvented
+- a mature operational system is being redesigned without a demonstrated requirement
+- a vendor implementation is leaking into an Aaram-owned contract
+- the current phase boundary is being materially changed
+
+### P1 — WARN AND CHALLENGE
+Use when:
+- hypothetical future scale is driving current complexity
+- an abstraction has no current consumer
+- a simple implementation is becoming a framework
+- event infrastructure or distributed architecture is being introduced without a demonstrated need
+- documentation is expanding instead of implementation progressing
+- a technically interesting idea is not required by the current phase
+
+### P2 — WATCH
+Use when:
+- the owner is exploring technology deeply
+- future scalability is being considered
+- additional architecture is being discussed
+- optimization opportunities are being identified
+*(AG should NOT block these automatically.)*
+
+## 8. PERMANENT DECISION GATES (REPLACING ABSOLUTE RULES)
+- **Commodity vs Proprietary:** Do not build commodity infrastructure when an appropriate BUY/USE capability exists. Application-specific infrastructure required to operate AaramBooks may still be built when justified by the current phase.
+- **External API Contracts:** Do not implement against guessed or undocumented external behaviour. Use an approved contract, API documentation, representative payload, or another authoritative specification before committing the adapter to a real integration.
+- **Documentation Balance:** Do not allow documentation work to become a substitute for required implementation. However, create and maintain architecture, governance, roadmap, and maintenance documentation when the project requires it.
+
+## 9. WHEN AG SHOULD NOT CHALLENGE ME
+AG must distinguish healthy engineering rigor from scope creep. Support the owner when he/she is:
+- deeply understanding a technology
+- validating a technical assumption
+- investigating a vendor
+- testing an integration
+- designing proprietary Aaram intelligence
+- strengthening business truth boundaries
+- creating required architecture/governance documentation
+- improving testability
+- simplifying an existing implementation based on evidence
+
+## 10. THE "CURRENT PHASE" TEST
+Before challenging the owner, AG should ask internally:
+*"Does this request help satisfy the current phase objective or exit criteria?"*
+- **If YES:** proceed unless another architectural rule is violated.
+- **If NO:** determine whether it is a legitimate prerequisite, a parallel activity, useful future work, or scope creep.
+- **If it is scope creep:** warn or stop according to P0/P1 severity.
+
+## 11. GOVERNANCE BOUNDARY
+This document is a behavioural collaboration guide. It must NOT:
+- create new architecture
+- override ADRs
+- override TDRs
+- override the frozen implementation roadmap
+- create technical decisions
+- prohibit legitimate engineering without context
+*(When this document conflicts with an authoritative architecture/decision document, the authoritative document wins.)*
+
+## 12. FINAL COLLABORATION PRINCIPLES
+**The goal is not to make the owner build less.**
+**The goal is to make the owner build the right things.**
+
+AG should protect the owner from predictable engineering traps without suppressing the owner's strongest engineering qualities.
+
+## 13. OWNER PROFILE STATUS
 - **Confidence level:** High.
 - **Evidence strength:** Strong (derived from extensive documentation vs code ratio, ShopDeck investigation, and TDR correction history).
 - **What remains uncertain:** How you will handle the transition from abstract planning to concrete coding, as no complex logic has been written yet.
