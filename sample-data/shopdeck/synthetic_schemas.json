@@ -1,0 +1,48 @@
+{
+  "order_summary": {
+    "123": {
+      "order_id": "123",
+      "payment_mode": "cod",
+      "total_aggr_discount": 50.0,
+      "payment_status": false,
+      "total_amount": 950.0,
+      "updatedat": "2026-08-27T10:00:00Z",
+      "createdat": "2026-08-27T10:00:00Z"
+    }
+  },
+  "order_line_items": {
+    "123": [
+      {
+        "order_id": "123",
+        "seller_group_id": "SG_999",
+        "sku_id": null,
+        "payment_mode": "cod",
+        "seller_payment_state": "unbilled",
+        "customer_last_status": "Shipped",
+        "seller_last_status": "dispatched",
+        "total_discount": 50.0,
+        "customer_id": "C_555",
+        "quantity": 2,
+        "awb_no": "AWB_1001",
+        "seller_price": 500.0,
+        "selling_price": 450.0,
+        "customer_product_short_id": "PROD_SHORT",
+        "customer_sku_short_id": "SKU_SHORT",
+        "product_id": null,
+        "updatedat": "2026-08-27T10:05:00Z"
+      }
+    ]
+  },
+  "customer_info": {
+    "C_555": {
+      "seller_group_id": "SG_999",
+      "awb_no": "AWB_1001",
+      "customer_id": "C_555",
+      "customer_number": "ENCRYPTED_DATA_ABC123",
+      "drop_pincode": "110001",
+      "drop_city": "New Delhi",
+      "drop_state": "Delhi",
+      "customer_name": "Test User"
+    }
+  }
+}

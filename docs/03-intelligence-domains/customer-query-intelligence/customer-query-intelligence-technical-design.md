@@ -176,9 +176,8 @@ The domain maps understood intents to specific outcome paths:
 
 Customer Query Intelligence consumes truth to answer questions, but never duplicates it:
 
-- **ShopDeck:** Queried for orders, customer information, product catalog data, returns, and refund statuses.
+- **ShopDeck:** Queried for orders, customer information, product catalog data, packing status, returns, and refund statuses.
 - **AaramInventory:** Queried for product availability and detailed inventory-related information.
-- **AaramPacking:** Queried for packing status and warehouse execution information.
 
 *Rule: Customer Query Intelligence consumes operational truth but does not own it.*
 

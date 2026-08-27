@@ -1,0 +1,22 @@
+{
+  "customers": [
+    {
+      "Name": "Jane Doe",
+      "Phone No": "5551234567",
+      "Customer Since": "24/08/2026",
+      "Purchased Order Count": 1,
+      "Delivered Order Count": 0,
+      "Status": "Active",
+      "Purchased Revenue": "1000"
+    },
+    {
+      "Name": "John Smith",
+      "Phone No": "5559876543",
+      "Customer Since": "24/08/2026",
+      "Purchased Order Count": 2,
+      "Delivered Order Count": 1,
+      "Status": "Active",
+      "Purchased Revenue": "3500"
+    }
+  ]
+}

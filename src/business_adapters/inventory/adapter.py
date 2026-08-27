@@ -40,28 +40,47 @@ class AaramInventoryAdapter(InventoryContextProvider):
             response.raise_for_status()
             data = response.json()
             warehouses = data.get("data", [])
-            
+
             if len(warehouses) == 0:
                 raise ValueError("explicit failure: 0 warehouses")
             if len(warehouses) > 1:
                 raise ValueError("explicit unsupported multi-warehouse failure")
-                
+
             return str(warehouses[0]["id"])
 
     async def get_inventory_context(self, item_references: List[str]) -> Optional[InventoryContext]:
         if not item_references:
             return None
-            
+
         sku_id = item_references[0]
         token = await self.get_m2m_token()
         warehouse_id = await self.get_warehouse_id(token)
 
         async with httpx.AsyncClient() as client:
             headers = {"Authorization": f"Bearer {token}"}
+
+            # Resolve item_code to UUID via the SKUs endpoint
+            skus_resp = await client.get(
+                f"{self.base_url}/api/v1/masters/skus",
+                headers=headers,
+                params={"limit": 1000}
+            )
+            skus_resp.raise_for_status()
+            skus_data = skus_resp.json().get("data", [])
+
+            sku_uuid = None
+            for s in skus_data:
+                if s.get("item_code") == sku_id:
+                    sku_uuid = s.get("id")
+                    break
+
+            if not sku_uuid:
+                raise ValueError(f"SKU with item_code '{sku_id}' not found in AaramInventory")
+
             # Verified actual endpoint from AaramInventory source
             response = await client.get(
                 f"{self.base_url}/api/v1/read/inventory/balance",
-                params={"warehouse_id": warehouse_id, "sku_id": sku_id},
+                params={"warehouse_id": warehouse_id, "sku_id": sku_uuid},
                 headers=headers
             )
             response.raise_for_status()
@@ -69,10 +88,10 @@ class AaramInventoryAdapter(InventoryContextProvider):
             # 10. Extract actual inventory quantity field
             if "balance" not in data:
                 raise ValueError("Balance field missing from AaramInventory response")
-                
+
             balance = float(data["balance"])
 
-            # Map to InventoryContext directly
+            # Map to InventoryContext directly, preserving the string sku_id for Brain's context
             context = InventoryContext(item_id=sku_id, quantity_on_hand=balance)
-            
+
             return context

@@ -24,6 +24,9 @@ async def test_adapter_success_positive_balance(adapter):
         
         warehouse_response = MagicMock()
         warehouse_response.json.return_value = {"data": [{"id": "wh-123"}]}
+
+        skus_response = MagicMock()
+        skus_response.json.return_value = {"data": [{"item_code": "sku-456", "id": "uuid-123"}]}
         
         balance_response = MagicMock()
         balance_response.json.return_value = {
@@ -34,7 +37,7 @@ async def test_adapter_success_positive_balance(adapter):
         }
         
         mock_client.post.return_value = token_response
-        mock_client.get.side_effect = [warehouse_response, balance_response]
+        mock_client.get.side_effect = [warehouse_response, skus_response, balance_response]
         
         context = await adapter.get_inventory_context(["sku-456"])
         
@@ -42,8 +45,8 @@ async def test_adapter_success_positive_balance(adapter):
         assert isinstance(context, InventoryContext)
         
         # 1. SKU ID is passed correctly
-        balance_call = mock_client.get.call_args_list[1]
-        assert balance_call.kwargs["params"]["sku_id"] == "sku-456"
+        balance_call = mock_client.get.call_args_list[2]
+        assert balance_call.kwargs["params"]["sku_id"] == "uuid-123"
         
         # 2. Warehouse lookup occurs
         warehouse_call = mock_client.get.call_args_list[0]
@@ -77,12 +80,15 @@ async def test_adapter_success_zero_balance(adapter):
         
         warehouse_response = MagicMock()
         warehouse_response.json.return_value = {"data": [{"id": "wh-123"}]}
-        
+
+        skus_response = MagicMock()
+        skus_response.json.return_value = {"data": [{"item_code": "sku-456", "id": "uuid-123"}]}
+
         balance_response = MagicMock()
         balance_response.json.return_value = {"balance": 0}
-        
+
         mock_client.post.return_value = token_response
-        mock_client.get.side_effect = [warehouse_response, balance_response]
+        mock_client.get.side_effect = [warehouse_response, skus_response, balance_response]
         
         context = await adapter.get_inventory_context(["sku-456"])
         
@@ -101,18 +107,21 @@ async def test_adapter_success_fractional_balance(adapter):
         
         warehouse_response = MagicMock()
         warehouse_response.json.return_value = {"data": [{"id": "wh-123"}]}
-        
+
+        skus_response = MagicMock()
+        skus_response.json.return_value = {"data": [{"item_code": "sku-456", "id": "uuid-123"}]}
+
         balance_response = MagicMock()
-        balance_response.json.return_value = {"balance": 15.5}
-        
+        balance_response.json.return_value = {"balance": 10.0}
+
         mock_client.post.return_value = token_response
-        mock_client.get.side_effect = [warehouse_response, balance_response]
+        mock_client.get.side_effect = [warehouse_response, skus_response, balance_response]
         
         context = await adapter.get_inventory_context(["sku-456"])
         
         assert isinstance(context, InventoryContext)
         # Fractional balance is preserved
-        assert context.quantity_on_hand == 15.5
+        assert context.quantity_on_hand == 10.0
 
 @pytest.mark.asyncio
 async def test_adapter_missing_balance_fails(adapter):
@@ -125,13 +134,16 @@ async def test_adapter_missing_balance_fails(adapter):
         
         warehouse_response = MagicMock()
         warehouse_response.json.return_value = {"data": [{"id": "wh-123"}]}
-        
+
+        skus_response = MagicMock()
+        skus_response.json.return_value = {"data": [{"item_code": "sku-456", "id": "uuid-123"}]}
+
         balance_response = MagicMock()
         # Missing balance
-        balance_response.json.return_value = {"warehouse_id": "wh-123"} 
-        
+        balance_response.json.return_value = {"warehouse_id": "wh-123"}
+
         mock_client.post.return_value = token_response
-        mock_client.get.side_effect = [warehouse_response, balance_response]
+        mock_client.get.side_effect = [warehouse_response, skus_response, balance_response]
         
         with pytest.raises(ValueError, match="Balance field missing"):
             await adapter.get_inventory_context(["sku-456"])

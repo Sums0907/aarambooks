@@ -1,0 +1,51 @@
+{
+  "orders": {
+    "SR_ORDER_999": {
+      "data": {
+        "id": "SR_ORDER_999",
+        "status": "SHIPPED",
+        "customer_name": "Official Customer",
+        "customer_email": "official@example.com",
+        "customer_phone": "9876543210",
+        "products": [
+          {
+            "sku": "SKU_123",
+            "quantity": 1,
+            "price": 250.0
+          }
+        ]
+      }
+    }
+  },
+  "trackings": {
+    "AWB_777": {
+      "tracking_data": {
+        "shipment_track": [
+          {
+            "awb_code": "AWB_777",
+            "current_status": "NDR Raised",
+            "courier_name": "Delhivery"
+          }
+        ],
+        "shipment_track_activities": [
+          {
+            "date": "2026-08-27 12:00:00",
+            "status": "002-S-UD",
+            "activity": "SHIPMENT OUTSCAN",
+            "location": "SOLAPUR",
+            "sr-status": 17,
+            "sr-status-label": "OUT FOR DELIVERY"
+          },
+          {
+            "date": "2026-08-27 16:00:00",
+            "status": "000-T-DL",
+            "activity": "NDR Raised - Customer Not Available",
+            "location": "MUMBAI",
+            "sr-status": 18,
+            "sr-status-label": "UNDELIVERED"
+          }
+        ]
+      }
+    }
+  }
+}

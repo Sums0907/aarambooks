@@ -10,6 +10,7 @@ class SourceSystem(str, Enum):
     aaram_inventory = "aaram_inventory"
     aaram_packing = "aaram_packing"
     memory_framework = "memory_framework"
+    shiprocket = "shiprocket"
 
 class ContextSource(BaseModel):
     source_system_name: SourceSystem

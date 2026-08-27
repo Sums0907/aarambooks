@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "ShopDeck_MCP_Reader": {
+      "serverUrl": "https://mcp.shopdeck.com/mcp"
+    }
+  }
+}

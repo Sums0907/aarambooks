@@ -1,0 +1,46 @@
+{
+  "orders": {
+    "SR_ORDER_999": {
+      "id": "SR_ORDER_999",
+      "status": "SHIPPED",
+      "created_at": "2026-08-27T10:00:00Z",
+      "products": [
+        {
+          "product_id": "PROD_A1",
+          "sku": "SKU_123",
+          "quantity": 1,
+          "price": 250.0
+        }
+      ]
+    }
+  },
+  "customers": {
+    "CUST_888": {
+      "id": "CUST_888",
+      "name": "Offline Customer",
+      "email": "offline@example.com",
+      "phone": "+919876543210"
+    }
+  },
+  "trackings": {
+    "AWB_777": {
+      "awb_code": "AWB_777",
+      "courier_name": "Delhivery",
+      "current_status": "NDR Raised",
+      "scans": [
+        {
+          "date": "2026-08-27T12:00:00Z",
+          "status": "Out for Delivery",
+          "is_attempt": false
+        },
+        {
+          "date": "2026-08-27T16:00:00Z",
+          "status": "NDR Raised",
+          "reason": "Customer Not Available",
+          "remarks": "Door locked",
+          "is_attempt": true
+        }
+      ]
+    }
+  }
+}

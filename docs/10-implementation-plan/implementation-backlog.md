@@ -88,48 +88,63 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 #### **Phase 4: Internal Operational Integrations**
 - **Phase ID:** Phase 4
 - **Phase name:** Internal Operational Integrations
-- **Objective:** Connect Brain Core to existing Aaram-owned business systems.
-- **Architectural capability:** AaramInventory integration, AaramPacking integration.
-- **Exact prerequisites:** Phase 2 completion.
-- **Dependencies:** Phase 2.
-- **Source docs:** `docs/06-api-contracts/business-adapter-contract-pattern.md`
-- **Files MUST read:** Phase 2 Registry.
-- **Files allowed to create:** `src/business_adapters/inventory/*.py`, `src/business_adapters/packing/*.py`
+- **Objective:** Connect Brain Core to the established operational context providers (ShopDeck and AaramInventory).
+- **Architectural capability:** ShopDeck integration, AaramInventory quantity integration.
+- **Exact prerequisites:** Phase 2 completion, AaramIdentity M2M capability implementation, ShopDeck headless access.
+- **Dependencies:** Phase 2, AaramIdentity (M2M), ShopDeck.
+- **Source docs:** `docs/06-api-contracts/business-adapter-contract-pattern.md`, `docs/09-decisions/ADR-005-shopdeck-primary-context.md`, `docs/09-decisions/ADR-006-aaramidentity-m2m-authentication.md`
+- **Files MUST read:** Phase 2 Registry, Phase 1 Context schemas.
+- **Files allowed to create:** `src/business_adapters/shopdeck/*.py`, `src/business_adapters/inventory/*.py`, `tests/business_adapters/inventory/test_adapter.py`
 - **Files allowed to modify:** `requirements.txt`
-- **Files MUST NOT modify:** The actual AaramInventory and AaramPacking source code/databases.
-- **Exact implementation tasks:** Implement against the approved AaramInventory/AaramPacking integration contract; transport is implementation-specific and must not be assumed by the architecture. Map operational truth to Phase 1 Pydantic contexts. Register them with the Provider Registry.
-- **Tests required:** Wiremock tests simulating internal API responses.
+- **Files MUST NOT modify:** AaramInventory, AaramPacking, AaramIdentity, ShopDeck, Brain Core logic.
+- **Exact implementation tasks:**
+  - **A. COMPLETE:** AaramInventory quantity integration (`ShopDeck provides SKU ID -> AaramInventory -> quantity_on_hand -> Brain Context`). Phase 4A AaramInventory quantity integration is complete. It was implemented and committed as a797bc1. It must NOT be reimplemented by future sessions.
+  - **B. BLOCKED / EXTERNAL DEPENDENCY:** ShopDeck Context Adapter (Architecture approved, but currently blocked because available ShopDeck MCP requires interactive OTP and cannot be used by headless Brain).
+  - **C. OUT OF SCOPE:** AaramPacking Context Adapter (AaramPacking must NOT appear as a Context Provider).
+  - **D. SEPARATE DEPENDENCY:** AaramIdentity M2M capability (Enabling dependency owned by Identity/Platform phase, NOT implemented inside Brain Core Phase 4).
+- **Tests required:** Mock/fixture testing for adapter mapping, wiremock tests simulating internal API responses.
 - **Documentation updates:** `engineering-log.md`
 - **Engineering-log ownership:** AI Agent executing the phase.
 - **Implementation-status ownership:** AI Agent executing the phase.
-- **Exit criteria:** Adapters successfully map internal business payload to Brain Core Context models.
-- **Handoff requirements:** Live Context Providers for internal truth.
-- **Blockers:** None.
-- **Status:** **READY**
+- **Exit criteria:**
+  - Adapter contract correctness verified via unit tests.
+  - Semantic mapping correctness (e.g. strict boolean `quantity_on_hand` mappings, dropping `confidence_score`).
+  - AaramInventory quantity integration mapped.
+  - ShopDeck integration contract readiness (mock testing successful against expected schemas).
+  - Authentication dependency status unblocked (M2M functioning).
+  - Blocked external integration validated via mock schemas.
+- **Handoff requirements:** Live Context Providers for authoritative operational truth.
+- **Blockers:** ShopDeck headless/server-to-server connectivity = PENDING. AaramIdentity M2M authentication dependency = RESOLVED.
+- **Status:** **PHASE 4B: FOUNDATION / ADAPTER COMPLETE, LIVE TRANSPORT PENDING**
 
 #### **Phase 5: External Intelligence Integrations**
 - **Phase ID:** Phase 5
-- **Phase name:** External Intelligence Integrations
-- **Objective:** Fetch operational truth from external partners.
-- **Architectural capability:** ShopDeck integration, Logistics/Courier integration.
+- **Phase name:** Logistics/Courier Integrations
+- **Objective:** Fetch operational truth from disjoint external partners (e.g., Shiprocket) operating independently of ShopDeck.
+- **Architectural capability:** Disjoint Source Integration (Logistics/Order/Fulfillment).
 - **Exact prerequisites:** Phase 2 completion, external API access.
-- **Dependencies:** Phase 2, External Vendors.
+- **Dependencies:** Phase 2, External Logistics Vendors.
 - **Source docs:** `docs/05-integrations/*.md`
 - **Files MUST read:** Phase 2 Registry.
-- **Files allowed to create:** `src/business_adapters/shopdeck/*.py`, `src/business_adapters/courier/*.py`
-- **Files allowed to modify:** None.
+- **Files allowed to create:** `src/business_adapters/shiprocket/*.py` (and future disjoint sources). DO NOT create a generic CourierAdapter abstraction.
+- **Files allowed to modify:** `requirements.txt`
 - **Files MUST NOT modify:** Brain Core logic.
-- **Exact implementation tasks:** Build API adapters against approved external contracts. Register them with the Context Engine.
+- **Exact implementation tasks:** Build disjoint source adapters that independently fulfill Provider Protocols (`ShipmentContextProvider`, `OrderContextProvider`, etc.).
+  *Architectural Rule:* ShopDeck and Shiprocket are COMPLETELY DISJOINT operational systems. A ShopDeck order does not enter Shiprocket, and vice versa. There is no AWB handoff between them. Neither system enriches the other's operational state. Each external operational system is an independent source and receives its own adapter.
 - **Tests required:** Strict payload validation tests.
 - **Documentation updates:** `engineering-log.md`
 - **Engineering-log ownership:** AI Agent executing the phase.
 - **Implementation-status ownership:** AI Agent executing the phase.
-- **Exit criteria:** External APIs map successfully to `CustomerContext` and `ShipmentContext`.
-- **Handoff requirements:** Live Context Providers for external truth.
-- **Blockers:** 
-   - **ShopDeck:** awaiting headless/M2M authentication and final production integration contract.
-   - **Logistics/Courier:** awaiting identification and access to the authoritative delivery-attempt/NDR source.
-- **Status:** **BLOCKED**
+- **Exit criteria:** External APIs map successfully to disjoint Context models (e.g., `ShipmentContext`).
+- **Handoff requirements:** Live Context Providers for external logistics truth.
+- **Status:** **MOCKED CONTRACT VALIDATION COMPLETE**
+
+*   [x] Establish independent Shiprocket Acquisition Boundary
+*   [x] Establish disjoint Shiprocket Adapter (No ShopDeck dependency)
+*   [x] Discard invalid synthetic assumptions (embedded customers, inferred attempts)
+*   [x] Implement Official Shiprocket Authentication (10-day JWT + 401 retry)
+*   [x] Implement Live Shiprocket Client (Order, Tracking endpoints)
+*   [ ] Live Credential Validation (Needs secrets injected)
 
 #### **Phase 6: External Dependency Track — Human/DevOps Procurement**
 - **Phase ID:** Phase 6
@@ -151,7 +166,14 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 - **Exit criteria:** Credentials for commodity infrastructure are available.
 - **Handoff requirements:** Infrastructure connection strings.
 - **Blockers:** Vendor selection.
-- **Status:** **DEFERRED (Parallelizable Activity)**
+- **Status:** **COMPLETE**
+
+*   [x] Add Model Gateway (LiteLLM) to `docker-compose.yml`
+*   [x] Expose Gateway ports in `docker-compose.override.yml`
+*   [x] Add required AI credential placeholders to `.env.example`
+*   [x] Draft `litellm_config.yaml` linking environments variables
+*   [x] (HUMAN) Inject keys into `.env` and start Docker cluster
+*   [x] (HUMAN) Verify Gemini API connectivity (gemini-3.6-flash mapped via LiteLLM)
 
 #### **Phase 7: Intelligence Infrastructure Binding**
 - **Phase ID:** Phase 7
@@ -172,8 +194,7 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 - **Implementation-status ownership:** AI Agent executing the phase.
 - **Exit criteria:** Brain Core successfully persists state and queries an LLM via the gateway.
 - **Handoff requirements:** A fully stateful, LLM-connected Brain Core.
-- **Blockers:** Awaiting Phase 6 Procurement.
-- **Status:** **BLOCKED**
+- **Status:** **COMPLETE**
 
 #### **Phase 8: Domain Intelligence Orchestration**
 - **Phase ID:** Phase 8
@@ -195,7 +216,13 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 - **Exit criteria:** The Intelligence Domains generate safe, correct `ActionRequests` for NDR and Query flows against synthetic inputs.
 - **Handoff requirements:** Verified intelligence orchestration logic.
 - **Blockers:** Real-world integration validation is blocked pending Phase 5 & 7. Development/Unit-Testing is NOT blocked.
-- **Status:** **READY (for Synthetic Development)** / **BLOCKED (for Real-World Validation)**
+- **Status:** **COMPLETE (Synthetic Development)** / **BLOCKED (Real-World Validation)**
+
+*   [x] Establish Phase 8 Technical Design and Orchestration Architecture
+*   [x] Implement NDR Intelligence Orchestration (including MemoryProvider)
+*   [x] Implement Customer Query Intelligence Orchestration (including MemoryProvider)
+*   [x] Validate strict architectural boundary (no direct physical API access)
+*   [x] Define Synthetic JSON fixtures and execute comprehensive mock tests
 
 #### **Phase 9: Ecosystem Communication & Governance**
 - **Phase ID:** Phase 9
@@ -247,7 +274,10 @@ This document serves as the **AUTHORITATIVE execution roadmap** for the AaramBoo
 
 **1. Dependency Graph**
 - `[Phase 1]` → `[Phase 2]`, `[Phase 3]`
-- `[Phase 2]` → `[Phase 4]`, `[Phase 5]`
+- `[Phase 2]` → `[Phase 3 Architecture reconciliation]`
+- `[Phase 3 Architecture reconciliation]` → `[AaramIdentity M2M capability (External)]`
+- `[AaramIdentity M2M capability (External)]` → `[Revised Phase 4]`
+- `[Revised Phase 4]` → `[Phase 5]`
 - `[Phase 2]`, `[Phase 3]` → `[Phase 8 (Synthetic Dev)]` 
 - `[Phase 8 (Synthetic Dev)]` → `[Phase 9 (Logical Dev)]`
 - `[Phase 6 (External Procurement)]` → `[Phase 7]`, `[Phase 9 (Physical Binding)]`

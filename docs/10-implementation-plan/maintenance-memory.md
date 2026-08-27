@@ -103,6 +103,51 @@ If NO: → no amendment is required.
 - **Permanent or temporary:** Pending access to headless B2B APIs to confirm if datasets are hidden behind MCP scopes.
 - **Added by:** AG
 
+- **Date:** 2026-08-26
+- **Subsystem / Component:** AaramPacking & Context Engine Integration
+- **Category:** Integration Quirks & Deployment Boundaries
+- **Observation:** AaramPacking is strictly an execution-only system. The authoritative state of fulfillment, logistics, and RTO events (`seller_last_status`, `rto_initiated`) is actually aggregated by the ShopDeck MCP/API.
+- **Why it matters:** Brain Core must NOT query AaramPacking for Context. Doing so creates duplicate truth boundaries. ShopDeck is the primary Context Provider for orders, fulfillment, and shipments.
+- **Recommended action:** Always map Brain Core context models directly to ShopDeck's exhaustive schema, treating AaramPacking solely as an Action Execution target.
+- **Permanent or temporary:** Permanent architectural boundary.
+- **Added by:** AG
+
+- **Date:** 2026-08-26
+- **Subsystem / Component:** Phase 1 Semantic Context Models
+- **Category:** Architecture Principle
+- **Observation:** External payloads from AaramInventory (e.g. `confidence_score`) and ShopDeck (e.g. `delivery_time`, `rto_initiated`) are highly granular and exhaustive.
+- **Why it matters:** Brain Core semantic models must NEVER mirror external payloads. They represent only the abstract semantics that the Reasoning engine requires (e.g. `items_availability: bool`, `fulfillment_status: str`).
+- **Recommended action:** Adapters must downcast, logically derive, and filter complex external data into the simplified, frozen Phase 1 Brain schemas. Do not modify Phase 1 schemas to match external APIs.
+- **Permanent or temporary:** Permanent architectural principle.
+- **Added by:** AG
+
+- **Date:** 2026-08-26
+- **Subsystem / Component:** AaramInventory Webhooks
+- **Category:** Integration Quirks & Deployment Boundaries
+- **Observation:** In `Aaram_Inventory/src/domains/inventory/api/packer_webhook_router.py`, the `handle_packer_event` endpoint (`/internal/webhooks/packer/events`) explicitly lacks any `Depends(get_current_user)` or permission dependencies, relying purely on network trust, whereas `/force-sync` in the same router requires `INVENTORY_CATALOG_VIEW`.
+- **Why it matters:** Internal service-to-service event pushes into AaramInventory currently operate without JWT validation. However, read APIs do strictly enforce JWT validation.
+- **Recommended action:** Do not assume all AaramInventory endpoints enforce identity. Differentiate between legacy network-trusted webhooks and strict JWT-enforced API routes when planning integrations.
+- **Permanent or temporary:** Temporary until Phase 2 Identity (Service Accounts) unifies M2M authentication.
+- **Added by:** AG
+
+- **Date:** 2026-08-26
+- **Subsystem / Component:** AaramInventory Authentication Dependency
+- **Category:** Integration Quirks & Deployment Boundaries
+- **Observation:** `AaramInventory`'s `get_current_user` dependency automatically handles non-UUID `sub` claims by wrapping them in a `uuid5` hash.
+- **Why it matters:** AaramIdentity Service Accounts can safely inject string-based client IDs (e.g. `brain-core-service`) into the `sub` claim of a JWT without breaking AaramInventory's backend user resolution.
+- **Recommended action:** M2M implementations do not need to modify AaramInventory's JWT validation to support service tokens.
+- **Permanent or temporary:** Permanent architectural capability.
+- **Added by:** AG
+
+- **Date:** 2026-08-26
+- **Subsystem / Component:** AaramInventory Auth Boundary
+- **Category:** Integration Quirks & Security Distinction
+- **Observation:** AaramIdentity authenticates/identifies Brain as a service, but AaramInventory's current inventory balance endpoint does not enforce that authentication/authorization.
+- **Why it matters:** Do not confuse successful M2M authentication with endpoint-level authorization. M2M provides identity, but the endpoint is currently public.
+- **Recommended action:** Recognize the security distinction and do not falsely claim the balance endpoint is protected by M2M authorization.
+- **Permanent or temporary:** Permanent distinction.
+- **Added by:** AG
+
 ==================================================
 7. Deployment & Environment Knowledge
 ==================================================

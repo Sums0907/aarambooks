@@ -26,13 +26,26 @@ def test_order_context_frozen():
         ctx.order_id = "ord-456"
 
 def test_shipment_context_valid():
-    ctx = ShipmentContext(shipment_id="ship-123")
-    assert ctx.shipment_id == "ship-123"
+    shipment = ShipmentContext(
+        shipment_id="shp-123",
+        awb_no="AWB_TEST",
+        courier="Delhivery",
+        status="Shipped",
+        delivery_attempts=[]
+    )
+    assert shipment.shipment_id == "shp-123"
+    assert shipment.awb_no == "AWB_TEST"
 
 def test_shipment_context_frozen():
-    ctx = ShipmentContext(shipment_id="ship-123")
+    shipment = ShipmentContext(
+        shipment_id="shp-123",
+        awb_no="AWB_TEST",
+        courier="Delhivery",
+        status="Shipped",
+        delivery_attempts=[]
+    )
     with pytest.raises(ValidationError):
-        ctx.shipment_id = "ship-456"
+        shipment.shipment_id = "ship-456"
 
 def test_inventory_context_valid():
     # 1. InventoryContext(item_id="x") remains valid.
