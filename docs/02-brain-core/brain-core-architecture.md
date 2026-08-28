@@ -215,6 +215,17 @@ Business authority remains with business systems and approved workflows.
 
 Brain Core is composed of independent intelligence capabilities.
 
+## Cognitive Context Planner
+
+Responsible for orchestrating the discovery and retrieval of dynamic evidence required to answer arbitrary natural-language queries.
+
+Focus:
+
+- Natural language intent decomposition.
+- Schema and business semantics discovery.
+- Retrieval planning and iterative context expansion.
+- *Rule: LLM-assisted context/evidence planning is an optional but fundamental capability for arbitrary natural-language queries.*
+
 ## Context Engine
 
 Responsible for understanding the situation in which intelligence is required.
@@ -369,3 +380,6 @@ It understands business truth, reasons over it, and enables intelligence across 
 The architecture principle remains:
 
 > Business systems create truth. Aaram Brain creates intelligence from that truth.
+
+**Critical Architectural Expansion:**
+> Brain is NOT limited to predefined Context Capabilities. Dynamic, governed data discovery and LLM-assisted evidence planning are fundamental components of the architecture, ensuring Brain can answer arbitrary, unseen business questions without requiring hard-coded capability mappings for every intent.

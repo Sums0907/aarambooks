@@ -264,3 +264,60 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Validation:** Developed comprehensive unit tests forcing validation errors and catching malformed Pydantic mappings. Full repository suite passed flawlessly (76/76 passing).
 - **Status:** RESOLVED (Phase 9 Logical Boundary complete)
 - **Related Incident / Decision:** Phase 9 (Ecosystem Communication & Governance)
+
+---
+
+### Incident ID: INC-20260827-006 (Phase 10 Execution)
+- **Date:** 2026-08-27
+- **Milestone:** Phase 10
+- **Component:** Testing, Certification & Production Hardening
+- **Problem:** Prepare the architecture for production safely without introducing physical transport dependencies prematurely.
+- **Error / Symptom:** Missing E2E tests, CI pipeline, chaos tests, token/latency logging, and production Dockerfile.
+- **Root Cause:** N/A (Feature Implementation)
+- **Fix:** Implemented token budget and latency logging in `LiteLLMGatewayAdapter`. Authored `tests/e2e/test_logical_e2e.py` and `tests/e2e/test_chaos.py` using `InboundReceiver.process_raw_payload` as the logical boundary, successfully mocking LLM and DB failures to verify architectural resilience and fallback mechanisms. Authored a production `Dockerfile` with a dummy idle command. Created `.github/workflows/ci.yml` for CI/CD with `safety` dependency checking.
+- **Files Changed:** `src/infrastructure/adapters/litellm_gateway.py`, `tests/e2e/test_logical_e2e.py`, `tests/e2e/test_chaos.py`, `Dockerfile`, `.github/workflows/ci.yml`
+- **Validation:** 81/81 test cases passing (including new E2E/Chaos tests). Docker build successful. No severity-1 dependencies found.
+- **Status:** RESOLVED (Phase 10 Certified)
+- **Related Incident / Decision:** Phase 10 (Testing, Certification & Production Hardening)
+
+- **Component:** Phase 11 - Physical Authentication Boundaries
+- **Problem:** Implement strict transport-level M2M authentication for internal webhooks without bleeding into intelligence logic, while isolating undocumented external systems.
+- **Fix:** Introduced `src/security/auth.py` validating AaramIdentity RS256 JWTs locally using public key cryptography. Segmented `router.py` into distinct endpoints (`/inbound/internal`, `/inbound/shiprocket`, `/inbound/shopdeck`) to honor distinct trust boundaries. Placed `501 Not Implemented` blocks on external routes pending physical signature contracts, preventing guessing of HMAC/signatures. Zero dependency on internal business domains. 
+- **Files Changed:** `requirements.txt`, `src/shared/config.py`, `src/security/auth.py` (new), `src/event_bus/router.py`, `tests/security/test_auth.py` (new), `tests/event_bus/test_router.py` (new).
+- **Validation:** 92/92 tests passed. Security tests verified rejection of expired, missing, bad-audience, and bad-permission JWTs before invoking `InboundReceiver`.
+- **Status:** Phase 11 Physical Authentication complete for internal APIs; Blocked for Shiprocket/Shopdeck pending vendor signature specifications.
+
+- **Component:** Brain Core Inbound M2M Authorization Alignment
+- **Problem:** Previous physical boundary incorrectly mandated a bespoke `brain:invoke` permission, violating the principle that permissions reflect business/domain capabilities, not arbitrary service entry rights. 
+- **Fix:** Removed the `brain:invoke` expectation. Verified that the physical boundary enforces an AaramIdentity M2M RS256 token matching the domain's machine identity standard (ServiceAccount `aaram_brain`, Role `AARAM_BRAIN_CORE`, Application `AARAM_BRAIN_APP`). Retained all existing five domain permissions mapping to the `AARAM_BRAIN_CORE` role, preserving the actual capabilities Brain needs for future/current Inventory execution.
+- **Files Changed:** `src/security/auth.py`, `tests/security/test_auth.py`, `tests/event_bus/test_router.py`
+- **Validation:** Missing/malformed tokens, invalid signatures, expired tokens, and human/refresh tokens are still rejected at the physical boundary before hitting the InboundReceiver. Valid tokens containing the `AARAM_BRAIN_CORE` domain permissions now pass successfully without `brain:invoke`. 100% test pass.
+- **Status:** Alignment complete. Physical authentication intact without overstepping into arbitrary authorization.
+
+- **Component:** Event Producer & Consumer Analysis (Discovery Phase)
+- **Problem:** Determine the actual sources, events, and flows driving Brain Core, distinct from authentication logic.
+- **Fix:** Conducted a comprehensive read-only search across the ecosystem. 
+- **Decisions Recorded:**
+  1. Zero implemented production event producers currently send events to Brain Core.
+  2. Brain Core's internal event endpoint is a validated physical boundary, but has no confirmed production caller.
+  3. AaramInventory publishes outbound events strictly to AaramPacking, not Brain Core.
+  4. AaramPackingApp codebase is absent from the workspace; no producer relationship can be proven.
+  5. Shiprocket and ShopDeck remain planned external event sources, blocked by unknown webhook contracts.
+  6. Brain Core presently obtains context through outbound adapters, which is distinct from event-driven triggering.
+  7. No decision mandates AaramInventory or AaramPacking to become Brain Core event producers.
+  8. No internal event schema will be invented until an actual intelligence workflow proves the necessity.
+  9. Authentication/physical transport is CLOSED and will not be reopened.
+  10. The AaramIdentity contract is FINAL: `aaram_brain` ServiceAccount, `AARAM_BRAIN_CORE` Role, `AARAM_BRAIN_APP` Application. Existing permissions: `INVENTORY_CATALOG_VIEW`, `INVENTORY_PRODUCT_VIEW`, `INVENTORY_EXCEPTION_VIEW`, `INVENTORY_ACTIVITY_VIEW`, `INVENTORY_JOBWORK_VIEW`. No `brain:invoke` permission exists.
+
+- **Component:** Phase 12 - Context Capability Expansion & Formalization
+- **Problem:** Intelligence Domains must be able to request arbitrary business contexts from Brain Core without coupling to physical transport, APIs, or specific database constraints.
+- **Fix:** Architected the abstract `Context Capability Model`. Defined how Brain Core isolates business truth providers from Intelligence Reasoning. Established semantics for handling Context Capability Gaps, ensuring that LLMs fail honestly instead of hallucinating when integration gaps exist.
+- **Files Changed:** `docs/02-brain-core/context-capability-architecture.md` (new), `docs/02-brain-core/context-capability-matrix.md` (new), `docs/03-intelligence-domains/inventory-intelligence/context-capability-mapping.md` (new), `docs/09-decisions/ADR-007-context-capability-abstraction.md` (new).
+- **Validation:** Purely architectural. Established the governing mapping rule: Natural Language -> Intelligence Domain -> Required Capabilities -> Brain Core Context Assembler -> Authoritative Business Systems.
+- **Status:** Documentation Phase Complete.
+
+- **Component:** Pre-Phase 13 Architecture Reassessment (LLM-Assisted Context Planning)
+- **Problem:** Brain must be capable of understanding and answering arbitrary natural language questions, not just deterministic intents mapped to predefined capabilities.
+- **Fix:** Performed a comprehensive architecture review. Established the necessity of an LLM Cognitive Planner layer. Updated Brain Core Architecture and drafted ADR-008 to support hybrid predefined capabilities alongside dynamic, iterative schema/semantic discovery.
+- **Files Changed:** `docs/02-brain-core/llm-assisted-context-planning.md` (new), `docs/02-brain-core/phase-1-12-impact-matrix.md` (new), `docs/09-decisions/ADR-008-llm-assisted-context-planning.md` (new), `docs/02-brain-core/context-engine-impact.md` (new), `docs/02-brain-core/brain-core-architecture.md` (updated), `00-project-context/GENERAL-NL-LLM-ASSISTED-CONTEXT-PLANNING-REVIEW.md` (new).
+- **Status:** Phase 13 implementation is intentionally BLOCKED pending architecture approval/revision of the Cognitive Context Planning Architecture.
