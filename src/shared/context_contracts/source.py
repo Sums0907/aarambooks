@@ -15,3 +15,5 @@ class SourceSystem(str, Enum):
 class ContextSource(BaseModel):
     source_system_name: SourceSystem
     retrieval_timestamp: datetime
+
+ContextSourceURN = str

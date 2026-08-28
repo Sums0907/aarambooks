@@ -1,10 +1,38 @@
 import pytest
 import json
+import uuid
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
 from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
 from src.brain_core.gateway.interfaces import GatewayGenerationResponse
 from src.brain_core.action_engine.contracts import ActionCategory
-from tests.intelligence_domains.fixtures import ndr_shipment, normal_customer, normal_order
+from src.shared.cognitive_planning_contracts import EvidencePackage, EvidenceItem, ProvenanceMetadata
+from src.brain_core.knowledge.interfaces import KnowledgeResult
+from src.brain_core.memory.interfaces import MemoryEntry
+
+def create_ndr_evidence_package(shipment_data: dict, customer_data: dict, order_data: dict = None) -> EvidencePackage:
+    payload = {
+        "shipment_context": shipment_data,
+        "customer_context": customer_data,
+    }
+    if order_data:
+        payload["order_context"] = order_data
+        
+    item = EvidenceItem(
+        item_id=str(uuid.uuid4()),
+        semantic_identity="ndr_update",
+        data_payload=payload,
+        provenance=ProvenanceMetadata(
+            retrieval_timestamp=datetime.now(timezone.utc),
+            derivation_metadata="test"
+        )
+    )
+    return EvidencePackage(
+        package_id=str(uuid.uuid4()),
+        plan_id="test",
+        evidence_items=[item],
+        sufficiency_assessment="SUFFICIENT"
+    )
 
 @pytest.fixture
 def mock_gateway():
@@ -41,7 +69,8 @@ async def test_ndr_orchestration_happy_path(mock_gateway, mock_knowledge, mock_m
     )
 
     orchestrator = NDRIntelligenceOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    decision, action, msg = await orchestrator.orchestrate_resolution(ndr_shipment, normal_customer, normal_order)
+    pkg = create_ndr_evidence_package({"shipment_id": "SHIP-001"}, {"customer_id": "C123"})
+    decision, action, msg = await orchestrator.orchestrate_resolution(pkg)
 
     # Verification
     assert msg == "Would you like us to reattempt delivery tomorrow?"
@@ -70,7 +99,8 @@ async def test_ndr_orchestration_escalation(mock_gateway, mock_knowledge, mock_m
     )
 
     orchestrator = NDRIntelligenceOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    decision, action, msg = await orchestrator.orchestrate_resolution(ndr_shipment, normal_customer, normal_order)
+    pkg = create_ndr_evidence_package({"shipment_id": "SHIP-002"}, {"customer_id": "C123"})
+    decision, action, msg = await orchestrator.orchestrate_resolution(pkg)
 
     # Verification
     assert decision.recommended_alternative_id == "escalate"
@@ -90,7 +120,8 @@ async def test_ndr_orchestration_parse_failure(mock_gateway, mock_knowledge, moc
     )
 
     orchestrator = NDRIntelligenceOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    decision, action, msg = await orchestrator.orchestrate_resolution(ndr_shipment, normal_customer, normal_order)
+    pkg = create_ndr_evidence_package({"shipment_id": "SHIP-003"}, {"customer_id": "C123"})
+    decision, action, msg = await orchestrator.orchestrate_resolution(pkg)
 
     # Verification
     assert msg is None

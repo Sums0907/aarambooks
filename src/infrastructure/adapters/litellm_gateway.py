@@ -1,10 +1,14 @@
 import os
+import time
+import logging
 import httpx
 from src.brain_core.gateway.interfaces import (
     ModelGatewayProvider,
     GatewayGenerationRequest,
     GatewayGenerationResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 class LiteLLMGatewayAdapter(ModelGatewayProvider):
     """
@@ -30,24 +34,39 @@ class LiteLLMGatewayAdapter(ModelGatewayProvider):
         if request.max_tokens is not None:
             payload["max_tokens"] = request.max_tokens
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, headers=headers, json=payload, timeout=30.0)
-            response.raise_for_status()
-            
-            data = response.json()
-            choices = data.get("choices", [])
-            content = choices[0].get("message", {}).get("content") or "" if choices else ""
-            
-            usage = data.get("usage", {})
-            prompt_tokens = usage.get("prompt_tokens", 0)
-            completion_tokens = usage.get("completion_tokens", 0)
-            
-            # Use the model name reported back from the proxy, or fallback
-            model_used = data.get("model", self.model)
-            
-            return GatewayGenerationResponse(
-                content=content,
-                model_used=model_used,
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens
-            )
+        start_time = time.time()
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, headers=headers, json=payload, timeout=30.0)
+                response.raise_for_status()
+                
+                data = response.json()
+                choices = data.get("choices", [])
+                content = choices[0].get("message", {}).get("content") or "" if choices else ""
+                
+                usage = data.get("usage", {})
+                prompt_tokens = usage.get("prompt_tokens", 0)
+                completion_tokens = usage.get("completion_tokens", 0)
+                
+                # Use the model name reported back from the proxy, or fallback
+                model_used = data.get("model", self.model)
+                
+                latency_ms = (time.time() - start_time) * 1000
+                
+                logger.info(
+                    f"GatewayGeneration: model={model_used}, "
+                    f"prompt_tokens={prompt_tokens}, completion_tokens={completion_tokens}, "
+                    f"latency_ms={latency_ms:.2f}"
+                )
+                
+                return GatewayGenerationResponse(
+                    content=content,
+                    model_used=model_used,
+                    prompt_tokens=prompt_tokens,
+                    completion_tokens=completion_tokens
+                )
+        except Exception as e:
+            latency_ms = (time.time() - start_time) * 1000
+            logger.error(f"GatewayGeneration Error: latency_ms={latency_ms:.2f}, error={str(e)}")
+            raise

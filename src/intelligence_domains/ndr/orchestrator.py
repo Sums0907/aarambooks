@@ -1,6 +1,6 @@
 import json
 from typing import Optional, Tuple
-from src.brain_core.models.contexts import ShipmentContext, CustomerContext, OrderContext
+from src.shared.cognitive_planning_contracts import EvidencePackage
 from src.brain_core.gateway.interfaces import ModelGatewayProvider, GatewayGenerationRequest, GatewayMessage
 from src.brain_core.knowledge.interfaces import KnowledgeProvider, KnowledgeQuery
 from src.brain_core.memory.interfaces import MemoryProvider, MemoryQuery, MemoryEntry
@@ -15,11 +15,19 @@ class NDRIntelligenceOrchestrator:
 
     async def orchestrate_resolution(
         self, 
-        shipment_context: ShipmentContext,
-        customer_context: CustomerContext,
-        order_context: Optional[OrderContext] = None
+        trigger_evidence: EvidencePackage
     ) -> Tuple[DecisionRecommendation, Optional[ActionRequest], Optional[str]]:
         
+        # 0. Extract trigger facts from inbound evidence
+        item = trigger_evidence.evidence_items[0] if trigger_evidence.evidence_items else None
+        payload = item.data_payload if item else {}
+        
+        shipment_data = payload.get("shipment_context", {})
+        shipment_id = shipment_data.get("shipment_id", "unknown")
+        
+        customer_data = payload.get("customer_context", {})
+        order_data = payload.get("order_context")
+
         # 1. Fetch relevant knowledge
         policies = await self.knowledge.search_knowledge(
             KnowledgeQuery(query_text="NDR resolution rules policies", domain="ndr", limit=2)
@@ -27,7 +35,7 @@ class NDRIntelligenceOrchestrator:
         policy_text = "\n".join([p.content for p in policies]) if policies else "Default Policy: Attempt redelivery up to 3 times."
 
         # 2. Fetch past memory/NDR history for this shipment
-        session_id = f"ndr_shipment_{shipment_context.shipment_id}"
+        session_id = f"ndr_shipment_{shipment_id}"
         past_memories = await self.memory.read_memory(MemoryQuery(session_id=session_id))
         history_text = "No prior NDR history."
         if past_memories:
@@ -48,10 +56,7 @@ class NDRIntelligenceOrchestrator:
             "}"
         )
         
-        shipment_data = shipment_context.model_dump_json()
-        customer_data = customer_context.model_dump_json()
-        
-        user_prompt = f"Shipment: {shipment_data}\nCustomer: {customer_data}"
+        user_prompt = f"Shipment: {json.dumps(shipment_data)}\nCustomer: {json.dumps(customer_data)}"
 
         request = GatewayGenerationRequest(
             messages=[
@@ -81,13 +86,13 @@ class NDRIntelligenceOrchestrator:
             action = ActionRequest(
                 category=ActionCategory.HUMAN_ASSISTANCE,
                 reasoning="Safety escalation due to parse failure.",
-                parameters={"shipment_id": shipment_context.shipment_id}
+                parameters={"shipment_id": shipment_id}
             )
             # Persist resolution attempt to Memory
             await self.memory.write_memory(
                 MemoryEntry(
                     content=f"NDR Resolution Evaluated: {decision.recommended_alternative_id} - {decision.justification}",
-                    metadata={"shipment_id": shipment_context.shipment_id, "escalated": True}
+                    metadata={"shipment_id": shipment_id, "escalated": True}
                 ),
                 session_id=session_id
             )
@@ -123,7 +128,7 @@ class NDRIntelligenceOrchestrator:
         action = ActionRequest(
             category=category,
             reasoning=decision.justification,
-            parameters={"shipment_id": shipment_context.shipment_id, "intent": parsed.get("intent")}
+            parameters={"shipment_id": shipment_id, "intent": parsed.get("intent")}
         )
 
         customer_message = parsed.get("customer_message")
@@ -132,7 +137,7 @@ class NDRIntelligenceOrchestrator:
         await self.memory.write_memory(
             MemoryEntry(
                 content=f"NDR Resolution Evaluated: {decision.recommended_alternative_id} - {decision.justification}",
-                metadata={"shipment_id": shipment_context.shipment_id, "escalated": is_escalation}
+                metadata={"shipment_id": shipment_id, "escalated": is_escalation}
             ),
             session_id=session_id
         )

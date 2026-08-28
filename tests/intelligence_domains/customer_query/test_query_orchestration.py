@@ -1,12 +1,39 @@
 import pytest
 import json
+import uuid
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock
 from src.intelligence_domains.customer_query.orchestrator import CustomerQueryOrchestrator
 from src.brain_core.gateway.interfaces import GatewayGenerationResponse
 from src.brain_core.action_engine.contracts import ActionCategory
-from tests.intelligence_domains.fixtures import normal_customer, normal_order, escalation_customer, high_value_order, missing_order
+from src.shared.cognitive_planning_contracts import EvidencePackage, EvidenceItem, ProvenanceMetadata
 from src.brain_core.knowledge.interfaces import KnowledgeResult
 from src.brain_core.memory.interfaces import MemoryEntry
+
+def create_evidence_package(query_text: str, session_id: str, customer_data: dict, order_data: dict = None) -> EvidencePackage:
+    payload = {
+        "query_text": query_text,
+        "session_id": session_id,
+        "customer_context": customer_data,
+    }
+    if order_data:
+        payload["order_context"] = order_data
+        
+    item = EvidenceItem(
+        item_id=str(uuid.uuid4()),
+        semantic_identity="customer_query",
+        data_payload=payload,
+        provenance=ProvenanceMetadata(
+            retrieval_timestamp=datetime.now(timezone.utc),
+            derivation_metadata="test"
+        )
+    )
+    return EvidencePackage(
+        package_id=str(uuid.uuid4()),
+        plan_id="test",
+        evidence_items=[item],
+        sufficiency_assessment="SUFFICIENT"
+    )
 
 @pytest.fixture
 def mock_gateway():
@@ -41,7 +68,8 @@ async def test_query_orchestration_status_query(mock_gateway, mock_knowledge, mo
     )
 
     orchestrator = CustomerQueryOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    response_text, decision, action = await orchestrator.handle_query("Where is my book?", normal_customer, normal_order, session_id="test_session")
+    pkg = create_evidence_package("Where is my book?", "test_session", {"customer_id": "cust1"}, {"order_id": "ord1"})
+    response_text, decision, action = await orchestrator.handle_query(pkg)
 
     assert response_text == "Your order ORD-001 is on the way."
     assert decision.recommended_alternative_id == "order_status"
@@ -69,7 +97,8 @@ async def test_query_orchestration_escalation(mock_gateway, mock_knowledge, mock
     mock_memory.read_memory.return_value = [MemoryEntry(content="User: I am very angry\nAssistant: Sorry", metadata={})]
 
     orchestrator = CustomerQueryOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    response_text, decision, action = await orchestrator.handle_query("I am furious!", escalation_customer, high_value_order, session_id="test_session_2")
+    pkg = create_evidence_package("I am furious!", "test_session_2", {"customer_id": "cust_esc"}, {"order_id": "ord_high"})
+    response_text, decision, action = await orchestrator.handle_query(pkg)
 
     assert action is not None
     assert action.category == ActionCategory.HUMAN_ASSISTANCE
@@ -94,7 +123,8 @@ async def test_query_orchestration_missing_context(mock_gateway, mock_knowledge,
 
     orchestrator = CustomerQueryOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
     # No session_id provided here
-    response_text, decision, action = await orchestrator.handle_query("Where is my order?", normal_customer, missing_order)
+    pkg = create_evidence_package("Where is my order?", None, {"customer_id": "cust1"}, None)
+    response_text, decision, action = await orchestrator.handle_query(pkg)
 
     assert response_text == "I could not find that order."
     mock_memory.read_memory.assert_not_called()
@@ -122,7 +152,8 @@ async def test_query_orchestration_hallucination_protection(mock_gateway, mock_k
     )
 
     orchestrator = CustomerQueryOrchestrator(gateway=mock_gateway, knowledge=mock_knowledge, memory=mock_memory)
-    response_text, decision, action = await orchestrator.handle_query("Give me a refund", normal_customer, normal_order, session_id="test_session_3")
+    pkg = create_evidence_package("Give me a refund", "test_session_3", {"customer_id": "cust1"}, {"order_id": "ord1"})
+    response_text, decision, action = await orchestrator.handle_query(pkg)
 
     assert action is None
     assert "no refunds" in response_text.lower()

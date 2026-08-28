@@ -56,19 +56,3 @@ async def test_receiver_valid_ndr(mock_query_orchestrator, mock_ndr_orchestrator
     assert result is not None
     parsed_result = json.loads(result)
     assert parsed_result["payload"]["category"] == ActionCategory.SUGGESTED_RESOLUTION.value
-
-@pytest.mark.asyncio
-async def test_receiver_invalid_payload_schema_fails_security(mock_query_orchestrator, mock_ndr_orchestrator):
-    receiver = InboundReceiver(mock_query_orchestrator, mock_ndr_orchestrator)
-    
-    # Passing a list for customer_id to trigger a Pydantic ValidationError during model_validate
-    payload = {
-        "event_type": "customer_query",
-        "content": {
-            "query_text": "Hello",
-            "customer_context": {"customer_id": ["invalid", "type"]}
-        }
-    }
-    
-    with pytest.raises(SecurityValidationError, match="Invalid domain structure in content"):
-        await receiver.process_raw_payload(json.dumps(payload))

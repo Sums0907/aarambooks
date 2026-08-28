@@ -11,3 +11,5 @@ class ProviderCapability(str, Enum):
     INVENTORY = "inventory"
     FULFILLMENT = "fulfillment"
     SECURITY = "security"
+
+CapabilityURN = str

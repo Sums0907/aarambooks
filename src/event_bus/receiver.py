@@ -1,10 +1,13 @@
 import logging
 from typing import Dict, Any, Optional
+from datetime import datetime, timezone
+import uuid
+
 from src.security.validator import PayloadValidator, SecurityValidationError
 from src.intelligence_domains.customer_query.orchestrator import CustomerQueryOrchestrator
 from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
-from src.brain_core.models.contexts import CustomerContext, OrderContext, ShipmentContext
 from src.event_bus.dispatcher import OutboundDispatcher
+from src.shared.cognitive_planning_contracts import EvidencePackage, EvidenceItem, ProvenanceMetadata
 from pydantic import ValidationError
 
 class InboundReceiver:
@@ -33,48 +36,42 @@ class InboundReceiver:
                 return await self._route_customer_query(content)
             elif event_type == "ndr_update":
                 return await self._route_ndr(content)
-        except ValidationError as e:
-            raise SecurityValidationError(f"Invalid domain structure in content: {e}")
         except Exception as e:
             logging.error(f"Routing failed: {e}")
             raise
             
         return None
 
-    async def _route_customer_query(self, content: Dict[str, Any]) -> Optional[str]:
-        query_text = content.get("query_text", "")
-        customer_dict = content.get("customer_context", {})
-        order_dict = content.get("order_context")
-        session_id = content.get("session_id")
-        
-        customer_context = CustomerContext.model_validate(customer_dict)
-        order_context = OrderContext.model_validate(order_dict) if order_dict else None
-        
-        _, _, action = await self.query_orchestrator.handle_query(
-            query_text=query_text,
-            customer_context=customer_context,
-            order_context=order_context,
-            session_id=session_id
+    def _create_evidence_package(self, event_type: str, content: Dict[str, Any]) -> EvidencePackage:
+        item = EvidenceItem(
+            item_id=str(uuid.uuid4()),
+            semantic_identity=event_type,
+            data_payload=content,
+            provenance=ProvenanceMetadata(
+                retrieval_timestamp=datetime.now(timezone.utc),
+                derivation_metadata="event_bus_webhook"
+            )
         )
+        return EvidencePackage(
+            package_id=str(uuid.uuid4()),
+            plan_id="event_trigger",
+            evidence_items=[item],
+            sufficiency_assessment="SUFFICIENT"
+        )
+
+    async def _route_customer_query(self, content: Dict[str, Any]) -> Optional[str]:
+        package = self._create_evidence_package("customer_query", content)
+        
+        _, _, action = await self.query_orchestrator.handle_query(trigger_evidence=package)
         
         if action:
             return OutboundDispatcher.dispatch(action)
         return None
 
     async def _route_ndr(self, content: Dict[str, Any]) -> Optional[str]:
-        shipment_dict = content.get("shipment_context", {})
-        customer_dict = content.get("customer_context", {})
-        order_dict = content.get("order_context")
+        package = self._create_evidence_package("ndr_update", content)
         
-        shipment_context = ShipmentContext.model_validate(shipment_dict)
-        customer_context = CustomerContext.model_validate(customer_dict)
-        order_context = OrderContext.model_validate(order_dict) if order_dict else None
-        
-        _, action, _ = await self.ndr_orchestrator.orchestrate_resolution(
-            shipment_context=shipment_context,
-            customer_context=customer_context,
-            order_context=order_context
-        )
+        _, action, _ = await self.ndr_orchestrator.orchestrate_resolution(trigger_evidence=package)
         
         if action:
             return OutboundDispatcher.dispatch(action)

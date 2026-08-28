@@ -1,6 +1,6 @@
 import json
 from typing import Optional, Tuple
-from src.brain_core.models.contexts import CustomerContext, OrderContext
+from src.shared.cognitive_planning_contracts import EvidencePackage
 from src.brain_core.gateway.interfaces import ModelGatewayProvider, GatewayGenerationRequest, GatewayMessage
 from src.brain_core.knowledge.interfaces import KnowledgeProvider, KnowledgeQuery
 from src.brain_core.memory.interfaces import MemoryProvider, MemoryQuery, MemoryEntry
@@ -15,12 +15,21 @@ class CustomerQueryOrchestrator:
 
     async def handle_query(
         self, 
-        query_text: str,
-        customer_context: CustomerContext,
-        order_context: Optional[OrderContext] = None,
-        session_id: Optional[str] = None
+        trigger_evidence: EvidencePackage
     ) -> Tuple[str, DecisionRecommendation, Optional[ActionRequest]]:
         
+        # 0. Extract trigger facts from inbound evidence
+        item = trigger_evidence.evidence_items[0] if trigger_evidence.evidence_items else None
+        payload = item.data_payload if item else {}
+        
+        query_text = payload.get("query_text", "")
+        session_id = payload.get("session_id")
+        
+        customer_data = payload.get("customer_context", {})
+        customer_id = customer_data.get("customer_id", "unknown")
+        
+        order_data = payload.get("order_context")
+
         # 1. Fetch relevant knowledge
         policies = await self.knowledge.search_knowledge(
             KnowledgeQuery(query_text=query_text, domain="customer_support", limit=2)
@@ -49,10 +58,9 @@ class CustomerQueryOrchestrator:
             "}"
         )
         
-        customer_data = customer_context.model_dump_json()
-        order_data = order_context.model_dump_json() if order_context else "None"
+        order_data_str = json.dumps(order_data) if order_data else "None"
         
-        user_prompt = f"Customer Query: {query_text}\nCustomer Context: {customer_data}\nOrder Context: {order_data}"
+        user_prompt = f"Customer Query: {query_text}\nCustomer Context: {json.dumps(customer_data)}\nOrder Context: {order_data_str}"
 
         request = GatewayGenerationRequest(
             messages=[
@@ -82,7 +90,7 @@ class CustomerQueryOrchestrator:
             action = ActionRequest(
                 category=ActionCategory.HUMAN_ASSISTANCE,
                 reasoning="Safety escalation due to parse failure.",
-                parameters={"customer_id": customer_context.customer_id}
+                parameters={"customer_id": customer_id}
             )
             response_text = "I apologize, but I am having trouble processing your request. I will escalate this to a human agent."
             # Persist interaction to Memory
@@ -121,7 +129,7 @@ class CustomerQueryOrchestrator:
             action = ActionRequest(
                 category=category,
                 reasoning=decision.justification,
-                parameters={"customer_id": customer_context.customer_id, "intent": parsed.get("intent")}
+                parameters={"customer_id": customer_id, "intent": parsed.get("intent")}
             )
 
         # 7. Persist interaction to Memory
