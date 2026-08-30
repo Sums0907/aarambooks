@@ -5,6 +5,18 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str
     litellm_base_url: str = "http://localhost:4000"
+    litellm_model: str = "local-qwen"
+    litellm_api_key: str = "sk-1234"
+    llm_enforce_json_format: bool = False
+    llm_routing_max_tokens: int = 150
+    
+    # Stage-Based Multi-LLM Model Routing
+    stage_r_1_intent_routing_model: str = "local-qwen"
+    stage_r_2_planning_model: str = "local-qwen"
+    stage_r_5_entity_resolution_model: str = "local-qwen"
+    stage_r_7_response_synthesis_model: str = "local-qwen"
+    stage_5_analytics_engine_model: str = "local-qwen"
+    stage_6_executive_reports_model: str = "gemini-3.6-flash"
     
     # External Ecosystem
     identity_url: str = "https://api.identity.aarambooks.cloud"

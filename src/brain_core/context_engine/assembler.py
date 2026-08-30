@@ -64,11 +64,13 @@ class ContextAssembler:
             for capability_urn in resolution.resolved_capabilities:
                 try:
                     provider = self._registry.resolve(capability_urn)
+                    print(f"\n[ASSEMBLER DEBUG] Resolved provider {provider} for {capability_urn}", flush=True)
                     result: ContextCapabilityResult = await provider.invoke_capability(
                         capability_urn=capability_urn,
                         requirement=request.resolved_requirement,
                         authorization_context=request.authorization_context
                     )
+                    print(f"[ASSEMBLER DEBUG] Result status: {result.status}", flush=True)
                     
                     gap = GapSemantics.EVIDENCE_SUFFICIENT
                     if result.status == ContextRetrievalStatus.DATA_UNAVAILABLE:

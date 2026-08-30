@@ -121,6 +121,15 @@ If NO: → no amendment is required.
 - **Permanent or temporary:** Permanent architectural principle.
 - **Added by:** AG
 
+- **Date:** 2026-08-29
+- **Subsystem / Component:** Inventory Intelligence Domain / Azm Accumulation
+- **Category:** Architecture Principle
+- **Observation:** Azm (Aaram's proprietary intelligence asset) must be organically accumulated during the execution of Intelligence Domains, rather than built as a separate standalone database. 
+- **Why it matters:** As the Inventory Intelligence Domain operates, it must write its case lifecycles, structured reasoning, and action outcomes to the Brain Core Memory Framework (`MemoryProvider`). Simultaneously, it must rely on the `AzmProvider` for its domain semantic knowledge. This strict boundary enables the capture of high-quality Input/Output reasoning traces that form the Azm asset for future open-weight model fine-tuning.
+- **Recommended action:** Always persist ID orchestrator state and final decisions to the Memory Framework. Never hardcode SOPs in the ID source code; inject them dynamically from the Knowledge Engine to keep the Azm corpus portable.
+- **Permanent or temporary:** Permanent architectural principle.
+- **Added by:** AG
+
 - **Date:** 2026-08-26
 - **Subsystem / Component:** AaramInventory Webhooks
 - **Category:** Integration Quirks & Deployment Boundaries

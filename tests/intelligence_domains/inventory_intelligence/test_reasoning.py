@@ -59,11 +59,11 @@ async def test_reasoning_injects_policies_and_handles_partial(mock_brain, mock_g
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "balance",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": []
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [],
+                        "conditions": []
+                    }
             }
             ```''',
             model_used="mock-model",
@@ -125,11 +125,11 @@ async def test_reasoning_handles_insufficient_deterministically(mock_brain, mock
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "balance",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": []
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [],
+                        "conditions": []
+                    }
             }
             ```''',
             model_used="mock-model",

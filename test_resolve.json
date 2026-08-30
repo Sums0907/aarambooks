@@ -1,0 +1,33 @@
+{
+  "capability_urn": "urn:aarambooks:inventory:capability:balance",
+  "requirement": {
+    "requirement_id": "1fdab02d-0873-41a8-adde-643475980064",
+    "original_requirement": {
+      "requirement_id": "1fdab02d-0873-41a8-adde-643475980064",
+      "necessity": "REQUIRED",
+      "time_range": null,
+      "filters": null,
+      "rationale": "User request",
+      "semantic_intent": "What is the stock balance for SKU=126BS"
+    },
+    "core_identities": [
+      "inventory.entity.sku",
+      "inventory.capability.balance"
+    ],
+    "semantic_constraints": [
+      {
+        "identity": "inventory.capability.balance",
+        "constraint_type": "CAPABILITY",
+        "operator": "EQUALS",
+        "bound_value": null
+      },
+      {
+        "identity": "inventory.entity.sku",
+        "constraint_type": "ENTITY",
+        "operator": "EQUALS",
+        "bound_value": "126BS"
+      }
+    ],
+    "semantic_gaps": []
+  }
+}

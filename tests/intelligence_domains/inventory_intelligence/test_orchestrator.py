@@ -82,13 +82,11 @@ async def test_balance_query_produces_explicit_constraints(mock_brain, mock_gate
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "balance for SKU X in WH1",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": [
-                        {"identity": "inventory.entity.sku", "bound_value": "SKU X"},
-                        {"identity": "inventory.entity.warehouse", "bound_value": "WH1"}
-                    ]
+                "understanding": {
+                    "intent": "RETRIEVE",
+                    "entities": [{"original_expression": "SKU X"}],
+                    "scope": {"scope_expression": "WH1", "source": "EXPLICIT"},
+                    "conditions": []
                 }
             }
             ```''',
@@ -128,13 +126,11 @@ async def test_missing_required_constraint_produces_gap(mock_brain, mock_gateway
         content='''```json
         {
             "status": "SUPPORTED",
-            "requirement": {
-                "semantic_description": "balance for SKU X",
-                "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                "constraints": [
-                    {"identity": "inventory.entity.sku", "bound_value": "SKU X"}
-                ]
-            }
+            "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "SKU X"}],
+                        "conditions": []
+                    }
         }
         ```''',
         model_used="mock-model",
@@ -180,14 +176,11 @@ async def test_ledger_query_produces_explicit_constraints(mock_brain, mock_gatew
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "ledger for SKU X",
-                    "capability_urn": "urn:aarambooks:inventory:capability:ledger",
-                    "constraints": [
-                        {"identity": "inventory.entity.sku", "bound_value": "SKU X"},
-                        {"identity": "inventory.temporal.posting_date", "bound_value": "today"}
-                    ]
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "SKU X"}, {"original_expression": "today"}],
+                        "conditions": []
+                    }
             }
             ```''',
             model_used="mock-model",
@@ -221,13 +214,11 @@ async def test_jobwork_query_produces_explicit_constraints(mock_brain, mock_gate
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "jobwork status for vendor V1",
-                    "capability_urn": "urn:aarambooks:inventory:capability:jobwork_status",
-                    "constraints": [
-                        {"identity": "inventory.entity.jobwork_vendor", "bound_value": "V1"}
-                    ]
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "V1"}],
+                        "conditions": []
+                    }
             }
             ```''',
             model_used="mock-model",
@@ -260,13 +251,11 @@ async def test_exception_query_produces_explicit_constraints(mock_brain, mock_ga
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "exceptions for SKU X",
-                    "capability_urn": "urn:aarambooks:inventory:capability:exception_status",
-                    "constraints": [
-                        {"identity": "inventory.entity.sku", "bound_value": "SKU X"}
-                    ]
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "SKU X"}],
+                        "conditions": []
+                    }
             }
             ```''',
             model_used="mock-model",

@@ -88,5 +88,5 @@ The domain must fail honestly rather than fabricate an answer.
 Inventory Intelligence implementation depends on the maturity of the required Context Capabilities. Missing business contexts are Context Capability Gaps and should be addressed in the Context Layer rather than by weakening or constraining the Intelligence Domain.
 
 - **Domain Design Readiness:** Architecturally ready.
-- **Context Capability Readiness:** Partially complete (basic inventory balance availability exists; movements, ledgers, and jobwork represent capability gaps).
-- **Implementation Readiness:** Blocked pending Context Layer maturation for complex scenarios.
+- **Context Capability Readiness:** Stage F established the generic capability routing via `ContextCapabilityGateway`. However, no external AaramInventory CEM endpoints have been implemented yet. All inventory capabilities are currently **Gaps** until the `aaraminventory` workspace builds the corresponding CEM endpoints.
+- **Implementation Readiness:** Blocked pending the construction of the AaramInventory Context Exposure Module (CEM).

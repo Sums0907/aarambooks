@@ -1,19 +1,16 @@
-# Context Capability Matrix
+# Context Capability Matrix (Stage F)
 
-This matrix tracks the generic, reusable business contexts that Brain Core's Context Layer can provide to Intelligence Domains. Missing contexts represent **Context Capability Gaps** to be prioritized in future adapter iterations.
+This matrix tracks the generic, reusable business capability boundaries that Brain Core can invoke to fetch context. Missing capabilities represent **Context Capability Gaps** to be prioritized in future Business System CEM implementations.
 
-| Context Capability | Purpose | Source System | Current Brain Core Resolution Mechanism | Normalized Context Exists? | Gap Status | Generic / Reusable? |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Customer Profile** | Demographics, identity, lifetime value. | ShopDeck | `ShopDeckAdapter` | Yes (`CustomerContext`) | Resolved | Yes |
-| **Order State** | Order items, total, status, history. | ShopDeck | `ShopDeckAdapter` | Yes (`OrderContext`) | Resolved | Yes |
-| **Warehouse Context** | Location metadata, active status. | AaramInventory | `AaramInventoryAdapter` | Partially (ID extraction) | Partially Available | Yes |
-| **SKU/Catalog Context** | Dimensions, weight, UoM, pricing, BOM structure. | AaramInventory | `AaramInventoryAdapter` | Yes (`InventoryContext` subset) | Partially Available (Missing BOM) | Yes |
-| **Inventory Availability** | Physical stock balance on hand. | AaramInventory | `AaramInventoryAdapter` | Yes (`InventoryContext`) | Resolved | Yes |
-| **Shipment Tracking** | Delivery status, attempts, carrier. | Shiprocket / ShopDeck | `ShiprocketAdapter` | Yes (`ShipmentContext`) | Resolved | Yes |
-| **Inventory Movements** | Historical ledger of ins and outs (dispatch, receipts). | AaramInventory | None | No | **GAP** | Yes |
-| **Inventory Exceptions** | Discrepancies, cycle count variances. | AaramInventory | None | No | **GAP** | Yes |
-| **Jobwork Context** | Raw material issues, FG receipts, pending third-party stock, scrap. | AaramInventory | None | No | **GAP** | Yes |
-| **Production Readiness** | Computed availability of required BOM components against stock. | AaramInventory | None | No | **GAP** | Yes |
-| **Inventory Ledger** | Accounting journals, asset valuation, COGS. | AaramInventory | None | No | **GAP** | Yes |
+| Capability URN | Purpose | Authoritative Business System | Context Exposure Mechanism | Generic Protocol Active? | Gap Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **`urn:aaram:capability:customer:profile`** | Demographics, identity, lifetime value. | Customer/ShopDeck | CEM Endpoint | No (Legacy Model used) | Partially Resolved |
+| **`urn:aaram:capability:order:state`** | Order items, total, status, history. | ShopDeck | CEM Endpoint | No (Legacy Model used) | Partially Resolved |
+| **`urn:aaram:capability:inventory:availability`** | Physical stock balance on hand. | AaramInventory | AaramInventory CEM | Yes | Active |
+| **`urn:aaram:capability:inventory:catalog`** | Dimensions, weight, UoM, pricing, BOM. | AaramInventory | AaramInventory CEM | Pending Implementation | **GAP** |
+| **`urn:aaram:capability:fulfillment:tracking`** | Delivery status, attempts, carrier. | Shiprocket | Shiprocket CEM / Webhooks | No (Legacy Model used) | Partially Resolved |
+| **`urn:aaram:capability:inventory:movements`** | Historical ledger of ins and outs (dispatch). | AaramInventory | AaramInventory CEM | Pending Implementation | **GAP** |
+| **`urn:aaram:capability:inventory:exceptions`** | Discrepancies, cycle count variances. | AaramInventory | AaramInventory CEM | Pending Implementation | **GAP** |
+| **`urn:aaram:capability:inventory:jobwork`** | Raw material issues, FG receipts, scrap. | AaramInventory | AaramInventory CEM | Pending Implementation | **GAP** |
 
-*Note: Context Capability Gaps are not Intelligence Domain failures. They denote areas where the Context Layer must implement new providers/endpoints to expand Brain Core's understanding.*
+*Note: Context Capability Gaps are not Intelligence Domain failures. They denote areas where the external Business Systems must implement new CEM endpoints to expand Brain Core's understanding.*

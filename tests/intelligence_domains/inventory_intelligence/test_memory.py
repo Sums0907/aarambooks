@@ -50,12 +50,12 @@ async def test_case_outcome_saved_to_memory(mock_brain, mock_gateway, mock_knowl
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "urgent escalation",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": [],
-                    "decision_criteria": "low stock means < 10"
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [],
+                        "conditions": [],
+                        "user_supplied_criteria": ["low stock means < 10"]
+                    }
             }
             ```''',
             model_used="mock", prompt_tokens=10, completion_tokens=15
@@ -64,6 +64,17 @@ async def test_case_outcome_saved_to_memory(mock_brain, mock_gateway, mock_knowl
         GatewayGenerationResponse(content="The evidence indicates a severe issue.", model_used="mock", prompt_tokens=10, completion_tokens=15),
         # Action Phase
         GatewayGenerationResponse(content="NO_ACTION", model_used="mock", prompt_tokens=10, completion_tokens=15)
+    ]
+    
+    mock_knowledge.get_certified_capabilities.return_value = [
+        SemanticConcept(
+            concept_id="inventory.capability.exception_status",
+            concept_name="Exception Capability",
+            concept_type="CAPABILITY",
+            aliases=[],
+            description="Exception",
+            metadata={"urn": "urn:aarambooks:inventory:capability:exception_status", "required_constraints": []}
+        )
     ]
 
     mock_brain.execute_requirements.return_value = EvidencePackage(

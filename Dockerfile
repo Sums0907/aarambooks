@@ -7,5 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
 
-# Port is provided via environment variable at runtime.
-CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Port is provided via environment variable at runtime (if physical transport is later authorized).
+ENV PYTHONPATH=/app
+CMD ["python", "-c", "import time; print('AaramBooks Brain Core Started (Logical Mode)'); time.sleep(86400)"]

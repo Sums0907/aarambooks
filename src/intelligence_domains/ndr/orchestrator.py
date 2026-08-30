@@ -58,11 +58,13 @@ class NDRIntelligenceOrchestrator:
         
         user_prompt = f"Shipment: {json.dumps(shipment_data)}\nCustomer: {json.dumps(customer_data)}"
 
+        from src.shared.config import settings
         request = GatewayGenerationRequest(
             messages=[
                 GatewayMessage(role="system", content=system_prompt),
                 GatewayMessage(role="user", content=user_prompt)
             ],
+            model=settings.stage_r_7_response_synthesis_model,
             temperature=0.0 # Deterministic reasoning
         )
         

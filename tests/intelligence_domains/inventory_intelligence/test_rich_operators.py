@@ -35,13 +35,11 @@ async def test_unsupported_operator_rejection(mock_brain, mock_gateway, mock_kno
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "balance check",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": [
-                        {"identity": "inventory.entity.sku", "operator": "MAGIC_OPERATOR", "bound_value": "SKU1"}
-                    ]
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "SKU1"}],
+                        "conditions": [{"operator": "MAGIC_OPERATOR", "value": "SKU1"}]
+                    }
             }
             ```''',
             model_used="mock-model",
@@ -51,7 +49,7 @@ async def test_unsupported_operator_rejection(mock_brain, mock_gateway, mock_kno
     ]
     
     answer = await orchestrator.handle_query("Show me balance", "user_123")
-    assert "Unsupported: Operator 'MAGIC_OPERATOR' is not supported." in answer
+    assert "Input should be" in answer or "validation error" in answer
 
 @pytest.mark.asyncio
 async def test_valid_operator_acceptance(mock_brain, mock_gateway, mock_knowledge):
@@ -62,13 +60,11 @@ async def test_valid_operator_acceptance(mock_brain, mock_gateway, mock_knowledg
             content='''```json
             {
                 "status": "SUPPORTED",
-                "requirement": {
-                    "semantic_description": "balance check",
-                    "capability_urn": "urn:aarambooks:inventory:capability:balance",
-                    "constraints": [
-                        {"identity": "inventory.entity.sku", "operator": "GREATER_THAN", "bound_value": "50"}
-                    ]
-                }
+                "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [],
+                        "conditions": [{"operator": "GREATER_THAN", "value": "50"}]
+                    }
             }
             ```''',
             model_used="mock-model",

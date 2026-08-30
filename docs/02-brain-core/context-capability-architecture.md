@@ -1,71 +1,57 @@
-# Context Capability Architecture
+# Context Capability Architecture (Stage F Generic Protocol)
 
 ## 1. Purpose
 
-This document defines the **Context Capability Model**, the architectural mechanism through which Intelligence Domains request and receive business truth from Brain Core's Context Layer without knowing how or where that truth is physically obtained.
+This document defines the **Generic Context Capability Model**, the architectural mechanism through which Brain Core requests and receives business truth from external Business Systems (e.g., AaramInventory, Shiprocket) without owning physical schemas or knowing how that truth is physically obtained.
 
 ## 2. Terminology
 
-- **Business Truth:** Authoritative operational data owned by external business systems (e.g., AaramInventory, ShopDeck).
-- **Context Capability:** A logical, governed grouping of business truth (e.g., `inventory_availability`, `sku_context`) that Brain Core can resolve on demand.
-- **Context Layer (Context Engine):** The generic Brain Core infrastructure that accepts a requirement for a Context Capability, determines how to source it, authenticates with the business system, fetches it, normalizes it, and returns it.
-- **Intelligence Domain:** An independent reasoning application (e.g., `inventory-intelligence`) that consumes Context Capabilities to synthesize insights.
-- **Transport:** The physical protocol and endpoint (e.g., REST API, gRPC, event stream) used to fetch data. It is an implementation detail strictly hidden below the Context Layer.
-- **Context Capability Gap:** A formal declaration that the Context Layer currently lacks the integration/provider necessary to fulfill a requested Context Capability.
+- **Business Truth:** Authoritative operational data owned entirely by external Business Systems. Brain Core never owns this data.
+- **Context Capability (URN):** A logical, generic identifier (e.g., `urn:aaram:capability:inventory:availability`) that Brain Core uses to request business truth.
+- **Semantic Constraint:** A source-blind definition of what is needed (e.g., "Give me entity X where attribute Y equals Z").
+- **EvidenceItem:** An opaque JSON payload returned by a Business System. Brain Core does NOT parse the schema of this payload; it merely injects it into the LLM context.
+- **Context Exposure Module (CEM):** The component built *inside* the Business System workspace that exposes capabilities to Brain Core via a generic HTTP/gRPC socket.
+- **Provider Registry:** Brain Core's internal registry mapping Capability URNs to Business System CEM endpoints.
 
 ## 3. Boundaries
 
 ```text
-+------------------------+      Declares Required      +-----------------------+
++------------------------+      Declares Semantic      +-----------------------+
 |  Intelligence Domain   | --------------------------> | Brain Core Context    |
-|  (Reasoning & Intent)  |                             | Layer                 |
-+------------------------+      Returns Normalized     +-----------------------+
-           ^                     Context                      |
-           |                                                  | Obtains Truth 
+|  (Reasoning & Intent)  |       Requirement           | Layer                 |
++------------------------+                             +-----------------------+
+           ^                                                  |
+           |                                                  | Generic HTTP
+           |                                                  | Capability Req
            |                                                  v
            |                                           +-----------------------+
-           +--- Independent from Transport ----------- | Business Systems      |
-                                                       | (AaramInventory)      |
+           |                                           | Context Exposure Mod  |
+           +----- Injects Opaque EvidenceItem -------- | (Business System)     |
                                                        +-----------------------+
 ```
 
 ## 4. Capability Model and Request Abstraction
 
-Intelligence Domains must NOT request APIs (e.g., `GET /api/v1/inventory`).
-Instead, they formulate a `ContextAssemblyRequest` requesting specific logical capabilities:
-```python
-request = ContextAssemblyRequest(
-    source_system=SourceSystem.aaram_inventory,
-    capabilities=[
-        ProviderCapability.INVENTORY_AVAILABILITY,
-        ProviderCapability.SKU_CONTEXT,
-        ProviderCapability.JOBWORK_CONTEXT
-    ],
-    identifiers={"sku_id": "SKU-1234", "warehouse_id": "WH-1"}
-)
-```
+Brain Core must NOT request explicit APIs (e.g., `GET /api/v1/inventory`).
+Instead, the Intelligence Domain issues a `SemanticRequirement` bound to a specific Context Capability URN. 
 
-## 5. Composition
+The `ContextCapabilityGateway` transmits a strictly generic payload to the Business System CEM:
+- `CapabilityURN`
+- `ResolvedSemanticRequirement`
+- `Authorization Context`
 
-The Context Layer natively supports **composite context requests**. 
-If a single natural-language question requires multiple facts (e.g., SKU context + availability + movement history), the Intelligence Domain requests all of them in a single abstract request. The Context Layer’s `ContextAssembler` orchestrates the necessary concurrent provider fetches (whether that requires 1 API call or 10) and fuses them into a single `AssembledContext` object.
+## 5. Generic Responses (Source Blindness)
 
-## 6. Provenance and Freshness
+The Business System CEM translates the semantic requirement into its internal database queries, and returns an `EvidenceItem` containing a `data_payload` (opaque JSON) and `source_urn`. 
 
-To prevent the LLM from hallucinating and to establish auditability, the Context Layer guarantees:
-- **Provenance:** Every returned context model must include a `SourceSystem` identifier denoting which system authored the truth.
-- **Freshness:** Every returned context model must include a `retrieval_timestamp` indicating exactly when the snapshot was taken.
+Brain Core does not deserialize the `data_payload` into a Pydantic schema like `InventoryContext`. It remains completely unaware of physical fields.
 
-## 7. Context Resolution Semantics
+## 6. Context Resolution Semantics
 
-The Context Layer must represent the state of the returned truth cleanly:
-- **Available Truth:** The provider successfully retrieved the capability and returned a fully populated normalized model.
-- **Unavailable Truth:** The underlying business system is unreachable (e.g., HTTP 503). The Context Layer throws a temporary resolution error.
-- **Insufficient Truth:** The business system returned a response, but it lacks required fields (e.g., partial SKU data). This is passed to the domain as `None` fields, allowing the domain to fail honestly.
-- **Conflicting Truth:** If overlapping capabilities yield differing facts, the Context Layer provides both, tagged with their respective provenance, forcing the domain (or LLM) to highlight the anomaly.
-- **Stale Truth:** If cached data is used, the `retrieval_timestamp` enables the domain to reject it if strict real-time accuracy is required.
-- **Context Capability Gap:** If the `ProviderRegistry` has no registered provider for the requested `ProviderCapability`, the Context Assembler immediately raises a `ProviderNotRegisteredError` (a Capability Gap). The domain catches this and reports: "Required context capability is not currently available."
+- **Available Truth:** The CEM successfully retrieved the capability and returned an `EvidenceItem`.
+- **Unavailable Truth:** The underlying CEM is unreachable (e.g., HTTP 503).
+- **Context Capability Gap:** If the `ProviderRegistry` has no registered endpoint for the requested Capability URN, it raises a `ProviderNotRegisteredError`.
 
-## 8. Preventing Hallucination
+## 7. Preventing Hallucination
 
-The strict normalized Pydantic models generated by the Context Layer are the *only* business facts fed into the LLM context window. The system prompt enforces that the LLM must strictly use the injected context. If a field in the model is `None` or a Capability Gap occurred, the LLM is instructed to output an inability-to-answer response rather than inventing a value.
+The opaque `data_payload` inside the `EvidenceItem` is injected verbatim into the LLM context window, alongside its provenance (`source_urn`). The LLM prompt explicitly instructs the reasoning engine to only extract facts from the provided JSON evidence, eliminating hallucination while decoupling Brain Core from physical schema changes.

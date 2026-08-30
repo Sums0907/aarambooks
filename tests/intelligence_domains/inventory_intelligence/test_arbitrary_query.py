@@ -58,16 +58,11 @@ def mock_gateway():
     # 1. First call is Domain intent parser
     planner_json = json.dumps({
         "status": "SUPPORTED",
-        "requirement": {
-            "semantic_description": "Find pending return stock for the jobwork vendor",
-            "capability_urn": "urn:aarambooks:inventory:capability:jobwork_status",
-            "constraints": [
-                {
-                    "identity": "inventory.entity.jobwork_vendor",
-                    "bound_value": "Acme Jobwork"
-                }
-            ]
-        }
+        "understanding": {
+                        "intent": "RETRIEVE",
+                        "entities": [{"original_expression": "Acme Jobwork"}],
+                        "conditions": []
+                    }
     })
     
     # 2. Second call is InventoryIntelligenceOrchestrator synthesizing the final answer

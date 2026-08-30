@@ -62,11 +62,13 @@ class CustomerQueryOrchestrator:
         
         user_prompt = f"Customer Query: {query_text}\nCustomer Context: {json.dumps(customer_data)}\nOrder Context: {order_data_str}"
 
+        from src.shared.config import settings
         request = GatewayGenerationRequest(
             messages=[
                 GatewayMessage(role="system", content=system_prompt),
                 GatewayMessage(role="user", content=user_prompt)
             ],
+            model=settings.stage_r_7_response_synthesis_model,
             temperature=0.0 # Deterministic reasoning
         )
         

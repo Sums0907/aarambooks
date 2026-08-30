@@ -10,6 +10,7 @@ class GatewayMessage(BaseModel):
 class GatewayGenerationRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
     messages: List[GatewayMessage]
+    model: Optional[str] = None
     temperature: float = 0.7
     max_tokens: Optional[int] = None
 

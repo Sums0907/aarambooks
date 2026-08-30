@@ -221,10 +221,23 @@ Responsible for orchestrating the discovery and retrieval of dynamic evidence re
 
 Focus:
 
-- Natural language intent decomposition.
-- Schema and business semantics discovery.
-- Retrieval planning and iterative context expansion.
+- Interpreting the user's natural language.
+- Decomposing the question.
+- Determining required evidence.
+- Proposing an **Evidence Plan**.
 - *Rule: LLM-assisted context/evidence planning is an optional but fundamental capability for arbitrary natural-language queries.*
+
+## Brain Orchestrator
+
+Responsible for deterministic control between cognition and execution.
+
+Focus:
+
+- Validating Evidence Plans.
+- Validating requested capabilities and enforcing authorization.
+- Resolving available retrieval mechanisms.
+- Sequencing retrieval and enforcing resource limits.
+- Assembling evidence requests and maintaining provenance.
 
 ## Context Engine
 
@@ -383,3 +396,51 @@ The architecture principle remains:
 
 **Critical Architectural Expansion:**
 > Brain is NOT limited to predefined Context Capabilities. Dynamic, governed data discovery and LLM-assisted evidence planning are fundamental components of the architecture, ensuring Brain can answer arbitrary, unseen business questions without requiring hard-coded capability mappings for every intent.
+
+# 12. Canonical Architectural Flow
+
+The canonical flow for Brain Core intelligence is conceptually defined as:
+
+```text
+USER
+  ↓
+Natural Language Query
+  ↓
+Cognitive Interpretation / Planning (Cognitive Planner)
+  ↓
+Evidence Plan
+  ↓
+Brain Orchestrator
+  ↓
+Capability Resolution OR Dynamic Discovery
+  ↓
+Governed Retrieval
+  ↓
+Context / Evidence Assembly
+  ↓
+Evidence Package
+  ↓
+LLM Reasoning
+  ↓
+Answer / Recommendation / Governed Action
+```
+
+### Iterative Context Expansion
+
+The architecture explicitly allows for iterative loops. If initial evidence is insufficient:
+```text
+Evidence
+  ↓
+LLM
+  ↓
+Additional Evidence Requirement
+  ↓
+Evidence Plan Extension
+  ↓
+Orchestrator
+  ↓
+Additional Retrieval
+  ↓
+Evidence
+```
+Note: "Cognitive Planner" and "Reasoning" are logical responsibilities. They may eventually use the same model, different models, or different providers without changing the Brain architectural contract.

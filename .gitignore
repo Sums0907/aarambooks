@@ -1,4 +1,10 @@
 .env
 .DS_Store
+*/.DS_Store
 __pycache__/
 *.pyc
+.venv/
+scratch/
+patch.diff
+sample-data/**/raw/
+sample-data/shopdeck/raw/

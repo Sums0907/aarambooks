@@ -61,18 +61,26 @@ class ContextCapabilityGateway(ContextCapabilityProvider):
             "X-Correlation-ID": correlation_id
         }
         
-        # Serialize requirement payload safely (using model_dump to preserve structure)
+        # Translate to physical API schema
+        req_dict = requirement.model_dump(mode='json')
+        orig_req = req_dict.get("original_requirement", {})
+        if "semantic_description" in orig_req:
+            orig_req["semantic_intent"] = orig_req.pop("semantic_description")
+            
         payload = {
             "capability_urn": capability_urn,
-            "requirement": requirement.model_dump()
+            "requirement": req_dict
         }
         
         try:
             # Transport Execution
+            print(f"\n[GATEWAY DEBUG] Sending to {endpoint} with payload: {json.dumps(payload)}", flush=True)
             response = await self._http_client.post(endpoint, headers=headers, json_payload=payload)
+            print(f"[GATEWAY DEBUG] Received status {response.status_code}: {response.text_data}\n", flush=True)
             
             # Transport Failure
-            if response.status_code >= 500:
+            if response.status_code >= 400:
+                print(f"[GATEWAY DEBUG] Returning ERROR due to HTTP {response.status_code}", flush=True)
                 return ContextCapabilityResult(
                     status=ContextRetrievalStatus.ERROR,
                     error_message=f"Transport error (HTTP {response.status_code}): {response.text_data}",

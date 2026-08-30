@@ -321,3 +321,191 @@ Track significant implementation, testing, integration, deployment, and debuggin
 - **Fix:** Performed a comprehensive architecture review. Established the necessity of an LLM Cognitive Planner layer. Updated Brain Core Architecture and drafted ADR-008 to support hybrid predefined capabilities alongside dynamic, iterative schema/semantic discovery.
 - **Files Changed:** `docs/02-brain-core/llm-assisted-context-planning.md` (new), `docs/02-brain-core/phase-1-12-impact-matrix.md` (new), `docs/09-decisions/ADR-008-llm-assisted-context-planning.md` (new), `docs/02-brain-core/context-engine-impact.md` (new), `docs/02-brain-core/brain-core-architecture.md` (updated), `00-project-context/GENERAL-NL-LLM-ASSISTED-CONTEXT-PLANNING-REVIEW.md` (new).
 - **Status:** Phase 13 implementation is intentionally BLOCKED pending architecture approval/revision of the Cognitive Context Planning Architecture.
+
+- **Component:** Finalize Architecture Review Corrections
+- **Problem:** Formal boundaries between Cognitive Planner, Brain Orchestrator, and Context Engine were underspecified. Evidence Plan needed formalization as a machine-readable concept separating intent from physical retrieval.
+- **Fix:** Introduced the Evidence Plan contract. Solidified the Canonical Flow from NL -> Cognitive Planner -> Brain Orchestrator -> Evidence Package. Revised ADR-007 to narrow domain scope vs cognitive planning scope. Strengthened ADR-008. Re-emphasized governed read-only access and the separation between Brain Knowledge (semantics/schema) and Context Capabilities.
+- **Files Changed:** `docs/02-brain-core/llm-assisted-context-planning.md` (overwritten), `docs/02-brain-core/context-engine-impact.md` (overwritten), `docs/02-brain-core/brain-core-architecture.md` (updated), `docs/09-decisions/ADR-007-context-capability-abstraction.md` (updated), `docs/09-decisions/ADR-008-llm-assisted-context-planning.md` (updated). Moved `00-project-context` to `docs/10-implementation-plan/`.
+- **Status:** Architecture Reassessment Accepted. Phase 13 (Adapter Implementation) remains formally BLOCKED. Implementation cannot begin until the revised architecture and data contracts (e.g., Evidence Plan, semantic metadata schemas) are documented and approved.
+
+- **Component:** Phase 13 - Cognitive Planning Contract Formalization
+- **Problem:** Brain Core needed canonical data contracts to establish the semantic boundaries between the Cognitive Planner, Brain Orchestrator, Context Engine, and Intelligence Domains without hardcoding physical database/API details.
+- **Fix:** Formalized generic, domain-neutral data contracts (`EvidencePlan`, `EvidenceRequirement`, `EvidencePlanExtension`, `ContextAssemblyRequest`, `EvidencePackage`, `CapabilityResolutionResult`, and `GapSemantics`).
+- **Architectural Decisions:** 
+  1. Enforced absolute separation between *WHAT* evidence is needed (Planner) and *HOW* it is retrieved (Orchestrator/Engine).
+  2. Maintained Gemini/LLM provider neutrality.
+  3. Ensured that Intelligence Domains (e.g. Inventory Intelligence) stay completely decoupled from physical business APIs.
+  4. Expanded the error model to clearly distinguish `DATA_UNAVAILABLE`, `DATA_INACCESSIBLE`, `CONTEXT_CAPABILITY_UNAVAILABLE`, and `SEMANTIC_KNOWLEDGE_GAP`.
+- **Files Changed:** `docs/02-brain-core/cognitive-planning-contracts.md` (new)
+- **Status:** Phase 13 Documentation is COMPLETE. Confirmed NO production implementation (Python, APIs, databases) was started. AaramIdentity and AaramInventory remain untouched. The precise next phase- [X] Phase 12: Generic Bounded Evidence Extractor
+- [X] Phase 13: Cognitive Planning Contract Formalization
+- [X] Phase 14: Cognitive Planning & Dynamic Context Implementation
+- [X] Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Problem:** Brain Core needed the physical runtime infrastructure to execute the Phase 13 cognitive planning contracts without leaking Inventory-specific intelligence or bypassing governed retrieval constraints.
+- **Fix:** Implemented generic, provider-agnostic cognitive planning components using Pydantic and async interfaces.
+  - `CognitivePlanner`: Prompts the LLM (via generic `ModelGatewayProvider`) to produce an `EvidencePlan`, without performing physical retrieval.
+  - `CapabilityResolver`: Analyzes `EvidenceRequirement` against `ProviderRegistry`.
+  - `BrainOrchestrator`: Controls the iterative flow, preventing infinite loops.
+  - `ContextAssembler`: Extended with `assemble_evidence` to retrieve context based on orchestrator resolution, handling exact capability matches vs semantic gaps.
+- **Architectural Decisions:** 
+  1. Kept `CognitivePlanner` strictly agnostic to models and providers by injecting `ModelGatewayProvider`.
+  2. Bounded the iterative planning loop in `BrainOrchestrator` to a strict maximum (3 iterations) to prevent uncontrolled LLM chaining.
+  3. Ensured that `ContextAssembler` preserves explicit gap semantics (e.g., `SEMANTIC_KNOWLEDGE_GAP`, `CONTEXT_CAPABILITY_UNAVAILABLE`) rather than generic fallbacks.
+  4. Kept physical transport (AaramIdentity/AaramInventory) sealed and unmodified.
+- **Files Created:** 
+  - `src/shared/cognitive_planning_contracts.py`
+  - `src/brain_core/planning/planner.py`
+  - `src/brain_core/orchestration/resolver.py`
+  - `src/brain_core/orchestration/orchestrator.py`
+  - `tests/brain_core/test_orchestrator.py`
+- **Files Modified:** 
+  - `src/brain_core/context_engine/assembler.py`
+- **Tests Executed:** Comprehensive orchestrator flow tests (NL -> Plan -> Resolution -> EvidencePackage). Verified gap states and bounding. Full suite (99 tests) passing.
+- **Status:** Phase 14 Implementation is COMPLETE. Implementation successfully validates the Phase 13 contracts dynamically without violating any boundary rules.
+
+- **Component:** Final Phase-14 External-Domain Readiness Verification
+- **Problem:** Need to architecturally verify that the newly implemented Brain Core cognitive infrastructure can be consumed by an independent external Intelligence Domain (e.g., Inventory Intelligence) without coupling or requiring domain-specific intelligence in Brain Core.
+- **Fix:** Conducted a READ-ONLY architectural review and trace of the `BrainOrchestrator` flow against a generic inventory scenario. No code was modified.
+- **Files Created:** `docs/03-intelligence-domains/inventory-intelligence/brain-core-consumption-readiness.md`
+- **Status:** READY. The generic runtime correctly accepts an intent, generates an `EvidencePlan`, delegates to `ContextAssembler`, and returns an `EvidencePackage` without coupling to Inventory semantics. The next implementation step is setting up the isolated Inventory Intelligence Domain layer.
+
+---
+
+### Incident ID: INC-20260828-001 (Checkpoint 1 Resumed)
+- **Date:** 2026-08-28
+- **Milestone:** Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Component:** Brain Core Architecture
+- **Problem:** Need to establish a dependency-ordered roadmap for arbitrary NL query execution before blindly writing implementation code, verifying Phase 14 gaps and semantic ownership.
+- **Error / Symptom:** N/A (Architecture Gap Analysis)
+- **Root Cause:** N/A
+- **Fix:** Conducted READ-ONLY architectural review and gap analysis. Established ownership model separating Semantic Infrastructure (Brain Core) from Semantic Knowledge (Azm). Verified Phase 14 gaps (ContextAssembler mock, EvidenceRequirement lacking physical parameters). Outlined Stages A-F dependency roadmap.
+- **Files Changed:** `docs/03-intelligence-domains/inventory-intelligence/inventory-arbitrary-query-substrate-gap-analysis.md` (new), `docs/09-decisions/ADR-009-azm-and-semantic-ownership.md` (new)
+- **Validation:** Confirmed ZERO source-code implementation was performed.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-002 (Architecture/Documentation Alignment)
+- **Date:** 2026-08-28
+- **Milestone:** Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Component:** Brain Core Architecture
+- **Problem:** Need to clarify terminology and ownership across the architecture to ensure Azm is formally treated as an ecosystem-wide proprietary intelligence asset, and that Semantic/Context infrastructure versus Semantic/Context capabilities are precisely distinguished.
+- **Error / Symptom:** N/A (Architecture Alignment)
+- **Root Cause:** N/A
+- **Fix:** Updated the arbitrary-query gap analysis to formally distinguish between Semantic Infrastructure (Brain Core) and Semantic Knowledge (Domain/Azm), and Context Infrastructure (Brain Core) vs Context Capability (Business System). Established the complete arbitrary query flow. Updated ADR-009.
+- **Validation:** 
+  - No production implementation performed in this task.
+  - No AaramInventory changes.
+  - No AaramIdentity changes.
+  - No new permissions/service accounts.
+  - No new APIs.
+  - No database changes.
+  - Azm is now formally treated as an ecosystem-wide proprietary intelligence asset.
+  - Inventory Semantic Knowledge is a domain contribution to Azm, not Azm itself.
+  - Semantic Infrastructure remains Brain Core infrastructure.
+  - Context Infrastructure remains Brain Core infrastructure.
+  - Context Capabilities remain owned by business systems.
+  - Inventory Intelligence remains outside Brain Core.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-003 (Architectural Rectification before Stage A)
+- **Date:** 2026-08-28
+- **Author:** AG
+- **Description:** Corrected the architectural boundaries before Stage A implementation to strictly enforce Azm (Semantic Knowledge) vs Brain Core (Semantic Infrastructure). Stage A implementation follows this design.
+
+---
+
+### Incident ID: INC-20260828-003 (Stage A Implementation Complete)
+- **Date:** 2026-08-28
+- **Author:** AG
+- **Description:** Completed Stage A — Generic Semantic Resolution Infrastructure. Brain Core now resolves generic meaning into physical capability requirements using the Intelligence Domain's `DomainSemanticKnowledge`. No domain-specific logic leaks into Brain Core. Tests execute cleanly using synthetic domain knowledge.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-004 (Stage B Implementation Complete)
+- **Date:** 2026-08-28
+- **Author:** AG
+- **Description:** Completed Stage B — Physical Evidence Assembly. Replaced mock payloads with physical capability provider invocation (`ContextCapabilityProvider.invoke_capability`). The `ContextAssembler` now resolves providers via `ProviderRegistry` using both `SourceSystem` and `ProviderCapability`. Full provenance tracking is preserved from the provider to the `EvidencePackage`. Gap semantics correctly reflect missing capabilities and unauthorized requests.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** ADR 008: LLM-Assisted Context Planning
+
+---
+
+### Incident ID: INC-20260828-005 (Stage B Gap Semantics Correction)
+- **Date:** 2026-08-28
+- **Author:** AG
+- **Description:** Architectural Correction for Stage B gap semantics. Ensured `ContextRetrievalStatus.ERROR` maps strictly to `GapSemantics.PROVIDER_EXECUTION_ERROR` instead of collapsing into `DATA_UNAVAILABLE`. Also added structural validation to prevent a provider's `SUCCESS` response with an empty payload from bypassing `DATA_UNAVAILABLE`.
+- **Status:** COMPLETE
+
+---
+
+### Incident ID: INC-20260828-006 (Stage C Implementation Complete)
+- **Date:** 2026-08-28
+- **Author:** AG
+- **Description:** Completed Stage C — Inventory Intelligence Domain Shell. Established `InventoryIntelligenceOrchestrator` as the domain application boundary. The domain accepts natural language queries, invokes generic `BrainOrchestrator` to orchestrate context, receives governed `EvidencePackage` objects, and performs domain-specific reasoning strictly bounded by the evidence payload via the `ModelGatewayProvider`. A clean `InventorySemanticKnowledgeBoundary` adapter was created to interface with Brain Core, but actual knowledge populating and Azm integration are deliberately deferred to Stage D to prevent architecture drift.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** N/A (Stage C Goal)
+- **Error / Symptom:** N/A (Architecture Alignment)
+- **Root Cause:** N/A
+- **Fix:** Rectified documentation to strictly define Semantic Infrastructure vs Semantic Knowledge, Context Infrastructure vs Context Capability, Cognitive Infrastructure, Intelligence Domain, and Azm. Added the canonical ownership model and explicit invariant statements regarding HOW vs WHAT. Corrected Stage A description to be purely generic semantic resolution infrastructure without inventory semantics. Documented the open-weight model strategy as the purpose of accumulating Azm.
+- **Files Changed:** `docs/03-intelligence-domains/inventory-intelligence/inventory-arbitrary-query-substrate-gap-analysis.md`, `docs/09-decisions/ADR-009-azm-and-semantic-ownership.md`
+- **Validation:** 
+  - Verified no statement implies Semantic Infrastructure contains inventory business knowledge.
+  - Verified no statement implies Azm is inventory-specific.
+  - Verified Context Capability remains owned by business systems.
+  - Verified Context Infrastructure remains owned by Brain Core.
+  - Verified Intelligence Domain remains outside Brain Core.
+  - Verified arbitrary NL remains the architectural goal.
+  - Verified 17 scenarios remain evaluation tests only.
+  - Verified Stage A is generic Semantic Resolution Infrastructure.
+  - Verified open-weight model strategy compatibility.
+  - Confirmed ZERO source code was modified.
+- **Status:** COMPLETE
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-007 (Stage A Refactor Complete)
+- **Date:** 2026-08-28
+- **Milestone:** Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Component:** Brain Core / Semantic Resolution Infrastructure
+- **Problem:** Stage A initially forced a narrow "concept→parameter" model mapping natural language to database filters, violating Brain Core's domain-agnostic HOW boundary.
+- **Error / Symptom:** Hardcoded structural evaluation assumptions (value=True, parameter mappings) embedded inside Brain Core.
+- **Root Cause:** Conflation of semantic meaning (WHAT) with query resolution parameter mapping (HOW it runs on the physical API).
+- **Fix:** Refactored `src/shared/semantic_resolution_contracts.py` and `GenericSemanticResolver` to implement the `SemanticConstraint` model. Brain Core now parses text into query-bound constraints (e.g. `STATE`, `ENTITY`, `ATTRIBUTE`) opaquely. Capability resolution was strictly removed from the semantic resolution phase. No parameter or physical database query rules exist in Brain Core. 
+- **Files Changed:** `src/shared/semantic_resolution_contracts.py`, `src/brain_core/semantics/resolver.py`, `src/brain_core/orchestration/resolver.py`, `tests/brain_core/test_semantic_resolver.py`
+- **Validation:** Wrote comprehensive mock tests proving generic Entity, State, Attribute, Temporal, and Aggregation resolution. 113/113 tests passed system-wide (Stage B provider execution remains intact). Source audit confirmed zero leakage of inventory concepts or API parameter structures in Brain Core semantics. Stage D is unblocked.
+- **Status:** RESOLVED
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-008 (Stage D Azm Integration Complete)
+- **Date:** 2026-08-28
+- **Milestone:** Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Component:** Intelligence Domain / Azm Knowledge Boundary
+- **Problem:** Stage D required formally separating the persistent, ecosystem-wide intelligence asset (Azm) from the runtime adapter (Inventory Intelligence) and Brain Core, without introducing hardcoded physical business rules.
+- **Fix:** Implemented `AzmProvider` interface and a minimal `InMemoryAzmProvider` containing generic and inventory concept definitions (`SemanticConcept`). Implemented `InventorySemanticKnowledge` as a runtime adapter that implements `DomainSemanticKnowledge` by querying the Azm provider for the `inventory` namespace.
+- **Files Changed:** `src/shared/azm/interfaces.py`, `src/infrastructure/knowledge/azm_provider.py`, `src/intelligence_domains/inventory_intelligence/knowledge.py`, `tests/intelligence_domains/inventory_intelligence/test_knowledge.py`, `docs/09-decisions/ADR-009-azm-and-semantic-ownership.md`
+- **Validation:** Wrote integration tests verifying that Azm provisions knowledge, the Inventory domain scopes it, and Brain Core successfully constructs generic `SemanticConstraints` without physical parameters. Passed 116/116 suite tests. Conducted source audit verifying zero leakage of Azm imports into Brain Core.
+- **Status:** RESOLVED
+- **Related Incident / Decision:** ADR 009: Azm and Semantic Ownership
+
+---
+
+### Incident ID: INC-20260828-009 (Stage E Arbitrary Query Validation Complete)
+- **Date:** 2026-08-28
+- **Milestone:** Substrate Gap Analysis & Arbitrary Query Roadmap
+- **Component:** End-to-End Orchestration Validation
+- **Problem:** Stage E required an end-to-end proof that the arbitrary query "Which jobwork vendors are causing the highest inventory leakage?" could be executed correctly through the entire pipeline (Planner -> Semantics -> Capability -> Provider -> Domain Synthesis) without introducing inventory-specific knowledge, physical query parameters, or SQL into Brain Core.
+- **Fix:** Implemented a full validation test in `tests/intelligence_domains/inventory_intelligence/test_arbitrary_query.py`. Simulated the Cognitive Planner returning an EvidenceRequirement. The Semantic Resolver successfully generated generic SemanticConstraints using Azm definitions (jobwork_vendor, leakage, highest). A mock Capability Provider simulated AaramInventory consuming the constraints and returning a physical payload. The orchestrator successfully evaluated and delivered the payload.
+- **Files Changed:** `tests/intelligence_domains/inventory_intelligence/test_arbitrary_query.py`
+- **Validation:** Wrote integration test proving End-to-End flow and explicitly asserting that constraints contain no parameters, values, operators, or SQL. Ran full suite: 117/117 tests passing. Source audit verified Brain Core remains completely generic and contains zero Azm imports, SQL logic, or business rules.
+- **Status:** RESOLVED
+- **Related Incident / Decision:** Stage E Proof Completion

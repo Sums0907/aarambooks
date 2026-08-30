@@ -1,28 +1,36 @@
 # Context Engine Impact: Cognitive Planning Enhancements
 
-The introduction of LLM-Assisted Context Planning requires the following conceptual enhancements to the Brain Core Context Engine. These changes elevate the Context Engine from a static fetcher to a dynamic orchestration substrate.
+The introduction of LLM-Assisted Context Planning fundamentally shifts the Context Engine from a simple mapping registry to a deterministic orchestration substrate capable of dynamic retrieval.
 
-## 1. ContextAssembler
-- **Iterative Context Expansion:** The `ContextAssembler` must support sequential calls for the same session. If the LLM Planner requests `evidence_B` after analysing `evidence_A`, the Assembler must merge `B` into the ongoing context state without overwriting `A`.
-- **Dynamic Query Execution:** The Assembler must be capable of routing dynamic read-only queries (e.g., Semantic SQL, GraphQL) to the appropriate `SourceSystem` when a predefined capability is not used.
-- **Evidence Sufficiency Checking:** The Assembler must track what was asked for vs. what was retrieved, allowing the LLM to know if a fetch yielded zero results.
+## 1. Deterministic vs Dynamic Retrieval
+The Context Engine must support:
+- **A. Predefined Capabilities:** Direct resolution to known providers (e.g., `ORDER_STATE`).
+- **B. Dynamic Evidence Retrieval:** Using an `Evidence Plan` to execute governed, semantic queries when no exact predefined capability exists.
+- **C. Composite Evidence:** Assembling evidence from both predefined capabilities and dynamic semantic queries simultaneously.
+- **D. Iterative Expansion:** Adding additional evidence after an initial retrieval, based on iterative loops from the Cognitive Planner.
 
-## 2. ContextAssemblyRequest
-- Must support **Iterative Identifiers:** E.g., `parent_request_id` or `session_id` to link multi-turn fetches.
-- Must support **Dynamic Queries:** In addition to requesting `[ProviderCapability.CUSTOMER]`, it must be able to carry a `DynamicRetrievalPlan` (e.g., a governed semantic query payload).
+## 2. Provenance Guarantees
+Every factual component in the Evidence Package must retain:
+- Source (Which system provided it).
+- Retrieval timestamp.
+- Relevant business timestamp/period.
+- Transformation/derivation metadata where applicable (distinguishing raw facts from derived facts).
 
-## 3. ProviderRegistry & SourceSystem
-- **Semantic Discovery Providers:** The Registry must include providers capable of returning *metadata and schemas*, not just raw data. The LLM Planner will query the registry for "What is the schema for Inventory Movements?" before querying the data itself.
+## 3. Revised Error Model
+The generic `ProviderNotRegisteredError` is insufficient. The engine must conceptually distinguish failures, such as:
+- `DATA_UNAVAILABLE` (Underlying truth does not exist).
+- `DATA_INACCESSIBLE` (Truth exists, but Brain cannot retrieve it).
+- `CAPABILITY_NOT_REGISTERED` (No reusable predefined capability exists, though dynamic retrieval might still work).
+- `SEMANTIC_KNOWLEDGE_MISSING` (Brain lacks understanding of the business meaning).
+- `SCHEMA_KNOWLEDGE_MISSING` (Schema definitions are unknown).
+- `EVIDENCE_INSUFFICIENT` (Retrieval succeeded, but didn't yield enough data).
+- `EVIDENCE_CONFLICT` (Multiple sources contradict).
+- `QUERY_NOT_PERMITTED` (Authorization/governance blocked it).
+- `RESOURCE_LIMIT` (Query too large).
+- `SOURCE_FAILURE` (Business system down).
+- `PLANNING_AMBIGUITY` (LLM couldn't formulate a plan).
 
-## 4. Error Model (Granular Gaps)
-The generic `ProviderNotRegisteredError` is no longer sufficient. The Context Engine must formally distinguish between:
-- **Data Availability Gap:** "The database executed the query, but no records exist."
-- **Data-Access Gap:** "The data exists, but the physical adapter/endpoint to reach it is not yet built or authorized."
-- **Semantic/Knowledge Gap:** "I can access the table, but I lack the semantic metadata to understand what 'column_x' means."
-
-## 5. Evidence Representation & Provenance
-The returned context cannot just be a flat JSON dictionary. It must be a structured **Evidence Package** that clearly delineates:
-- **Raw Fact:** Direct from the database.
-- **Metadata:** `SourceSystem`, `retrieval_timestamp`.
-- **Query Provenance:** The exact parameters/query used to fetch this specific fact, so the LLM knows *how* the data was sliced (e.g., "Filtered by last 30 days").
-- **Conflicts:** If dynamic retrieval contradicts a predefined capability, both are preserved side-by-side with their distinct provenances for the Reasoning LLM to evaluate.
+## 4. The "Context Gap" Distinction
+A missing Context Capability is no longer automatically a hard limit. 
+*Underlying truth unavailable ≠ Brain cannot retrieve it ≠ No reusable capability exists.*
+If no predefined capability exists, the Brain Orchestrator may simply fall back to Dynamic Retrieval. True gaps only occur when the underlying data is inaccessible or Brain lacks the semantic knowledge to query it.

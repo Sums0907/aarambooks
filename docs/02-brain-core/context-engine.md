@@ -1,299 +1,70 @@
-# Context Engine
+# Context Engine (Stage F Generic Architecture)
 
 ## 1. Purpose
 
-The Context Engine is a core capability of Aaram Brain Core responsible for understanding the situation in which intelligence is required.
+The Context Engine is a core capability of Aaram Brain Core responsible for aggregating business truth using a generic, source-blind capability framework.
 
-Its purpose is to provide the necessary business, operational, and interaction context required for meaningful intelligence.
+Its purpose is to provide the necessary operational context required for meaningful intelligence without owning or defining physical data schemas.
 
-The Context Engine does not create business truth.
-
-It understands and organizes trusted information created by business systems.
-
-The foundational rule is:
-
-> Business systems create truth. Aaram Brain creates intelligence from that truth.
+> Business systems create truth. Aaram Brain fetches that truth via generic capabilities and injects it into reasoning workflows.
 
 ---
 
-# 2. Position Within Brain Core
+## 2. Core Responsibility
 
-The Context Engine provides the foundation for all other Brain Core capabilities.
+The Context Engine leverages the **ContextCapabilityGateway** to dynamically route generic semantic requests (`ResolvedSemanticRequirement`) to registered Context Exposure Modules (CEMs) hosted by external Business Systems.
+
+The Context Engine does not know what physical fields exist (e.g., `quantity_on_hand`, `awb_number`). It only knows about capability URNs (e.g., `urn:aaram:capability:inventory:availability`).
+
+---
+
+## 3. Relationship With Business Systems
+
+Business systems remain the complete owners of operational truth and physical schemas.
+
+Example Interaction:
 
 ```text
-Aaram Brain Core
+Brain Core
+- Requires capability `urn:aaram:capability:inventory`
+- Emits SemanticConstraint (identity: SKU, operator: EQUALS, value: 123)
 
-        |
-        |
-+----------------+
-| Context Engine |
-+----------------+
-        |
-        |
-+----------------+
-| Knowledge      |
-| Reasoning      |
-| Decision       |
-| Action         |
-+----------------+
-```
+        | (Generic HTTP POST via ContextCapabilityGateway)
+        v
 
-Without context, intelligence cannot correctly understand business situations.
-
----
-
-# 3. Core Responsibility
-
-The Context Engine is responsible for creating an understanding of:
-
-- Who is involved.
-- What is happening.
-- Where the situation exists.
-- When it occurred.
-- Which business domain is involved.
-- What historical information is relevant.
-- What constraints apply.
-
----
-
-# 4. Context Definition
-
-Context represents the complete understanding required for intelligence processing.
-
-Context may include:
-
-## 4.1 Business Context
-
-Understanding the business situation.
-
-Examples:
-
-- Customer interaction.
-- Order situation.
-- Inventory condition.
-- Delivery scenario.
-- Operational event.
-
----
-
-## 4.2 Entity Context
-
-Understanding relationships between business entities.
-
-Examples:
-
-- Customer and order relationship.
-- Product and inventory relationship.
-- Delivery and customer relationship.
-
----
-
-## 4.3 User Context
-
-Understanding the person or system requesting intelligence.
-
-Examples:
-
-- User role.
-- User responsibility.
-- Access scope.
-- Business purpose.
-
----
-
-## 4.4 Temporal Context
-
-Understanding time-based relevance.
-
-Examples:
-
-- Current situation.
-- Historical events.
-- Previous interactions.
-- Business timelines.
-
----
-
-## 4.5 Domain Context
-
-Understanding which business domain is involved.
-
-Examples:
-
-- Inventory context.
-- Warehouse context.
-- Customer service context.
-- Delivery context.
-
----
-
-# 5. Relationship With Business Systems
-
-Business systems remain the owners of operational truth.
-
-The Context Engine consumes information from business domains to create intelligence context.
-
-Example:
-
-```text
-AaramInventory
-
-Creates:
-- Inventory truth
-- Stock state
-- Product information
-
+AaramInventory CEM (Context Exposure Module)
+- Receives SemanticConstraint
+- Translates to native SQL query
+- Returns generic ContextCapabilityResult with opaque JSON evidence
 
         |
         v
 
-
-Context Engine
-
-Creates:
-- Inventory understanding
-- Relevant situation context
-- Intelligence-ready interpretation
+Brain Core
+- Receives opaque JSON evidence
+- Injects JSON verbatim into LLM Context Window
 ```
 
-The Context Engine does not become an inventory authority.
+The Context Engine never parses the JSON payload into rigid Pydantic models.
 
 ---
 
-# 6. Context Responsibilities
-
-## 6.1 Context Collection
-
-Identify relevant information required for understanding a situation.
-
----
-
-## 6.2 Context Organization
-
-Arrange information into meaningful relationships.
-
----
-
-## 6.3 Context Relevance
-
-Determine which information is meaningful for a specific intelligence requirement.
-
----
-
-## 6.4 Context Continuity
-
-Maintain understanding across related interactions and situations.
-
----
-
-# 7. Context Boundaries
+## 4. Context Boundaries
 
 The Context Engine must not:
-
 - Create operational records.
 - Change business states.
-- Own domain rules.
-- Replace domain databases.
-- Make final business decisions.
-
-It provides understanding, not authority.
+- Define physical domain schemas (e.g., `InventoryContext`).
+- Know about specific API endpoints inherently (uses `ProviderRegistry` instead).
 
 ---
 
-# 8. Context and Intelligence Domains
+## 5. Legacy Transitional Dependencies
 
-Intelligence domains use Context Engine capabilities for specific objectives.
-
-Example:
-
-## NDR Intelligence
-
-Requires context such as:
-
-- Delivery situation.
-- Customer history.
-- Previous attempts.
-- Operational constraints.
+*Note on Phase 1 Legacy Models:* During the Stage F.1 architectural transition, models such as `CustomerContext`, `OrderContext`, `ShipmentContext`, and `DeliveryAttempt` remain temporarily as legacy transitional dependencies strictly to support Event Bus and downstream Orchestrator workflows. They are explicitly isolated from the new Generic Context Capability Gateway.
 
 ---
 
-## Customer Query Intelligence
+## 6. Final Architecture Statement
 
-Requires context such as:
-
-- Customer identity.
-- Order information.
-- Product information.
-- Previous interactions.
-
----
-
-# 9. Context Quality Principles
-
-Effective intelligence depends on:
-
-## Accuracy
-
-Context must reflect trusted business information.
-
----
-
-## Completeness
-
-Relevant information should be available.
-
----
-
-## Relevance
-
-Only meaningful information should influence intelligence.
-
----
-
-## Traceability
-
-Context should be understandable and explainable.
-
----
-
-# 10. Future Evolution
-
-The Context Engine will evolve as the ecosystem grows.
-
-Future capabilities may include:
-
-- Cross-domain understanding.
-- Dynamic situation awareness.
-- Relationship discovery.
-- Business scenario interpretation.
-
-Evolution must preserve the principle:
-
-> Context improves understanding; it does not replace truth ownership.
-
----
-
-# 11. Final Architecture Statement
-
-The Context Engine is the situational understanding layer of Aaram Brain Core.
-
-It transforms distributed business information into meaningful intelligence context while preserving business domain ownership.
-
-Business systems create truth.
-
-The Context Engine creates understanding from that truth.
-
----
-
-# 12. Architectural Implementation Constraints
-
-During the implementation of the Context Engine, the following strict architectural constraints were established:
-
-- **Context snapshot concept:** The engine operates on ephemeral snapshots of context, not persistent state.
-- **Context Engine does not own operational truth:** It relies entirely on external systems for state.
-- **Business systems remain truth owners:** Downstream systems (e.g., ShopDeck, AaramInventory) own the data retrieved.
-- **Context Engine assembles contextual snapshots:** The engine's sole capability is composition and aggregation.
-- **Security Context separation:** Identity (AaramIdentity) and Roles are strictly separated from Customer Context.
-- **Customer Context separation:** Customer context is sourced from Business Systems, entirely distinct from authentication.
-- **Domain boundaries:** Order, Inventory, and Fulfillment context domains are treated as independent source modules.
-- **Context provenance requirement:** Every piece of assembled context must include metadata detailing its `SourceSystem` and `retrieval_timestamp`.
+The Context Engine is the situational understanding layer of Aaram Brain Core. It operates entirely through source-blind generic capability URNs and semantic constraints, preserving 100% of physical schema ownership within external business systems.

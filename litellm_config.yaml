@@ -1,16 +1,17 @@
 model_list:
-  - model_name: gpt-4o
+  - model_name: "ollama/*"
     litellm_params:
-      model: openai/gpt-4o
-      api_key: os.environ/OPENAI_API_KEY
-  - model_name: gpt-4o-mini
+      model: "ollama/*"
+      api_base: "http://host.docker.internal:11434"
+  - model_name: "local-qwen"
     litellm_params:
-      model: openai/gpt-4o-mini
-      api_key: os.environ/OPENAI_API_KEY
-  - model_name: gemini-3.6-flash
+      model: "ollama/qwen2.5-coder:7b"
+      api_base: "http://host.docker.internal:11434"
+  - model_name: "gemini-3.6-flash"
     litellm_params:
-      model: gemini/gemini-3.6-flash
+      model: "gemini/gemini-2.0-flash"
       api_key: os.environ/GEMINI_API_KEY
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
+

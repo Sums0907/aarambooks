@@ -39,7 +39,11 @@ NDR Intelligence operates as an independent Intelligence Domain within the Aaram
 
 NDR Intelligence leverages the generic capabilities of Aaram Brain Core without embedding NDR-specific workflows inside the core.
 
-- **Context Engine:** Provides shipment context, customer context, and previous interaction context.
+- **Context Engine:** Provides semantic context (e.g. shipment, customer, order) using the Stage F generic capability framework. 
+
+> [!WARNING]
+> **Stage F.1 Architectural Debt:** Currently, the NDR Orchestrator natively consumes legacy physical structs (`ShipmentContext`, `CustomerContext`) passed directly from the Event Bus. This is a known transitional debt. In the target state, the NDR domain will request semantic capabilities (e.g. `urn:aaram:capability:fulfillment:tracking`) and operate exclusively on generic `EvidenceItems`.
+
 - **Knowledge Engine:** Provides organizational policies, SOPs, and resolution guidelines for failed deliveries.
 - **Reasoning Engine:** Provides failure analysis (interpreting why the delivery failed), intent understanding (what the customer wants), and situation analysis.
 - **Decision Engine:** Provides resolution recommendations and escalation recommendations based on reasoning outputs.
