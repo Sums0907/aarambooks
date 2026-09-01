@@ -76,7 +76,14 @@ To ensure every major organ sits in a distinct compartment without blurred bound
 └──────────────────────────────────────────────┘ └────────────────────────────────────────┘
 ```
 
+> [!CAUTION]
+> ### 🚨 CRITICAL AI AGENT INSTRUCTION: DO NOT BYPASS AZM 🚨
+> When building or modifying any Intelligence Domain (ID), **you MUST NOT invent semantic or schematic knowledge inside the ID.** 
+> **AZM (Aaram Zameer)** is the central, global repository for all semantic concepts (WHAT things mean) and schematic public read contracts (HOW things are queried). 
+> Every agent working in this repository MUST integrate AZM as a separate layer and store all ontology and schema definitions in the `src/azm/` namespace. DO NOT mix Intelligence Domain logic with semantic knowledge. AZM has deep architectural and emotional meaning (resolve/determination) in this project and must remain the foundational source of truth for the AI's worldview.
+
 ### Strict Contract Rules Between Containers:
+
 
 | Interaction | Who Talks to Whom | What is Exchanged (The Contract) |
 | :--- | :--- | :--- |
