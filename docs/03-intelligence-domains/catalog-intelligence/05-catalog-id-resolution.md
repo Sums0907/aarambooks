@@ -4,7 +4,7 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 1.0
+**Authoritative Version:** 2.0
 **Last Updated:** September 1, 2026
 
 ---
@@ -22,39 +22,19 @@ graph TD
     E --> F[6. Command Generation]
 ```
 
-### 1.1 Intake
-- **Input:** Unstructured conversational text, uploaded images (e.g., product photos, vendor catalogs), or raw CSV dumps.
-- **Process:** Establishes an `IntakeSession` to track the cognitive working state.
-
-### 1.2 Normalization & Extraction
-- **Input:** Raw data from Intake.
-- **Process:** Extracts discrete attributes (color, size, fabric, style). Formats unstructured text into a canonical internal schema (e.g., correcting "Ryl Blue" to "Royal Blue").
-- **Output:** A `CandidateProduct` / `CandidateSKU` with proposed attributes.
-
-### 1.3 Candidate Discovery
-- **Process:** Catalog ID queries Catalog BS public read contracts (`vw_catalog_master`, `vw_catalog_products`) to discover existing catalog entities that may relate to the candidate.
-- **Goal:** Identify potential parent Product families or detect duplicate SKUs.
-
-### 1.4 Match Assessment & Scoring
-- **Process:** Compares the extracted candidate against the discovered existing entities using deterministic rules (e.g., exact barcode match) and probabilistic reasoning (e.g., semantic textual similarity of descriptions, visual similarity of images).
-- **Output:** A `MatchAssessment` containing a `SimilarityScore`.
-
-### 1.5 Disambiguation / Decision
-- **Process:** Evaluates the `SimilarityScore` against the defined **Decision Classes** (see `03-catalog-id-business-rules.md`).
-- **Outcomes:**
-  - **Deterministic Match:** Target `internal_id` identified.
-  - **Strong Candidate:** High-confidence target `internal_id` identified.
-  - **No Viable Candidate:** Distinct new entity.
-  - **Ambiguous Candidate:** Halts pipeline for **Human Approval Required**.
-
-### 1.6 Command Generation
-- **Process:** Constructs the final JSON payload (`SaveProductFamily`) adhering strictly to `04-catalog-contracts.md`. Includes idempotency keys and proposed `sku_id` / `product_code` strings.
-
 ---
 
-## 2. Respecting Historical Invariants
+## 2. Human-in-the-Loop Semantics
 
-Catalog BS enforces permanent historical non-reuse (Rules RET-02 and PRD-05). 
+When Catalog ID cannot safely automate a resolution decision, it suspends the `IntakeSession` and routes to a human operator. The operator is not merely clicking "Approve"; they are making a specific cognitive choice that the AI could not.
 
-- **Discovery Requirement:** During Candidate Discovery, Catalog ID must account for *all* historically reserved identifiers, not just actively `PUBLISHED` ones.
-- **Collision Avoidance:** If Catalog ID proposes a `sku_id` (e.g., `126BS-RED`) that matches a tombstoned historical record, Catalog BS will deterministically reject it. Catalog ID must proactively attempt to discover these conflicts before command generation to minimize rejection loops.
+### 2.1 Trigger Conditions for Escalation
+- **Ambiguous:** Semantic score is borderline. The operator must choose: "Is this identical to `Product X`, or is it a new product?"
+- **Conflicting Evidence:** The image implies one product family, but the user's text implies another. The operator must declare which signal is correct.
+- **Catalog BS Rejection:** Automated bounded retries for a `SKU_COLLISION` have exhausted. The operator must manually supply a unique `sku_id`.
+- **Policy-Blocked Action:** E.g., attempting to update a price in a way that violates a business invariant (which Catalog BS would reject anyway).
+
+### 2.2 Human Authority Limits
+**CRITICAL INVARIANT:** Human approval within Catalog ID does **NOT** bypass Catalog BS deterministic validation. 
+- If a human overrides the AI and forces the generation of a command proposing a duplicated `sku_id`, Catalog BS will still physically reject it. 
+- The human is merely taking over the *cognitive command generation* process; the physical database remains fully sovereign.

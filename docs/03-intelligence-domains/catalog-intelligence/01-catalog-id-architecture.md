@@ -2,20 +2,16 @@
 
 **Document Reference:** `docs/03-intelligence-domains/catalog-intelligence/01-catalog-id-architecture.md`
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
-**Domain Layer:** Cognitive Intelligence Layer (Box 1 in Aaram Ecosystem)
+**Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 1.0
+**Authoritative Version:** 2.0
 **Last Updated:** September 1, 2026
 
 ---
 
 ## 1. Purpose & Business Problem
 
-### 1.1 The Operational Problem
-Catalog creation is historically manual, tedious, and error-prone. Operators must format 46-column spreadsheets, deduce appropriate SKU codes, construct SEO-optimized descriptions, and ensure strict compliance with business rules. This creates friction, slows down new product launches, and increases the likelihood of data entry errors.
-
-### 1.2 Primary Business Objective
-Catalog ID exists to solve this problem by providing a cognitive intelligence layer. It acts as an "intelligent intake funnel" that interprets human intent (via natural language or images), extracts relevant attributes, reasons about product families, and formulates a structured catalog command.
+Catalog creation is historically manual, tedious, and error-prone. Operators must format 46-column spreadsheets, deduce appropriate SKU codes, construct SEO-optimized descriptions, and ensure strict compliance with business rules. Catalog ID exists to provide an intelligent intake funnel that interprets human intent, extracts relevant attributes, reasons about product families, and formulates a structured catalog command.
 
 ---
 
@@ -26,32 +22,28 @@ Catalog ID operates under a strict, non-negotiable invariant:
 $$\mathbf{Catalog\ ID\ THINKS\ \&\ PROPOSES} \longrightarrow \mathbf{Catalog\ BS\ VALIDATES\ \&\ PERSISTS} \longrightarrow \mathbf{Database\ STORES\ TRUTH}$$
 
 ### 2.1 What Catalog ID Owns (In Scope)
-- **Cognitive Intake:** Parsing natural language, analyzing images, and understanding unstructured input.
-- **Attribute Extraction:** Identifying colors, dimensions, fabrics, and configurations.
+- **Cognitive Intake:** Parsing natural language, analyzing images, understanding unstructured input.
+- **Attribute Extraction & Classification:** Identifying colors, dimensions, fabrics, classifying provenance (`USER_SUPPLIED`, `EXTRACTED`, `INFERRED`).
 - **Product Family Reasoning:** Evaluating whether a requested item belongs to an existing product family or constitutes a new one.
-- **SKU Generation Heuristics:** Proposing clean, human-readable candidate `sku_id` strings (e.g., extracting color acronyms).
-- **SEO & Content Generation:** Proposing titles, descriptions, and taxonomy categorizations.
-- **Structured Command Generation:** Formatting the final intent into a `SaveProductFamily` command payload.
+- **SKU Generation Heuristics:** Proposing candidate `sku_id` strings and executing bounded retries upon collision.
+- **Structured Command Generation:** Formatting the final intent into a compliant Catalog BS mutation.
 
 ### 2.2 What Catalog ID Does NOT Own (Out of Scope)
-- **NO Canonical Truth:** Catalog ID must **never** become a second Product/SKU master. It does not own canonical catalog data.
-- **NO Database Validation:** Catalog ID does not enforce uniqueness or data integrity. It proposes; Catalog BS validates.
-- **NO Direct Database Access:** Catalog ID never reads from or writes to the internal physical tables of Catalog BS.
+- **NO Canonical Truth:** Catalog ID must **never** become a second Product/SKU master.
+- **NO Database Validation:** Catalog ID does not enforce uniqueness. It proposes; Catalog BS validates.
+- **NO Direct Database Access:** Catalog ID never reads from or writes to the physical tables or reservation ledgers of Catalog BS.
 
 ---
 
-## 3. The Intake & Resolution Pipeline
+## 3. Historical Identity & Public Read Strategy
 
-The lifecycle of a Catalog ID interaction follows this pipeline:
+Catalog BS enforces strict historical non-reuse of identifiers (`sku_id`, `product_code`) via its reservation ledgers. Catalog ID cannot query these physical ledgers directly.
 
-1. **Intake:** Unstructured input is received (e.g., "Add this blue floral bedsheet", plus an image).
-2. **Discovery (Read):** Catalog ID queries the Catalog BS public read contracts (`vw_catalog_master`) to understand the current catalog landscape.
-3. **Reasoning & Extraction:** Catalog ID extracts attributes and reasons about product family membership.
-4. **Resolution Decision:**
-   - If a high-confidence match is found, it proposes attaching the new SKU to the existing Product via `internal_id`.
-   - If no viable match exists, it proposes creating a new Product family.
-   - If ambiguous, it halts and requests human clarification.
-5. **Command Generation (Write):** Catalog ID submits a structured `SaveProductFamily` mutation to Catalog BS.
+Therefore, the architectural strategy is:
+**Best-Effort Proactive Discovery + Authoritative Enforcement via Catalog BS.**
+
+- **Discovery:** Catalog ID queries the Catalog BS public read contracts (`vw_catalog_master`, `vw_catalog_products`, `vw_catalog_skus`) to discover known identifiers and proactively avoid obvious collisions.
+- **Enforcement:** The public views are not guaranteed to expose every historical tombstone. Catalog BS remains the **ONLY** authoritative collision authority. Catalog ID expects and handles rejections (`SKU_COLLISION`, `PRODUCT_CODE_COLLISION`) as standard, deterministic enforcement mechanisms, not system failures.
 
 ---
 
