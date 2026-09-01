@@ -1,6 +1,6 @@
 import pytest
 
-from src.infrastructure.knowledge.azm_provider import InMemoryAzmProvider
+from src.azm.provider import GlobalAzmProvider
 from src.intelligence_domains.inventory_intelligence.knowledge import InventorySemanticKnowledge
 from src.shared.cognitive_planning_contracts import EvidenceRequirement
 from src.brain_core.semantics.resolver import GenericSemanticResolver
@@ -8,7 +8,7 @@ from src.shared.semantic_resolution_contracts import ResolvedSemanticRequirement
 
 @pytest.fixture
 def azm():
-    return InMemoryAzmProvider()
+    return GlobalAzmProvider()
 
 @pytest.fixture
 def knowledge(azm):

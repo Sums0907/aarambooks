@@ -22,3 +22,10 @@ class AzmProvider(Protocol):
         Retrieve a specific concept definition by its unique identifier.
         """
         ...
+    
+    def get_namespace_schema(self, namespace: str) -> dict:
+        """
+        Retrieve the public read schemas (e.g. SQL views or MCP tool schemas)
+        for the given namespace.
+        """
+        ...

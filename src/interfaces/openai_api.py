@@ -89,32 +89,45 @@ def get_rabta_orchestrator(request: Request):
 from fastapi.responses import StreamingResponse
 from src.brain_core.gateway.interfaces import GatewayGenerationRequest, GatewayMessage
 
-async def classify_query_intent(gateway, user_query: str) -> str:
+async def classify_query_intent(gateway, user_query: str) -> dict:
     """
     R-1 Fast Intent Router: Decides whether to route to Azm (Aaram ERP) or Aalam (General AI).
+    If Azm, it also decides which Intelligence Domain (inventory, shopdeck, ndr, etc.) to use.
     """
     lower_q = user_query.lower()
     
     # 1. Instant deterministic keyword check (0.01ms)
-    business_keywords = [
-        "sku", "stock", "inventory", "ledger", "balance", "warehouse",
-        "item", "supplier", "order", "packing", "jobwork", "exception",
-        "rto", "challan", "bin", "batch", "quantity", "on-hand", "aarambooks"
-    ]
-    if any(kw in lower_q for kw in business_keywords):
-        return "AZM"
+    inventory_keywords = ["sku", "stock", "inventory", "ledger", "balance", "warehouse", "bin", "batch", "quantity", "on-hand", "jobwork"]
+    shopdeck_keywords = ["order", "shipping", "label", "revenue", "tax", "rto", "challan"]
+    ndr_keywords = ["ndr", "delivery exception", "customer not available", "awb", "fake attempt", "delivery status", "failed delivery", "reschedule delivery", "reattempt"]
+    
+    domain = None
+    if any(kw in lower_q for kw in inventory_keywords):
+        domain = "inventory"
+    elif any(kw in lower_q for kw in shopdeck_keywords):
+        domain = "shopdeck"
+    elif any(kw in lower_q for kw in ndr_keywords):
+        domain = "ndr"
+        
+    if domain:
+        return {
+            "category": "AZM", 
+            "id_urn": f"urn:aarambooks:intelligence:{domain}",
+            "cem_urn": f"urn:aarambooks:cem:{domain}"
+        }
         
     general_keywords = [
         "news", "weather", "trump", "who is", "what is the capital",
         "write a", "poem", "joke", "translate", "how to code", "python"
     ]
     if any(kw in lower_q for kw in general_keywords) or lower_q in ["hi", "hello", "hey", "help", "who are you"]:
-        return "AALAM"
+        return {"category": "AALAM"}
 
     # 2. LLM Fallback for ambiguous queries
     system_prompt = """You are the Rabta Domain Router for AaramBooks.
 Determine whether the user query is about AaramBooks business operations or general knowledge.
-Respond strictly with JSON: {"category": "AZM"} or {"category": "AALAM"}"""
+If business, specify the domain: 'inventory', 'shopdeck', 'ndr', or 'customer_query'.
+Respond strictly with JSON: {"category": "AZM", "domain": "inventory"} or {"category": "AALAM"}"""
     try:
         req = GatewayGenerationRequest(
             messages=[
@@ -123,16 +136,31 @@ Respond strictly with JSON: {"category": "AZM"} or {"category": "AALAM"}"""
             ],
             model=settings.stage_r_1_intent_routing_model,
             temperature=0.0,
-            max_tokens=15
+            max_tokens=25
         )
         res = await gateway.generate(req)
-        text = res.content.strip().upper()
-        if "AZM" in text:
-            return "AZM"
+        text = res.content.strip()
+        try:
+            import json
+            parsed = json.loads(text)
+            if parsed.get("category") == "AZM":
+                d = parsed.get("domain", "inventory")
+                return {
+                    "category": "AZM", 
+                    "id_urn": f"urn:aarambooks:intelligence:{d}",
+                    "cem_urn": f"urn:aarambooks:cem:{d}"
+                }
+        except:
+            if "AZM" in text.upper():
+                return {
+                    "category": "AZM", 
+                    "id_urn": "urn:aarambooks:intelligence:inventory",
+                    "cem_urn": "urn:aarambooks:cem:inventory"
+                }
     except Exception as e:
         logger.warning(f"Domain router fallback: {e}")
         
-    return "AALAM"
+    return {"category": "AALAM"}
 
 def clean_agent_tag(text: str) -> str:
     tags = [
@@ -149,7 +177,10 @@ def clean_agent_tag(text: str) -> str:
 
 import asyncio
 import re
-from ddgs import DDGS
+try:
+    from duckduckgo_search import DDGS
+except ImportError:
+    DDGS = None
 
 def clean_search_keywords(q: str) -> str:
     cleaned = re.sub(r'[^\w\s]', ' ', q)
@@ -162,6 +193,8 @@ async def search_live_web(query: str, max_results: int = 5) -> str:
     def _do_search():
         try:
             kw = clean_search_keywords(query)
+            if DDGS is None:
+                return "Web search unavailable."
             with DDGS() as ddgs_client:
                 results = []
                 # Strategy 1: Text search with cleaned keywords
@@ -229,22 +262,28 @@ async def create_chat_completion(
     gateway = getattr(request.app.state, "gateway", None)
     
     # Classify whether query belongs to [Azm] (Aaram ERP) or [Aalam] (General Knowledge)
-    category = "AZM"
+    route_info = {"category": "AZM", "id_urn": "urn:aarambooks:intelligence:inventory", "cem_urn": "urn:aarambooks:cem:inventory"}
     if gateway:
-        category = await classify_query_intent(gateway, user_query)
+        route_info = await classify_query_intent(gateway, user_query)
+        
+    category = route_info.get("category", "AALAM")
+    id_urn = route_info.get("id_urn", "urn:aarambooks:intelligence:inventory")
+    cem_urn = route_info.get("cem_urn", "urn:aarambooks:cem:inventory")
         
     if category == "AZM":
         try:
             # Pass to the generic RABTA business boundary
             raw_response = await orchestrator.process_query(
                 query=user_query,
-                id_urn="urn:aarambooks:intelligence:inventory",
-                cem_urn="urn:aarambooks:cem:inventory",
+                id_urn=id_urn,
+                cem_urn=cem_urn,
                 auth_context=user_id
             )
             cleaned_resp = clean_agent_tag(str(raw_response))
             response_text = f"🔸 ᴀᴢᴍ ┃ {cleaned_resp}"
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             response_text = f"🔸 ᴀᴢᴍ ┃ Error processing business query: {str(e)}"
     else:
         try:

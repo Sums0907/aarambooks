@@ -10,7 +10,7 @@ from src.shared.rabta_interfaces import (
 )
 from src.shared.conversational_contracts import ConversationalUnderstanding, ConversationalIntent
 from src.shared.requirement_classification_contracts import ClassifiedRequirement
-from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessEvidenceResponse
+from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessEvidenceResponse, BusinessRealityStatus
 from src.brain_core.classification.classifier import RequirementClassifier
 from src.shared.decision_contracts import DecisionStatus
 from src.brain_core.memory.interfaces import MemoryProvider, MemoryQuery, MemoryEntry
@@ -125,29 +125,31 @@ class RabtaOrchestrator:
                 if decision.status == DecisionStatus.CONFIRMATION_REQUIRED:
                     return await id_provider.interpret_evidence(decision)
 
-        # 6. Resolve Context Execution Module
-        cem_adapter = self._cem_resolver.resolve(cem_urn)
-        if not cem_adapter:
-            return f"Authorization/Resolution Error: Could not resolve CEM {cem_urn}"
+        # 6. Resolve Context Execution Module / Dynamic Read Substrate
+        if understanding.intent in (ConversationalIntent.RETRIEVE, ConversationalIntent.SEARCH, ConversationalIntent.CALCULATE, ConversationalIntent.COMPARE, ConversationalIntent.SUMMARIZE) and hasattr(type(id_provider), "execute_read_query"):
+            evidence_response = await id_provider.execute_read_query(abstract_request)
+        else:
+            cem_adapter = self._cem_resolver.resolve(cem_urn)
+            if not cem_adapter:
+                return f"Authorization/Resolution Error: Could not resolve CEM {cem_urn}"
 
-        # 7. Execute Request via CEM (R-4/5/7) with R-6 ONE BOUNDED REFINEMENT LOOP
-        evidence_response = None
-        for pass_number in range(2):
-            try:
-                evidence_response = await cem_adapter.execute_evidence_request(abstract_request, auth_context)
-            except Exception as e:
-                return f"CEM Execution Error: {str(e)}"
+            # 7. Execute Request via CEM (R-4/5/7) with R-6 ONE BOUNDED REFINEMENT LOOP
+            evidence_response = None
+            for pass_number in range(2):
+                try:
+                    evidence_response = await cem_adapter.execute_evidence_request(abstract_request, auth_context)
+                except Exception as e:
+                    return f"CEM Execution Error: {str(e)}"
+                    
+                # R-6: Evaluate for Bounded Refinement
                 
-            # R-6: Evaluate for Bounded Refinement
-            from src.shared.evidence_request_contracts import BusinessRealityStatus, RefinementContext
-            
-            if pass_number == 0 and evidence_response.status == BusinessRealityStatus.MULTIPLE_CANDIDATES:
-                # We do NOT invent a confidence heuristic to auto-resolve here.
-                # If ambiguity cannot be safely resolved from the contract, we stop and pass to R-8.
+                if pass_number == 0 and evidence_response.status == BusinessRealityStatus.MULTIPLE_CANDIDATES:
+                    # We do NOT invent a confidence heuristic to auto-resolve here.
+                    # If ambiguity cannot be safely resolved from the contract, we stop and pass to R-8.
+                    break
+                
+                # If no safe refinement is possible or we are on Pass 2, terminate the loop
                 break
-            
-            # If no safe refinement is possible or we are on Pass 2, terminate the loop
-            break
             
         # 8. R-8: Interpretation / Bounded Refinement (via ID)
         # Pass the final BusinessEvidenceResponse to the ID for interpretation.

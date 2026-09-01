@@ -12,7 +12,7 @@ CONTRACT_CONFLICT_REQUIRES_OWNER_DECISION
 
 ## 3. Inventory Findings
 AaramInventory acts as the ledger and master data source for the ecosystem.
-- **Base URL:** `http://localhost:8100/api/v1` (locally) or `https://api.inventory.aarambooks.cloud/api/v1`
+- **Base URL:** `http://localhost:8100/api/v1` (locally) or `https://api-inventory.aarambooks.cloud/api/v1`
 - **Auth:** HTTP Bearer token validated via AaramIdentity public key (RS256).
 - **Core Endpoints:** `/read/inventory/balance` (GET), `/masters/products` (GET), `/masters/skus` (GET), `/masters/warehouses` (GET).
 - **Responses:** Returns highly structured Pydantic models. Inventory balances return exact `quantity_on_hand` (float) and `confidence_score` (int), completely contradicting the simplistic `Dict[str, bool]` map defined in Brain Core's Phase 1 model.
@@ -20,7 +20,7 @@ AaramInventory acts as the ledger and master data source for the ecosystem.
 
 ## 4. Packing Findings
 AaramPacking executes warehouse workflows and owns order packing status.
-- **Base URL:** Port `8000` or via `https://api.packing.aarambooks.cloud`
+- **Base URL:** Port `8000` or via `https://api-packing.aarambooks.cloud`
 - **Auth:** HTTP Bearer token validated via AaramIdentity, scoped by strict PBAC (e.g. `PACKING_WORKFLOW_EXECUTE`, `PACKING_RTO_MANAGE`).
 - **Core Endpoints:** `/orders/pending` (GET), `/orders/by-awb/{awb}` (GET), `/packer/labels/{awb}/pack` (POST), `/rto/lookup/{forward_awb}` (GET), `/queue` (GET for admin sync).
 - **Responses:** Returns robust hierarchical orders arrays including granular items, AWB, and specific packing workflow statuses (`RECEIVED`, `PENDING_RECONCILIATION`, etc.).

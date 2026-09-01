@@ -3,7 +3,7 @@ from datetime import datetime, UTC
 import json
 from unittest.mock import AsyncMock
 
-from src.infrastructure.knowledge.azm_provider import InMemoryAzmProvider
+from src.azm.provider import GlobalAzmProvider
 from src.intelligence_domains.inventory_intelligence.knowledge import InventorySemanticKnowledge
 from src.brain_core.semantics.resolver import GenericSemanticResolver
 from src.brain_core.planning.planner import CognitivePlanner
@@ -84,7 +84,7 @@ async def test_arbitrary_query_end_to_end_proof(mock_gateway):
     """
     
     # 1. Setup ecosystem knowledge (Azm)
-    azm_provider = InMemoryAzmProvider()
+    azm_provider = GlobalAzmProvider()
     
     # 2. Setup Runtime Adapter (DomainSemanticKnowledge)
     inventory_knowledge = InventorySemanticKnowledge(azm_provider)

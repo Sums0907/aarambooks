@@ -1,7 +1,7 @@
 from typing import List
 
 from src.shared.semantic_resolution_contracts import DomainSemanticKnowledge, SemanticConcept
-from src.shared.azm.interfaces import AzmProvider
+from src.azm.interfaces import AzmProvider
 
 class InventorySemanticKnowledge(DomainSemanticKnowledge):
     """

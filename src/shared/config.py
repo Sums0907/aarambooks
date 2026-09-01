@@ -19,14 +19,14 @@ class Settings(BaseSettings):
     stage_6_executive_reports_model: str = "gemini-3.6-flash"
     
     # External Ecosystem
-    identity_url: str = "https://api.identity.aarambooks.cloud"
+    identity_url: str = "https://api-identity.aarambooks.cloud"
     # ==============================================================================
     # LEGACY COMPATIBILITY
     # These fields are required by surviving legacy Event Bus and NDR adapters.
     # They MUST NOT participate in Stage F ContextCapabilityGateway routing.
     # ==============================================================================
-    inventory_url: str = "https://api.inventory.aarambooks.cloud"
-    packing_url: str = "https://api.packing.aarambooks.cloud"
+    inventory_url: str = "https://api-inventory.aarambooks.cloud"
+    packing_url: str = "https://api-packing.aarambooks.cloud"
     shiprocket_token: str = ""
     shopdeck_token: str = ""
     identity_public_key: str = ""

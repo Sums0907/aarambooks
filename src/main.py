@@ -102,8 +102,8 @@ registry.register(
 assembler = ContextAssembler(registry)
 
 # 4. Brain Orchestrator & Inventory Domain
-from src.infrastructure.knowledge.azm_provider import InMemoryAzmProvider
-azm_provider = InMemoryAzmProvider()
+from src.azm.provider import GlobalAzmProvider
+azm_provider = GlobalAzmProvider()
 inventory_knowledge = InventorySemanticKnowledge(azm_provider)
 
 planner = CognitivePlanner(gateway=gateway)
@@ -122,21 +122,20 @@ from src.brain_core.orchestration.rabta_orchestrator import RabtaOrchestrator
 from src.infrastructure.adapters.inventory_cem_adapter import InventoryCemAdapter
 from src.shared.rabta_interfaces import IntelligenceDomainResolver, ContextExecutionResolver, IntelligenceDomainProvider, ContextExecutionAdapter
 
-class DummyIDResolver(IntelligenceDomainResolver):
-    def __init__(self, inventory_id):
-        self._id = inventory_id
+class AppIDResolver(IntelligenceDomainResolver):
+    def __init__(self, ids: dict):
+        self._ids = ids
     def resolve(self, id_urn: str) -> IntelligenceDomainProvider:
-        if id_urn == "urn:aarambooks:intelligence:inventory":
-            return self._id
-        return None
+        return self._ids.get(id_urn)
 
 class DummyCEMResolver(ContextExecutionResolver):
-    def __init__(self, inventory_cem):
-        self._cem = inventory_cem
+    def __init__(self, cems: dict):
+        self._cems = cems
     def resolve(self, cem_urn: str) -> ContextExecutionAdapter:
-        if cem_urn == "urn:aarambooks:cem:inventory":
-            return self._cem
-        return None
+        return self._cems.get(cem_urn)
+
+from src.brain_core.sql.engine import TextToSqlEngine
+text_to_sql_engine = TextToSqlEngine(gateway=gateway)
 
 inventory_orch = InventoryIntelligenceOrchestrator(
     brain_orchestrator=brain_orch,
@@ -150,20 +149,37 @@ inventory_cem = InventoryCemAdapter(
     capabilities=inventory_knowledge.get_certified_capabilities()
 )
 
+# 5. Intelligence Orchestrators
+cq_orch = CustomerQueryOrchestrator(gateway=gateway, knowledge=knowledge, memory=memory)
+ndr_orch = NDRIntelligenceOrchestrator(
+    gateway=gateway,
+    knowledge=knowledge,
+    memory=memory,
+    sql_engine=text_to_sql_engine,
+    azm_provider=azm_provider
+)
+
+id_resolver = AppIDResolver({
+    "urn:aarambooks:intelligence:inventory": inventory_orch,
+    "urn:aarambooks:intelligence:ndr": ndr_orch
+})
+
+cem_resolver = DummyCEMResolver({
+    "urn:aarambooks:cem:inventory": inventory_cem,
+    "urn:aarambooks:cem:ndr": inventory_cem
+})
+
 rabta_orch = RabtaOrchestrator(
-    id_resolver=DummyIDResolver(inventory_orch),
-    cem_resolver=DummyCEMResolver(inventory_cem),
+    id_resolver=id_resolver,
+    cem_resolver=cem_resolver,
     classifier=RequirementClassifier(gateway)
 )
 
 # Store in app state for the OpenAI adapter
 app.state.inventory_orchestrator = inventory_orch
+app.state.ndr_orchestrator = ndr_orch
 app.state.rabta_orchestrator = rabta_orch
 app.state.gateway = gateway
-
-# 5. Intelligence Orchestrators
-cq_orch = CustomerQueryOrchestrator(gateway=gateway, knowledge=knowledge, memory=memory)
-ndr_orch = NDRIntelligenceOrchestrator(gateway=gateway, knowledge=knowledge, memory=memory)
 
 # 6. Event Bus
 receiver = InboundReceiver(query_orchestrator=cq_orch, ndr_orchestrator=ndr_orch)
