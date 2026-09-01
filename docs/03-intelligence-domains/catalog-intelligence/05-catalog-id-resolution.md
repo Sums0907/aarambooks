@@ -4,14 +4,14 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 2.0
+**Authoritative Version:** 2.1
 **Last Updated:** September 1, 2026
 
 ---
 
 ## 1. The Resolution Pipeline
 
-Catalog ID processes unstructured human intent or imagery into deterministic Catalog BS commands through a strict sequential pipeline:
+Catalog ID processes unstructured human intent or imagery into deterministic proposals through a strict sequential pipeline:
 
 ```mermaid
 graph TD
@@ -22,19 +22,37 @@ graph TD
     E --> F[6. Command Generation]
 ```
 
+### 1.1 Intake
+- Establishes an `IntakeSession`. 
+
+### 1.2 Normalization & Extraction
+- Extracts attributes with explicit `EXTRACTED` and `INFERRED` provenance tags. Formats raw text into a `Candidate`.
+
+### 1.3 Candidate Discovery
+- Queries Catalog BS public read contracts (`vw_catalog_master`, `vw_catalog_products`) to discover existing canonical facts (`DISCOVERED_CANONICAL`).
+
+### 1.4 Match Assessment & Scoring
+- Compares the `Candidate` against `DISCOVERED_CANONICAL` facts. Produces a `MatchAssessment`.
+
+### 1.5 Disambiguation / Decision
+- Assigns a Semantic Decision Class (e.g., Deterministic Match, Ambiguous Candidate).
+
+### 1.6 Command Generation
+- Revalidates discovery state to avoid staleness. Constructs the `SaveProductFamily` mutation.
+
 ---
 
 ## 2. Human-in-the-Loop Semantics
 
-When Catalog ID cannot safely automate a resolution decision, it suspends the `IntakeSession` and routes to a human operator. The operator is not merely clicking "Approve"; they are making a specific cognitive choice that the AI could not.
+When Catalog ID reaches an `Ambiguous Candidate` or `Human Approval Required` state, the `IntakeSession` pauses.
 
-### 2.1 Trigger Conditions for Escalation
-- **Ambiguous:** Semantic score is borderline. The operator must choose: "Is this identical to `Product X`, or is it a new product?"
-- **Conflicting Evidence:** The image implies one product family, but the user's text implies another. The operator must declare which signal is correct.
-- **Catalog BS Rejection:** Automated bounded retries for a `SKU_COLLISION` have exhausted. The operator must manually supply a unique `sku_id`.
-- **Policy-Blocked Action:** E.g., attempting to update a price in a way that violates a business invariant (which Catalog BS would reject anyway).
+### 2.1 What the Human is Approving
+The human operator is resolving cognitive uncertainty. They are choosing or modifying:
+- The **interpretation** of the input (e.g., "This image is a bedsheet, not a curtain").
+- The **family decision** (e.g., "Yes, this attaches to Family A" mapping to the explicit `internal_id`).
+- The **proposed attributes** (e.g., fixing an `INFERRED` size).
 
-### 2.2 Human Authority Limits
-**CRITICAL INVARIANT:** Human approval within Catalog ID does **NOT** bypass Catalog BS deterministic validation. 
-- If a human overrides the AI and forces the generation of a command proposing a duplicated `sku_id`, Catalog BS will still physically reject it. 
-- The human is merely taking over the *cognitive command generation* process; the physical database remains fully sovereign.
+### 2.2 Authority Limits
+**CRITICAL INVARIANT:** Human approval within Catalog ID **MUST NOT** bypass Catalog BS validation. 
+- A human cannot directly create canonical truth through Catalog ID. 
+- If a human overrides the AI and forces a proposal that violates pricing rules, uniqueness constraints, or historical reservations, the final generated command still goes through Catalog BS, which will definitively reject it.
