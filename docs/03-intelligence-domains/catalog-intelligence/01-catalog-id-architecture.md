@@ -4,7 +4,7 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 2.1
+**Authoritative Version:** 2.2
 **Last Updated:** September 1, 2026
 
 ---
@@ -40,13 +40,23 @@ $$\mathbf{Catalog\ ID\ THINKS\ \&\ PROPOSES} \longrightarrow \mathbf{Catalog\ BS
 
 ## 3. Historical Identity & Public Read Contract
 
-Catalog BS enforces strict historical non-reuse of identifiers (`sku_id`, `product_code`) via its reservation ledgers (`catalog_sku_id_reservations`, `catalog_product_code_reservations`). Catalog ID cannot query these physical ledgers directly.
+### 3.1 Advisory Cognitive Context Invariant
+Catalog ID read and discovery results are explicitly defined as **ADVISORY COGNITIVE CONTEXT**.
 
-Therefore, the architectural strategy is:
-**Best-Effort Proactive Discovery + Authoritative Enforcement via Catalog BS.**
+The absence of an identifier from:
+- `vw_catalog_master`
+- `vw_catalog_products`
+- `vw_catalog_skus`
 
-- **Discovery:** Catalog ID queries the Catalog BS public read contracts (`vw_catalog_master`, `vw_catalog_products`, `vw_catalog_skus`) to discover known identifiers and proactively avoid obvious collisions.
-- **Enforcement:** The public views provide a snapshot, but Catalog BS remains the **ONLY** authoritative collision authority. Catalog ID must not claim that a public-view lookup guarantees collision-free creation. A race can still occur after discovery. If Catalog BS rejects a proposed identifier (`SKU_COLLISION`, `PRODUCT_CODE_COLLISION`), Catalog ID must treat that rejection as authoritative and final.
+does **NOT** prove that the identifier is available.
+
+### 3.2 The Final Authority
+Catalog BS remains the **ONLY** authoritative authority for identity acceptance, uniqueness, historical non-reuse, Product/SKU membership, and persistence.
+
+Therefore, the architectural flow is strictly:
+**Catalog ID discovery $\rightarrow$ candidate/proposal $\rightarrow$ Catalog BS validation/enforcement $\rightarrow$ canonical persistence.**
+
+If Catalog BS rejects a proposed identifier (`SKU_COLLISION`, `PRODUCT_CODE_COLLISION`), Catalog ID must treat that rejection as authoritative and final. Catalog ID must not claim that a public-view lookup guarantees collision-free creation.
 
 ---
 

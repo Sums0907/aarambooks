@@ -4,7 +4,7 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 2.1
+**Authoritative Version:** 2.2
 **Last Updated:** September 1, 2026
 
 ---

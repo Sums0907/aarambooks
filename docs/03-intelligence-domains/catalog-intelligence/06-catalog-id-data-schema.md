@@ -4,7 +4,7 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 2.1
+**Authoritative Version:** 2.2
 **Last Updated:** September 1, 2026
 
 ---
@@ -48,7 +48,14 @@ Catalog ID requires persistence capabilities solely to maintain intelligence-pro
 
 ---
 
-## 3. Explicit Prohibitions
+## 3. Persistence & Shadow-Master Protection
 
-1. **No Shadow Master:** Catalog ID must not persist authoritative product attributes, pricing, dimensions, or historical reservation ledgers. Any canonical data cached within an `IntakeSession` is explicitly non-authoritative.
-2. **No Implementation Commitments:** This schema must not be used to justify the premature procurement or freezing of specific ML/Vector database infrastructure.
+To enforce the boundary between Catalog ID and Catalog BS, the following distinction is absolute:
+
+**A. Cognitive Snapshot/Audit Record (Catalog ID Domain)**
+Catalog ID may persist intake state, candidate state, reasoning evidence, provenance, decision trace, human review logs, and the submitted command/result.
+
+**B. Canonical Catalog Entity (Catalog BS Domain)**
+These records must **not** be treated as current canonical Product, SKU, price, lifecycle, identifier ownership, or inventory state.
+
+When canonical truth changes in Catalog BS, the persisted cognitive state in Catalog ID becomes historical context, **not** authority.

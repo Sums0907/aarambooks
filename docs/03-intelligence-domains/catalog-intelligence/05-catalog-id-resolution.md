@@ -4,7 +4,7 @@
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
 **Status:** Canonical Intelligence Specification
-**Authoritative Version:** 2.1
+**Authoritative Version:** 2.2
 **Last Updated:** September 1, 2026
 
 ---
@@ -29,7 +29,7 @@ graph TD
 - Extracts attributes with explicit `EXTRACTED` and `INFERRED` provenance tags. Formats raw text into a `Candidate`.
 
 ### 1.3 Candidate Discovery
-- Queries Catalog BS public read contracts (`vw_catalog_master`, `vw_catalog_products`) to discover existing canonical facts (`DISCOVERED_CANONICAL`).
+- Queries Catalog BS public read contracts (`vw_catalog_master`) for advisory cognitive context (`DISCOVERED_CANONICAL`).
 
 ### 1.4 Match Assessment & Scoring
 - Compares the `Candidate` against `DISCOVERED_CANONICAL` facts. Produces a `MatchAssessment`.
@@ -42,17 +42,24 @@ graph TD
 
 ---
 
-## 2. Human-in-the-Loop Semantics
+## 2. Human Approval Semantics
 
-When Catalog ID reaches an `Ambiguous Candidate` or `Human Approval Required` state, the `IntakeSession` pauses.
+When Catalog ID reaches an `Ambiguous Candidate` or `Human Approval Required` state, the `IntakeSession` pauses for operator review.
 
-### 2.1 What the Human is Approving
-The human operator is resolving cognitive uncertainty. They are choosing or modifying:
-- The **interpretation** of the input (e.g., "This image is a bedsheet, not a curtain").
-- The **family decision** (e.g., "Yes, this attaches to Family A" mapping to the explicit `internal_id`).
-- The **proposed attributes** (e.g., fixing an `INFERRED` size).
+### 2.1 What a Human May Override
+The human operator resolves cognitive uncertainty. They are authorized to change:
+- The **interpretation** of the input.
+- The **candidate selection**.
+- The **proposed attribute values**.
+- The **family decision**.
+- The **proposed SKU ID / product code**.
 
-### 2.2 Authority Limits
-**CRITICAL INVARIANT:** Human approval within Catalog ID **MUST NOT** bypass Catalog BS validation. 
-- A human cannot directly create canonical truth through Catalog ID. 
-- If a human overrides the AI and forces a proposal that violates pricing rules, uniqueness constraints, or historical reservations, the final generated command still goes through Catalog BS, which will definitively reject it.
+### 2.2 What a Human May NOT Override
+Human approval within Catalog ID is strictly limited to cognitive command generation. A human operator **MAY NOT**:
+- Create an authoritative `internal_id`.
+- Bypass Catalog BS validation constraints.
+- Bypass Catalog BS historical identifier reservations.
+- Declare uniqueness authoritative.
+- Directly mutate the Catalog BS database.
+
+The final generated command, even if fully manually authored within Catalog ID, must still go through the standard Catalog BS mutation contract, which holds absolute authority to reject it.

@@ -3,14 +3,14 @@
 **Document Reference:** `docs/03-intelligence-domains/catalog-intelligence/07-catalog-id-certification.md`
 **System Name:** Catalog Intelligence Domain (`Catalog ID`)
 **Domain Layer:** Cognitive Intelligence Layer
-**Certification Status:** **`CATALOG ID DOCUMENTATION CORRECTED AND INTERNALLY CONSISTENT`**
+**Certification Status:** **`CATALOG ID — ARCHITECTURE AND DOCUMENTATION READY FOR IMPLEMENTATION`**
 **Date of Certification:** September 1, 2026
 
 ---
 
 ## 1. Executive Summary
 
-The Phase 2 documentation specification for **Catalog ID** has undergone a final, comprehensive architectural correction pass. The documentation is confirmed to be internally consistent and perfectly aligned with the certified Catalog BS sovereign boundaries (Commit `6f88534`).
+The Phase 2 documentation specification for **Catalog ID** has undergone a final, comprehensive policy semantics hardening pass. The documentation is internally consistent and strictly adheres to the sovereign boundaries of the certified Catalog BS implementation (Commit `6f88534`).
 
 ---
 
@@ -19,45 +19,38 @@ The Phase 2 documentation specification for **Catalog ID** has undergone a final
 The following authoritative documents and implementations were reviewed to ensure absolute alignment:
 - `catalog/docs/01` through `07`
 - `catalog/schema.sql`
-- `catalog/public_views.sql` (e.g., `vw_catalog_master`)
-- `catalog/service.py` (e.g., `SaveProductFamily`, `RenameProductCode`)
-- `catalog/models.py` (e.g., `SaveProductFamilyPayload`, `MutationResponse`)
+- `catalog/public_views.sql`
+- `catalog/service.py`
+- `catalog/models.py`
 
 ### 2.1 Consistency Audit Results
-- **Second Source of Truth Risk:** Eliminated. Catalog ID working state is explicitly defined as non-canonical cognitive state.
-- **Product/SKU Identity Duplication:** Eliminated. Catalog ID discovers existing truth via public views and proposes identifiers for validation.
-- **`product_code` vs `internal_id` Confusion:** Resolved. Explicit invariant established: `product_code` is a discovery signal; attachment requires the authoritative `product_internal_id` via the mutation contract.
-- **Historical Identity Violations:** Resolved. Best-effort proactive discovery combined with authoritative rejection by Catalog BS `SKU_COLLISION` rules.
-- **Automatic Attachment Errors:** Prevented. A matching `product_code` alone is never sufficient to attach a SKU.
-- **Over-Engineering & Premature ML Decisions:** Prevented. Logical persistence is separated from physical technology choices. No vector DBs or ML platforms were mandated.
-- **Contract Adherence:** Confirmed. Catalog ID uses authorized public read views and authorized mutation contracts. Zero direct database access.
-- **Data Provenance:** Confirmed. Attributes are tagged (e.g., `USER_SUPPLIED`, `DISCOVERED_CANONICAL`) to prevent confusion.
-- **Retry Semantics:** Bounded deterministically.
+- **Read-Discovery vs Authoritative Enforcement:** Invariant established. Catalog ID discovery is advisory cognitive context. Catalog BS remains the sole enforcement authority.
+- **Confidence Precedence:** Formalized. Probabilistic evidence cannot override deterministic canonical truth or hard contradictions.
+- **Shadow Master Protection:** Enforced. Cognitive snapshots are explicitly historical context, not canonical Product/SKU entities.
+- **Stale State Concurrency:** Clarified. Catalog BS rejections (`SKU_COLLISION` etc.) resulting from concurrent races are authoritative, not system inconsistencies.
+- **Human Approval Semantics:** Explicitly bounded to cognitive intent definition, preserving all physical Catalog BS validation gates.
+- **SKU Retry Language:** Clarified as bounded, deterministic, and subject to configuration, explicitly avoiding infinite mutation loops.
 
 ---
 
-## 3. Boundary Affirmations
+## 3. Certification Status
 
-- **Catalog ID Purpose:** Cognitive intake, image/attribute extraction, NLP interpretation, similarity reasoning, and structured command generation.
-- **Catalog BS Ownership:** Owns canonical truth, uniqueness enforcement, validation gates, historical reservation ledgers, and physical PostgreSQL persistence.
-- **Identity Boundary:** Catalog ID proposes human-readable strings (`sku_id`); Catalog BS owns technical identity (`internal_id`).
-- **Product Family Decision Boundary:** Catalog ID executes a 7-step cognitive reasoning framework to determine if a candidate belongs to an existing family (targeting `internal_id`) or forms a new family.
+The documentation explicitly reflects the boundaries of the system.
 
----
+- **ARCHITECTURE:** READY
+- **DOCUMENTATION:** INTERNALLY CONSISTENT
 
-## 4. Open Gaps & Decisions Required
+### 3.1 Implementation Policy Open Decisions
+These decisions do not invalidate the architecture, but the first two must be resolved before their corresponding automation behaviour is frozen in code:
 
-The following items are explicitly marked as `OPEN DECISION / CONFIGURATION REQUIRED` in the specification. They are acceptable open business decisions that do not block the architectural implementation of the cognitive layer:
-
-1. **Numeric Confidence Thresholds:** The exact numeric probability required to classify a candidate into specific semantic decision classes.
-2. **Maximum Retry Count:** The final business decision on the exact number of automated collision retries (e.g., maximum 3).
-3. **Physical Technology Selection:** The actual selection of databases, embedding models, and ML pipelines to fulfill the logical persistence boundary.
+- **Numeric confidence thresholds** (mapping probabilistic scores to semantic decision classes).
+- **Exact retry policy/configuration** (maximum automated generation attempts).
+- **Physical technology selection** (databases, embedding models, ML vendors).
 
 ---
 
-## 5. Certification Declaration
+## 4. Certification Declaration
 
-No blocking ambiguity remains. The seven-document set establishes a robust cognitive intelligence layer that thoroughly respects the deterministic foundation of Catalog BS.
+The architectural specification strictly maintains Catalog ID as a cognitive client, ensuring no second source of truth is established and Catalog BS remains untouched.
 
-**Status:** **`CATALOG ID DOCUMENTATION CORRECTED AND INTERNALLY CONSISTENT`**
-*(Note: This certifies the documentation specification only, not the implementation).*
+**Status:** **`CATALOG ID — ARCHITECTURE AND DOCUMENTATION READY FOR IMPLEMENTATION`**
