@@ -18,35 +18,34 @@ Brain Core is entirely blind to the meaning of the ecosystem without Azm. It can
 
 ---
 
-## 2. What Brain is Allowed to Ask Azm
+## 2. Knowledge Retrieval vs. Operational Retrieval
 
-Brain Core interacts with Azm via a logical query boundary. Brain is permitted to request:
+The architecture makes a rigorous distinction between asking for knowledge and asking for operational data.
 
-### 2.1 Concept Resolution
-- *"What is a SKU?"* (Returns the Semantic Definition).
-- *"What are the synonyms for a Packing Slip?"* (Returns the Vocabulary).
+### 2.1 What Brain Asks Azm (Knowledge Retrieval)
+Brain is permitted to request:
+- *"What is a SKU?"* (Concept Resolution).
+- *"Which Business System owns SKU?"* (Provenance).
+- *"What concepts relate to SKU?"* (Relational Navigation).
+- *"Which field in this schema maps to the 'Selling Price' concept?"* (Schematic Retrieval).
+- *"Is this mapping active or deprecated?"* (State).
 
-### 2.2 Relational Navigation
-- *"What concepts belong to the Catalog domain?"*
-- *"What concepts are children of a Product?"*
-
-### 2.3 Schematic Retrieval
-- *"How do I query the active SKU data?"* (Returns the Schematic Reference, e.g., `vw_catalog_skus`).
-- *"Which field in this schema maps to the 'Selling Price' concept?"* (Returns the Attribute Mapping).
-
-### 2.4 Provenance & Context
-- *"Which Business System owns this concept?"*
-- *"Is this concept Aaram-native or an external channel concept?"*
-- *"Is this schematic mapping active or deprecated?"*
+### 2.2 What Brain NEVER Asks Azm (Operational Retrieval)
+Azm must not persist current transactional records merely to make querying convenient. Azm DOES NOT answer:
+- *"What is SKU 126BS's current stock?"*
+- *"What is today's order count?"*
+- *"What is the current selling price of record X?"*
 
 ---
 
 ## 3. The Execution Handoff
 
-Azm provides **Knowledge**. Brain Core executes **Action**.
+Azm provides **Knowledge**. Brain Core (and its Execution Machinery) accesses **Operational Reality**.
 
 1. Brain asks Azm: *"Where is Inventory data?"*
 2. Azm replies: *"It is governed by the Inventory BS, exposed via `vw_stock_balances`."*
-3. Brain uses its own execution engine (not Azm) to execute a SQL query against `vw_stock_balances` in the operational database.
+3. Brain uses authorized Business System access mechanisms (Execution Machinery) to execute a query against `vw_stock_balances`.
 
 Azm is out of the loop the moment actual operational data is queried.
+
+**OPEN GAP / DECISION REQUIRED:** The exact query API/protocol that Brain Core uses to query Azm (e.g., GraphQL, REST, direct Python interface) remains an open implementation design decision.

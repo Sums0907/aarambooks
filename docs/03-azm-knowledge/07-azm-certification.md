@@ -10,22 +10,21 @@
 
 This certification verifies that the Persistent Azm Architecture adheres to all ecosystem invariants and safely establishes the required 4-box boundaries.
 
-- [x] **AZM has independent existence.** Azm is not a feature of a Business System; it is the ecosystem's standalone knowledge representation.
-- [x] **AZM has its own persistent knowledge model.** It transforms raw source declarations into its own logical concepts and namespaces.
-- [x] **AZM is not a contract archive.** It derives knowledge; it doesn't just store markdown text.
-- [x] **AZM is not a BS mirror.** It stores meaning, not transactional state.
+- [x] **Four-box architecture:** Explicitly separates BS, AZM, Brain Core, and Intelligence Domains.
+- [x] **Exactly two BS Public Contracts:** Clarifies that BSs expose only Semantic and Schematic contracts for knowledge.
+- [x] **BS semantic authority:** BS owns canonical truth and semantic declarations.
+- [x] **AZM independent existence:** Azm is the ecosystem's standalone persistent representation.
+- [x] **AZM persistent knowledge representation:** It derives knowledge; it doesn't just store markdown text.
+- [x] **AZM is not a contract archive.** Contracts are source material.
+- [x] **AZM is not a BS mirror.** The DB represents knowledge, not transactional tables.
 - [x] **AZM does not own operational truth.**
-- [x] **BS remains operational authority.**
-- [x] **BS Public Contracts remain governed source material.**
-- [x] **Brain never directly reads BS contracts.**
-- [x] **Brain reads AZM knowledge.**
-- [x] **Intelligence Domains do not become shadow semantic masters.**
-- [x] **Aaram-native Catalog meaning is protected from ShopDeck leakage.** ShopDeck remains explicitly categorized as `EXTERNAL_CHANNEL_KNOWLEDGE`.
-- [x] **Semantic and Schematic knowledge are both represented appropriately.**
-- [x] **Provenance is preserved.** Every knowledge node traces back to a BS and a specific contract.
-- [x] **Knowledge changes are detectable.**
-- [x] **No premature technology architecture has been imposed.** PostgreSQL is recommended, but not mandated if future discovery warrants otherwise. No LLMs/Vectors were forced into persistence.
-- [x] **Existing Python namespaces are correctly classified as legacy/bootstrap state.** The transition path to the persistent DB is clear.
+- [x] **Brain → AZM knowledge boundary:** Brain never directly reads BS contracts or reverse-engineers DDL.
+- [x] **Knowledge vs operational-data separation:** Explicitly divided between Brain queries and Execution Machinery.
+- [x] **Cross-BS knowledge capability:** Azm integrates concepts across Domains.
+- [x] **Provenance and lineage:** Source Provenance is strictly separated from Azm Knowledge Identity.
+- [x] **Versioning:** Knowledge is versioned; stale contracts are detectable.
+- [x] **Catalog/ShopDeck semantic independence:** ShopDeck remains explicitly categorized as `EXTERNAL_CHANNEL_KNOWLEDGE`.
+- [x] **Technology agnosticism:** PostgreSQL and LLMs are classified as future decisions/research, not architectural mandates.
 
 ## 2. Invariant Survival Tests
 

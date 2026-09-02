@@ -11,12 +11,13 @@
 
 **Azm (عزم)** is an Urdu word meaning **resolve** and **determination**. It was designed with a very personal and deep connection to the Aaram ecosystem.
 
-Azm is the **global repository of the semantic and schematic knowledge** of the entire ecosystem. It does not just hold data; it holds the *meaning* of the data. 
+Azm is the **global persistent repository of the semantic and schematic knowledge** of the entire ecosystem. It does not just hold data; it derives and represents the *meaning* of the data across boundaries.
 
 **Precise Definition:**
-> AZM is AaramBooks' declarative semantic-and-schematic knowledge layer: it defines what business concepts mean, how they are named and related, and what governed public schemas/views expose those concepts to intelligence capabilities.
+> AZM is AaramBooks' declarative semantic-and-schematic knowledge layer: it owns the persistent representation of ecosystem knowledge, normalizing what business concepts mean, how they relate across systems, and what governed public schemas expose them.
 
 It explicitly **DOES NOT** own:
+- canonical operational business truth
 - operational business records
 - transactional state
 - business workflow execution
@@ -27,45 +28,56 @@ It explicitly **DOES NOT** own:
 
 ## 2. The Cognitive Split: The 4-Box Separation of Concerns
 
-To prevent future agents from losing the context of where Azm sits in the ecosystem, the boundaries between the layers are defined by this precise questioning framework:
+The ecosystem is strictly divided into four distinct components:
 
-| Layer | The Core Responsibility | Example |
+| Box | The Core Responsibility | Example |
 |---|---|---|
-| **AZM** | **WHAT** does this concept mean? <br> **WHAT** schema exposes it? | *"A 'SKU' is a stock-keeping unit. It is exposed via `vw_stock_balances`."* |
-| **Brain Core** | **HOW** do we resolve/interpret the user's requirement? | *"The user's query translates to a SQL `SELECT` intent against `vw_stock_balances`."* |
-| **Intelligence Domain** (e.g., Catalog ID) | **WHAT** does this mean for this particular business objective? | *"Given the inventory balances, this SKU represents a low-stock risk for the customer's query."* |
-| **Business System** (e.g., Catalog BS) | **WHAT** is actually true and what may be changed? | *"SKU 126BS has 10 units in stock. Uniqueness constraints pass."* |
+| **1. Business System (BS)** | **WHAT** is actually true and what may be changed? | *"SKU 126BS has 10 units in stock. Uniqueness constraints pass."* |
+| **2. AZM** | **WHAT** does this concept mean and **WHAT** schema exposes it? | *"A 'SKU' is a stock-keeping unit. It is exposed via `vw_stock_balances`."* |
+| **3. Brain Core** | **HOW** do we resolve/interpret the user's requirement? | *"The user's query translates to a SQL `SELECT` intent against `vw_stock_balances`."* |
+| **4. Intelligence Domain** | **WHAT** does this mean for this particular business objective? | *"Given the inventory balances, this SKU represents a low-stock risk for the customer's query."* |
 
 ---
 
-## 3. The Equilibrium of Semantic & Schematic Knowledge
+## 3. Exactly Two Public Contracts: Equilibrium & Decoupling
 
-Historically, to enforce strict decoupling, Azm contained *only* Semantic Knowledge, while Schematic Knowledge was locked inside the Business Systems (BS). However, this left Brain Core fundamentally blind ("dumb") to the structure of the data it needed to reason over.
+To ensure perfect decoupling, Business Systems (BS) publish **exactly two governed contracts**:
 
-The architectural equilibrium achieved is the **Semantic and Schematic Public Read Contract**:
-1. The Business System (BS) exposes and maintains Public Read Contracts (SQL Views, MCP schemas). 
-2. Azm periodically syncs and reads these contracts, pulling them into its knowledge repository. 
-3. This allows the BS to safely change schemas at will, while Azm gracefully stays updated as the ecosystem's brain map.
+1. **Semantic Public Contract:** WHAT the business concepts mean, domain terminology, and semantic boundaries (authored/governed by the BS).
+2. **Schematic Public Contract:** HOW those concepts are exposed/accessed via public views, APIs, or MCP schemas (authored/governed by the BS).
 
----
-
-## 4. Architectural Evolution & The LLM Endgame (The Roadmap)
-
-Azm is a bridge to a much larger vision. 
-
-- **Phase 1 (Current):** Azm is defined declaratively in Python scripts (`src/azm/namespaces/`).
-- **Phase 2 (Persistent Sync):** Azm becomes a dynamic, persistent repository that automatically syncs Semantic and Schematic Public Read Contracts from the BS.
-- **Phase 3 (The Training Flywheel):** Azm serves as the foundational training data generator. As human operators interact with Brain Core, their queries and Azm's structured responses are collected to fine-tune a local, open-source LLM (e.g., Qwen).
-- **Phase 4 (The Ultimate Endgame):** The local LLM model absorbs the Aaram ecosystem's knowledge so deeply into its own neural weights that Azm is eventually rendered obsolete. The long-term vision is to **completely dissolve Azm, making its semantic and schematic knowledge an integral, native part of the local LLM itself.**
+**AZM consumes and curates ONLY these two contracts.** It transforms these governed declarations into a unified persistent knowledge model. Operational records remain strictly inside the Business System.
 
 ---
 
-## 5. Namespaces (Federated Knowledge)
+## 4. Cross-Business-System Knowledge Integration
 
-Azm is explicitly organized as an ecosystem-wide knowledge registry, partitioned into domain namespaces.
+A primary architectural purpose of Azm is representing relationships *across* Business Systems. It is not merely a mirror of individual BS schemas. 
 
-- **Inventory** (`src/azm/namespaces/inventory.py`)
-- **NDR (Logistics)** (`src/azm/namespaces/ndr.py`)
-- **ShopDeck** (`src/azm/namespaces/shopdeck.py`)
+For example, Azm represents ecosystem-level knowledge such as:
+- **SKU** (Catalog BS concept) 
+  - *has* **Stock Balance** (Inventory BS concept)
+  - *appears in* **Order Line** (Order BS concept)
 
-*(Note: The Catalog namespace is currently an identified architectural gap to be addressed).*
+This unified ontology is what allows Brain Core to orchestrate multi-domain workflows seamlessly.
+
+---
+
+## 5. Architectural Evolution (The Roadmap)
+
+Azm is an independent, persistent system on a clear evolutionary path.
+
+- **Phase 1 (Legacy Bootstrap):** Azm defined declaratively in Python scripts (`src/azm/namespaces/`).
+- **Phase 2 (Persistent Ingestion):** Azm becomes a dynamic, persistent knowledge database that ingests the two Public Contracts from all Business Systems.
+- **Phase 3 (FUTURE RESEARCH / LONG-TERM POSSIBILITY):** Azm serves as the foundational training data generator to fine-tune a local LLM. A potential long-term possibility is that the LLM absorbs the knowledge so deeply that a distinct Azm database becomes unnecessary. However, the persistent Azm architecture must remain valid regardless of LLM strategy shifts.
+
+---
+
+## 6. Namespaces (Federated Knowledge)
+
+Azm logically partitions its knowledge into domain namespaces, derived from the owning Business Systems:
+
+- **Inventory** (Derived from Inventory BS Contracts)
+- **NDR (Logistics)** (Derived from Order/Logistics BS Contracts)
+- **ShopDeck** (Classified strictly as External/Channel Knowledge)
+- **Catalog** (Derived strictly from Aaram Catalog BS Contracts)
