@@ -81,3 +81,29 @@ This architecture protects Aaram-native semantics from external channel leakage:
 - **ShopDeck** is an external commerce channel. Its schema (e.g., `commerce_available_qty`, `customer_sku_short_id`) represents channel state, not core Aaram truth.
 - **Aaram Catalog BS** owns the true, channel-agnostic meaning of a `Product` and `SKU`.
 - **Azm** ingests the Catalog BS contract to learn the Aaram-native semantics. It treats ShopDeck merely as an external mapping reference, ensuring that if ShopDeck disappears tomorrow, Aaram's core semantic knowledge remains completely valid.
+
+---
+
+## 6. Source-Declared Knowledge vs. AZM-Derived Knowledge
+
+AZM's persistent knowledge is explicitly classified into two categories, both of which must carry distinct provenance:
+
+**Source-Declared Knowledge:** Directly and faithfully extracted from an explicit declaration in a BS Public Contract.
+> Example: Catalog BS Semantic Contract declares `SKU = "atomic sellable unit"`. AZM persists this as a Semantic Concept node with provenance pointing to Catalog BS Semantic Contract v1.
+
+**AZM-Derived Ecosystem Knowledge:** Inferred by AZM from relationships observed across multiple BS contracts. No single BS explicitly states the full relationship.
+> Example: No contract explicitly says "SKU has Stock Balance." AZM derives this cross-domain relationship by observing that Catalog BS exposes `sku_id` and Inventory BS exposes `sku` in `vw_stock_balances`. AZM creates a Semantic Relationship node with derivation provenance: "[Catalog BS Contract v1 + Inventory BS Contract v1] → cross-domain join analysis."
+
+Derived relationships must be able to answer: *"Why does AZM believe this relationship exists?"*
+
+---
+
+## 7. Known Transitional Gaps in Current Legacy State
+
+The following known gaps exist in the current Phase 1 legacy Python implementation and must be resolved before the persistent AZM database is implemented:
+
+1. **Inventory BS has no formal Public Contracts yet.** `src/azm/namespaces/inventory.py` is a legacy bootstrap file that directly defines concepts and views. It is NOT derived from a published Inventory BS Semantic or Schematic Public Contract. Before the Inventory namespace is migrated to the persistent AZM DB, Inventory BS must publish formal Semantic and Schematic Public Contracts.
+
+2. **NDR schematic knowledge references ShopDeck operational views.** `src/azm/namespaces/ndr.py` defines `NDR_PUBLIC_VIEWS` pointing to `vw_shopdeck_*` views. These are operational view names from ShopDeck's infrastructure — they are transitional bootstrap references, not a formally governed Logistics/Orders BS Schematic Public Contract. Before the NDR namespace migrates to the persistent AZM DB, a formal NDR/Logistics BS Schematic Public Contract must be established.
+
+3. **ShopDeck namespace is treated as peer to Aaram-native namespaces in legacy code.** `src/azm/provider.py` registers `shopdeck` alongside `inventory` and `ndr` without structural differentiation. In the persistent AZM architecture, ShopDeck is classified as `EXTERNAL_CHANNEL` — structurally distinct from `AARAM_NATIVE` namespaces.
