@@ -1,4 +1,6 @@
 from typing import List, Dict
+import os
+import logging
 
 from src.azm.interfaces import AzmProvider
 from src.shared.semantic_resolution_contracts import SemanticConcept
@@ -6,8 +8,12 @@ from src.azm.namespaces.inventory import INVENTORY_CONCEPTS, INVENTORY_PUBLIC_VI
 from src.azm.namespaces.ndr import NDR_CONCEPTS, NDR_PUBLIC_VIEWS
 from src.azm.namespaces.shopdeck import SHOPDECK_CONCEPTS, SHOPDECK_PUBLIC_VIEWS
 
+logger = logging.getLogger(__name__)
+
+
 class GlobalAzmProvider(AzmProvider):
     """
+    [DEPRECATED - BOOTSTRAP FALLBACK ONLY]
     The top-level container for Azm. 
     It federates across all domains to provide a unified semantic ontology and public schemas.
     """
@@ -48,3 +54,27 @@ class GlobalAzmProvider(AzmProvider):
         if namespace not in self._views_by_namespace:
             raise ValueError(f"Unknown namespace: {namespace}")
         return self._views_by_namespace[namespace]
+
+
+class AzmProviderFactory:
+    """
+    Factory for instantiating the correct AZM Provider.
+    Prefers the PersistentAzmProvider if the DB is available and initialized.
+    Falls back to the deprecated GlobalAzmProvider (bootstrap) if not.
+    """
+    @staticmethod
+    def create(db_url: str = None) -> AzmProvider:
+        # Check if we should try the persistent provider
+        from src.azm.config import AZM_DATABASE_URL
+        target_url = db_url or AZM_DATABASE_URL
+        
+        if target_url:
+            try:
+                from src.azm.persistent_provider import PersistentAzmProvider
+                fallback = GlobalAzmProvider()
+                provider = PersistentAzmProvider(target_url, legacy_fallback=fallback)
+                return provider
+            except Exception as e:
+                logger.warning(f"AZM persistent provider unavailable ({e}). Falling back to bootstrap.")
+        
+        return GlobalAzmProvider()

@@ -1,3 +1,13 @@
+"""
+ShopDeck AZM Namespace Definitions
+Static definitions for ShopDeck concepts and views.
+
+ARCHITECTURAL WARNING:
+AZM NEVER CONNECTS TO A BUSINESS SYSTEM OPERATIONAL DATABASE AT RUNTIME.
+Do NOT attempt to use `BUSINESS_SYSTEM_CONNECTION_URI` to establish live
+database connections during AzmProvider resolution or query routing.
+All persistent knowledge MUST be resolved through the AZM Knowledge DB.
+"""
 from src.shared.semantic_resolution_contracts import SemanticConcept
 
 SHOPDECK_CONCEPTS = [

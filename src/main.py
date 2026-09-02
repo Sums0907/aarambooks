@@ -102,8 +102,8 @@ registry.register(
 assembler = ContextAssembler(registry)
 
 # 4. Brain Orchestrator & Inventory Domain
-from src.azm.provider import GlobalAzmProvider
-azm_provider = GlobalAzmProvider()
+from src.azm.provider import AzmProviderFactory
+azm_provider = AzmProviderFactory.create()
 inventory_knowledge = InventorySemanticKnowledge(azm_provider)
 
 planner = CognitivePlanner(gateway=gateway)
