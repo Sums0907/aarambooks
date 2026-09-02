@@ -66,27 +66,29 @@ INTELLIGENCE DOMAIN
 
 ---
 
-## 3. AZM — Persistent Architecture Specification CERTIFIED
+## 3. AZM — Architecture CERTIFIED (Final Boundary Certification: commit `7b32376`)
 
-**Current state of AZM:** `docs/03-azm-knowledge/` contains the complete 7-document architecture specification.
+**Current state of AZM:** `docs/03-azm-knowledge/` contains the complete 7-document architecture specification — fully certified after adversarial review.
 
-### Key AZM Principles
+### Key AZM Principles (Certified Invariants)
 
-- **AZM IS:** The persistent, ecosystem-wide semantic & schematic knowledge repository. It has its own independent identity, knowledge model, and persistent database.
-- **AZM IS NOT:** A contract repository, a BS mirror, a second Business System, or an operational data store.
-- **Source material:** Exactly **TWO** Business System Public Contracts feed into AZM (Semantic + Schematic). Operational records stay in the BS.
-- **Cross-BS purpose:** AZM's primary justification is its ability to represent relationships *across* Business Systems (e.g., Catalog `SKU` *has* Inventory `Stock Balance`).
-- **Python namespaces (`src/azm/namespaces/`):** Classified as **legacy/bootstrap only**. Target is the Persistent AZM Database.
+- **AZM IS:** The persistent, ecosystem-wide semantic & schematic knowledge repository with its own independent identity, knowledge model, and persistent database.
+- **AZM IS NOT:** A contract repository, a BS mirror, a second Business System, a semantic authority, an operational data store, or a runtime reasoning engine.
+- **BS is the semantic authority.** Business Systems declare authoritative domain meaning through Semantic Public Contracts. AZM represents (but does not define or override) that declared knowledge.
+- **AZM is NOT Brain.** AZM performs limited, governed knowledge derivation at **ingestion time only**. Runtime reasoning belongs exclusively to Brain Core.
+- **Source material:** Exactly **TWO** Business System Public Contracts feed into AZM (Semantic + Schematic).
+- **Cross-BS purpose:** AZM's primary justification is representing relationships *across* Business Systems.
+- **Python namespaces (`src/azm/namespaces/`):** **DEPRECATED legacy bootstrap.** The Persistent AZM DB is the target.
 
 | AZM Document | Description |
 |---|---|
-| `01-azm-architecture.md` | 4-box architecture, AZM identity, Catalog/ShopDeck boundary |
-| `02-azm-knowledge-model.md` | Logical primitives: Concept, Relationship, Schema, Provenance |
-| `03-azm-knowledge-rules.md` | Hard invariants — no contract mirroring, no BS bypass |
-| `04-azm-ingestion-architecture.md` | Ingestion lifecycle, versioning, conflict handling |
-| `05-azm-query-boundary.md` | Knowledge vs operational retrieval, Brain→AZM boundary |
-| `06-azm-persistence-model.md` | Persistence requirements, technology decisions (open gaps) |
-| `07-azm-certification.md` | Full certification checklist & survival tests |
+| `01-azm-architecture.md` | 4-box architecture, AZM identity, source authority vs knowledge representation |
+| `02-azm-knowledge-model.md` | Logical primitives: Concept, Relationship, SchematicRef, SchematicAttr, Provenance |
+| `03-azm-knowledge-rules.md` | Hard invariants — AZM not semantic authority, ingestion-time derivation only, no BS bypass |
+| `04-azm-ingestion-architecture.md` | Ingestion lifecycle, source-declared vs AZM-derived, versioning |
+| `05-azm-query-boundary.md` | AZM is NOT Brain, Brain→AZM boundary, Intelligence Domain prohibition |
+| `06-azm-persistence-model.md` | Persistence requirements, technology as future decision (not mandate) |
+| `07-azm-certification.md` | Full certification checklist including AZM-not-Brain and AZM-not-semantic-authority |
 
 ---
 
@@ -126,11 +128,12 @@ The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational 
 
 - **Do NOT modify Catalog BS** code, DDL, schema, service, or tests.
 - **Do NOT implement Catalog ID** without explicit instruction.
-- **Do NOT implement AZM persistence** (DB tables/code) without explicit instruction.
 - **Do NOT allow Brain Core to read BS Public Contracts directly** — all knowledge passes through AZM.
 - **Do NOT allow ShopDeck fields to become Aaram-native Catalog concepts.**
 - **Do NOT collapse the 4-box architecture** into fewer layers.
-- **Do NOT treat the `src/azm/namespaces/*.py` files as permanent architectural truth** — they are legacy bootstrap only.
+- **Do NOT treat the `src/azm/namespaces/*.py` files as permanent architectural truth** — they are legacy bootstrap, deprecated once persistent DB is live.
+- **Do NOT make AZM perform runtime reasoning** — AZM ingests and stores; Brain reasons.
+- **Do NOT finalise the NDR AZM namespace in this window** — that is the NDR window's responsibility.
 
 ---
 
@@ -149,9 +152,11 @@ The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational 
 
 ---
 
+---
+
 ## 8. Current Implementation State — AZM
 
-> **This window's active focus is the AZM Persistent Database.**
+> **This window's active focus is the AZM Persistent Database implementation.**
 
 ### What exists today (ALL legacy bootstrap — NOT the architectural target)
 
@@ -166,17 +171,39 @@ The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational 
 
 ### The NDR ID parallel window
 
-NDR ID is actively being developed in a **separate conversation window**. Once this window finishes the AZM Persistent Database, the NDR window will be directed here to build the NDR AZM namespace (Semantic + Schematic contracts → persistent AZM ingestion).
+NDR ID is actively being developed in a **separate conversation window**. Once this window delivers the AZM Persistent Database, the NDR window will be directed here to build the NDR AZM namespace.
 
-**Do NOT attempt to finalize NDR AZM namespace in this window.** That is the NDR window's responsibility after the persistent DB exists.
+**Do NOT attempt to finalise the NDR AZM namespace in this window.**
 
 ---
 
-## 9. Next Logical Steps (In Order)
+## 9. AZM Implementation Plan (Active)
 
-1. **AZM Persistent Database** — Implement the physical Azm DB schema using `06-azm-persistence-model.md` as the logical spec. This is the IMMEDIATE NEXT TASK for this window.
-2. **AZM Ingestion Engine** — Implement ingestion pipeline: reads BS Public Contracts → normalizes → persists to AZM DB.
-3. **Catalog AZM Namespace** — First real AZM namespace: ingest Catalog BS Public Contracts (`catalog-semantic-public-contract.md` + `public_views.sql`) into the persistent DB.
-4. **NDR AZM Namespace** — After the NDR window completes its work, direct it to publish formal NDR/Logistics Public Contracts and ingest them into this AZM DB.
-5. **Inventory BS Public Contracts** — Inventory BS must publish formal Semantic and Schematic contracts before its legacy Python namespace can be migrated.
-6. **Catalog ID Implementation** — Build Catalog ID using the established spec, consuming knowledge through AZM.
+A full implementation plan is available in the artifact:
+> `implementation_plan.md` (visible in artifact panel)
+
+**Summary of planned deliverables:**
+
+| Deliverable | File | Status |
+|---|---|---|
+| Physical DB schema (10 tables) | `src/azm/schema.sql` | NOT STARTED |
+| Python models for AZM primitives | `src/azm/models.py` | NOT STARTED |
+| Persistent DB provider | `src/azm/provider.py` (updated) | NOT STARTED |
+| Catalog static ingester | `src/azm/ingestion/catalog_ingester.py` | NOT STARTED |
+| DB init + seed script | `src/azm/init_db.py` | NOT STARTED |
+| Tests | `tests/azm/test_azm_persistent_provider.py` | NOT STARTED |
+
+**Open decisions to resolve before starting:**
+- Dev database: SQLite (zero-config) vs PostgreSQL (production-target)
+- ORM vs raw SQL
+- DB URL config location
+
+---
+
+## 10. Next Logical Steps (In Order)
+
+1. **Resolve open implementation decisions** (DB engine for dev, ORM/raw SQL, config location).
+2. **Implement AZM Persistent Database** — schema, models, PersistentAzmProvider, Catalog ingester, init script, tests.
+3. **NDR window → NDR AZM namespace** — after DB exists, direct NDR window to publish formal contracts and ingest into AZM DB.
+4. **Inventory BS Public Contracts** — Inventory BS must publish formal Semantic and Schematic contracts before legacy Python namespace can be migrated.
+5. **Catalog ID Implementation** — Build Catalog ID using the established spec, consuming knowledge through AZM.
