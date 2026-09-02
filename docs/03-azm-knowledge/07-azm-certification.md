@@ -18,9 +18,11 @@ This certification verifies that the Persistent Azm Architecture adheres to all 
 ### AZM Identity & Independence
 - [x] **AZM independent existence:** Azm is the ecosystem's standalone persistent knowledge representation.
 - [x] **AZM persistent knowledge representation:** It derives knowledge; it doesn't just store source contracts or markdown text.
+- [x] **AZM is NOT the semantic authority.** Business Systems declare authoritative domain meaning through Semantic Public Contracts. AZM persists a normalized, queryable representation of that declared knowledge. AZM may not independently redefine, override, or contradict BS-declared meaning. SOURCE AUTHORITY (BS) ≠ KNOWLEDGE REPRESENTATION (AZM).
 - [x] **AZM is not a contract archive.** Contracts are source material. AZM stores derived knowledge nodes, not contract files.
 - [x] **AZM is not a BS mirror.** The knowledge model represents logical primitives, not transactional BS tables.
 - [x] **AZM does not own operational truth.**
+- [x] **AZM is NOT Brain.** AZM prepares and maintains persistent knowledge through limited, governed derivation at ingestion time. AZM does NOT perform runtime reasoning or inference. Runtime reasoning belongs exclusively to Brain Core.
 
 ### Semantic Knowledge
 - [x] **AZM persists semantic knowledge as first-class nodes:** Semantic Concepts, Definitions, Aliases, Relationships.
@@ -35,6 +37,7 @@ This certification verifies that the Persistent Azm Architecture adheres to all 
 
 ### Brain Boundary
 - [x] **Brain → AZM knowledge boundary:** Brain never directly reads BS contracts or reverse-engineers DDL to learn meaning.
+- [x] **Intelligence Domain → AZM boundary:** Intelligence Domains also may not directly read BS contracts to reconstruct semantics. Knowledge flows through AZM.
 - [x] **Knowledge vs operational-data separation:** Knowledge retrieval (Brain → AZM) is explicitly divided from operational data retrieval (Execution Machinery → Business System).
 - [x] **AZM never becomes operational-data storage:** AZM does not cache current SKU stock counts, order records, or other transactional data.
 
@@ -96,6 +99,7 @@ The following gaps are documented but do not prevent architectural certification
 
 **STATUS: AZM ARCHITECTURE — CERTIFIED**
 
-*Certified after Final Forensic Architectural Review, September 2026.*
-*Certification scope: Architectural documentation completeness and internal consistency.*
+*Final Boundary Certification Pass, September 2026.*
+*Certification scope: Architectural documentation completeness, internal consistency, and boundary invariant enforcement.*
+*Key invariants confirmed: (1) BS is semantic authority; (2) AZM is knowledge representation layer; (3) AZM performs ingestion-time derivation only — not runtime reasoning; (4) Brain reads AZM, not BS contracts; (5) Intelligence Domains do not bypass AZM; (6) Catalog is Aaram-native; (7) ShopDeck is EXTERNAL_CHANNEL.*
 *Implementation (persistent DB, ingestion engine, Brain API) remains pending — see Open Gaps above.*

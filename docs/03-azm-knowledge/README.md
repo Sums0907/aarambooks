@@ -11,10 +11,10 @@
 
 **Azm (عزم)** is an Urdu word meaning **resolve** and **determination**. It was designed with a very personal and deep connection to the Aaram ecosystem.
 
-Azm is the **global persistent repository of the semantic and schematic knowledge** of the entire ecosystem. It does not just hold data; it derives and represents the *meaning* of the data across boundaries.
+Azm is the **global persistent repository of the semantic and schematic knowledge** of the entire ecosystem. It does not just hold data — it normalizes, versions, and represents the governed knowledge declared by Business Systems across domain boundaries.
 
 **Precise Definition:**
-> AZM is AaramBooks' declarative semantic-and-schematic knowledge layer: it owns the **persistent knowledge representation** derived from governed Business System Public Contracts. It normalizes what business concepts mean, how they relate across systems, and what governed public schemas expose them. AZM's knowledge is stored in its own independent persistent database — it is NOT a repository of the source contracts themselves.
+> AZM is AaramBooks' persistent semantic-and-schematic knowledge layer. It owns the **persistent knowledge representation** derived from governed Business System Public Contracts. Business Systems declare authoritative domain meaning; AZM normalizes, versions, and persists that declared knowledge — including how concepts relate across systems and how governed public schemas expose them. AZM is NOT the semantic authority. AZM's knowledge is stored in its own independent persistent database — it is NOT a repository of the source contracts themselves.
 
 It explicitly **DOES NOT** own:
 - canonical operational business truth

@@ -49,7 +49,7 @@ The architecture enforces strict boundaries between four distinct ecosystem comp
 
 ### Azm vs. Business System
 - **Operational Sovereignty:** Business Systems are the sole authority for operational truth. Azm does not invent, override, or duplicate operational records.
-- **Knowledge Representation:** Business Systems declare their semantics; Azm owns the persistent ecosystem representation of those semantics.
+- **Semantic Authority:** Business Systems are the sole authority for authoritative domain semantic declarations. AZM owns the persistent ecosystem *representation* of that declared knowledge — it does not redefine or override BS-declared meaning.
 
 ### Azm vs. Public Contracts
 - **Ingestion != Copying:** Azm is not a contract archive. Contracts are source material. Azm reads the contract, extracts meaning, and constructs normalized, persistent knowledge entities inside its own database. Brain reads Azm, not the contracts.
@@ -91,8 +91,8 @@ AZM's persistent knowledge is explicitly classified into two categories, both of
 **Source-Declared Knowledge:** Directly and faithfully extracted from an explicit declaration in a BS Public Contract.
 > Example: Catalog BS Semantic Contract declares `SKU = "atomic sellable unit"`. AZM persists this as a Semantic Concept node with provenance pointing to Catalog BS Semantic Contract v1.
 
-**AZM-Derived Ecosystem Knowledge:** Inferred by AZM from relationships observed across multiple BS contracts. No single BS explicitly states the full relationship.
-> Example: No contract explicitly says "SKU has Stock Balance." AZM derives this cross-domain relationship by observing that Catalog BS exposes `sku_id` and Inventory BS exposes `sku` in `vw_stock_balances`. AZM creates a Semantic Relationship node with derivation provenance: "[Catalog BS Contract v1 + Inventory BS Contract v1] → cross-domain join analysis."
+**AZM-Derived Ecosystem Knowledge:** During the ingestion process, AZM performs limited, governed knowledge derivation by recognizing relationships across BS contracts. No single BS explicitly states the full relationship. **This derivation happens at ingestion time, not at Brain query time.** AZM stores the derived relationship as a persistent knowledge node with explicit derivation provenance. AZM does not perform runtime reasoning — that is Brain Core's role.
+> Example: No contract explicitly says "SKU has Stock Balance." During ingestion, AZM recognizes that Catalog BS exposes `sku_id` and Inventory BS exposes `sku` in `vw_stock_balances`. AZM creates a persistent Semantic Relationship node with derivation provenance: "[Catalog BS Contract v1 + Inventory BS Contract v1] → cross-domain join analysis, ingestion run #N."
 
 Derived relationships must be able to answer: *"Why does AZM believe this relationship exists?"*
 

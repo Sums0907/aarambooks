@@ -78,11 +78,9 @@ Without field-level schematic knowledge, Brain Core cannot construct correct que
 
 ## 2. Technology (Future Decisions & Open Gaps)
 
-**RECOMMENDATION / FUTURE IMPLEMENTATION DECISION: Relational Database (PostgreSQL)**
+**FUTURE IMPLEMENTATION DECISION — Candidate: Relational Database (PostgreSQL)**
 
-The knowledge model described above is highly structured, relational, and requires strict ACID compliance for versioning and provenance. A standard relational schema (e.g., `azm_namespaces`, `azm_concepts`, `azm_schematic_refs`, `azm_schematic_attrs`, `azm_attr_mappings`) perfectly satisfies these requirements.
-
-However, PostgreSQL is **NOT** an immutable architectural requirement.
+The knowledge model described above is highly structured, relational, and requires strict ACID compliance for versioning and provenance. A standard relational schema would likely satisfy these requirements. However, the physical database technology is **NOT** an architectural invariant.
 
 **FUTURE RESEARCH / LONG-TERM POSSIBILITY: LLM Absorption**
 
