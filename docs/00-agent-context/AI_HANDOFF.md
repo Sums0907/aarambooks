@@ -149,9 +149,34 @@ The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational 
 
 ---
 
-## 8. Next Logical Steps
+## 8. Current Implementation State — AZM
 
-1. **AZM Persistent Database** — Implement the physical Azm DB using the `06-azm-persistence-model.md` spec.
-2. **AZM Ingestion Engine** — Implement ingestion from BS Public Contracts into the Azm DB.
-3. **Catalog AZM Namespace** — Once AZM DB is live, ingest the Catalog BS Public Contracts to create the first Azm Catalog knowledge namespace.
-4. **Catalog ID Implementation** — Build Catalog ID using the established spec and consuming knowledge through AZM.
+> **This window's active focus is the AZM Persistent Database.**
+
+### What exists today (ALL legacy bootstrap — NOT the architectural target)
+
+| File | Classification | Status |
+|---|---|---|
+| `src/azm/namespaces/inventory.py` | Legacy bootstrap — hardcoded Python dicts | No formal Inventory BS Public Contracts published yet |
+| `src/azm/namespaces/ndr.py` | Legacy bootstrap — references `vw_shopdeck_*` views | No formal NDR/Logistics BS Schematic Contract yet |
+| `src/azm/namespaces/shopdeck.py` | Legacy bootstrap — treated as peer namespace | ShopDeck is `EXTERNAL_CHANNEL`, not Aaram-native |
+| `src/azm/provider.py` | Legacy bootstrap `GlobalAzmProvider` | Reads from Python dicts, not a persistent DB |
+
+**No Intelligence Domain currently has proper semantic or schematic knowledge in AZM.** The Python namespace files are scaffold only.
+
+### The NDR ID parallel window
+
+NDR ID is actively being developed in a **separate conversation window**. Once this window finishes the AZM Persistent Database, the NDR window will be directed here to build the NDR AZM namespace (Semantic + Schematic contracts → persistent AZM ingestion).
+
+**Do NOT attempt to finalize NDR AZM namespace in this window.** That is the NDR window's responsibility after the persistent DB exists.
+
+---
+
+## 9. Next Logical Steps (In Order)
+
+1. **AZM Persistent Database** — Implement the physical Azm DB schema using `06-azm-persistence-model.md` as the logical spec. This is the IMMEDIATE NEXT TASK for this window.
+2. **AZM Ingestion Engine** — Implement ingestion pipeline: reads BS Public Contracts → normalizes → persists to AZM DB.
+3. **Catalog AZM Namespace** — First real AZM namespace: ingest Catalog BS Public Contracts (`catalog-semantic-public-contract.md` + `public_views.sql`) into the persistent DB.
+4. **NDR AZM Namespace** — After the NDR window completes its work, direct it to publish formal NDR/Logistics Public Contracts and ingest them into this AZM DB.
+5. **Inventory BS Public Contracts** — Inventory BS must publish formal Semantic and Schematic contracts before its legacy Python namespace can be migrated.
+6. **Catalog ID Implementation** — Build Catalog ID using the established spec, consuming knowledge through AZM.
