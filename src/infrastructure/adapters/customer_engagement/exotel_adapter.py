@@ -1,6 +1,4 @@
 import httpx
-import hmac
-import hashlib
 import logging
 from typing import Dict, Any
 from src.shared.config import settings
@@ -20,17 +18,8 @@ class ExotelVoiceBotAdapter:
         self.account_sid = settings.exotel_account_sid
         self.caller_id = settings.exotel_caller_id
         self.flow_url = settings.exotel_voicebot_flow_url
-        self.webhook_secret = settings.aaram_exotel_webhook_secret
         
         self.base_url = f"https://{self.subdomain}/v1/Accounts/{self.account_sid}"
-
-    def _generate_custom_field_signature(self, payload: str) -> str:
-        """Generates an HMAC-SHA256 signature for the CustomField to authenticate webhooks."""
-        return hmac.new(
-            self.webhook_secret.encode('utf-8'),
-            payload.encode('utf-8'),
-            hashlib.sha256
-        ).hexdigest()
 
     async def dispatch_call(self, action_request: ActionRequest, engagement_id: str) -> Dict[str, Any]:
         """
@@ -51,17 +40,15 @@ class ExotelVoiceBotAdapter:
 
         endpoint = f"{self.base_url}/Calls/connect.json"
         
-        # Secure Webhook Correlation: Sign the correlation IDs so forged webhooks can be rejected.
+        # Pass correlation IDs. Authentication is handled by Bearer token in the VoiceBot UI.
         base_custom_field = f"{engagement_id}|{action_request.action_request_id}"
-        signature = self._generate_custom_field_signature(base_custom_field)
-        secure_custom_field = f"{base_custom_field}|{signature}"
         
         payload = {
             "From": customer_phone,
             "To": self.caller_id,
             "CallerId": self.caller_id,
             "Url": self.flow_url,
-            "CustomField": secure_custom_field
+            "CustomField": base_custom_field
         }
 
         try:

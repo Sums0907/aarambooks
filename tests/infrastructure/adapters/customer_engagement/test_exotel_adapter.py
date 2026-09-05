@@ -43,7 +43,7 @@ async def test_exotel_adapter_dispatch_success(setup_exotel_settings):
 
         mock_instance.post.assert_called_once()
         args, kwargs = mock_instance.post.call_args
-        assert "eng-456|req-123|" in kwargs['data']['CustomField']
+        assert kwargs['data']['CustomField'] == "eng-456|req-123"
 
 @pytest.mark.asyncio
 async def test_exotel_adapter_timeout_no_retry(setup_exotel_settings):
