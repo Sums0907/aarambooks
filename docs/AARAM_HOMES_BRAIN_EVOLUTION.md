@@ -78,7 +78,7 @@ To prevent this, we architected the **NDR V1 Execution & Certification Boundary*
 
 1. **The Dual-Persistence Segregation Strategy:** 
    We realized that data is "Digital Gold," but not all data belongs in the same place. 
-   - **Aaram Brain** hoards the raw, noisy webhooks, IVR transcripts, and timestamps permanently for continuous learning and model training.
+   - **Aaram Brain** retains the raw, noisy webhooks, IVR transcripts, and timestamps as evidence for future analysis, evaluation, and learning pipelines.
    - **The Business System (ShopDeck)** only receives and stores the highly refined, structured intelligence (target AWBs, final AI recommendations, root causes). 
    This ensures the Brain is never starved of training data, and the operational system is never polluted by conversational noise.
 
