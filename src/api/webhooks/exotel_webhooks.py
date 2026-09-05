@@ -26,14 +26,56 @@ def verify_exotel_bearer(credentials: HTTPAuthorizationCredentials = Security(se
     if not hmac.compare_digest(expected_token.encode('utf-8'), provided_token.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
-def parse_correlation_metadata(custom_field: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
-    """Extracts engagement_id and action_request_id strictly for initial correlation, NOT authentication."""
-    if not custom_field:
-        return None, None
-    parts = custom_field.split("|")
-    if len(parts) >= 2:
+def _is_valid_correlation(cand: Any) -> bool:
+    if not isinstance(cand, str):
+        return False
+    parts = cand.split("|")
+    return len(parts) >= 2 and bool(parts[0]) and bool(parts[1])
+
+def parse_correlation_metadata(payload: dict) -> Tuple[Optional[str], Optional[str]]:
+    """Extracts engagement_id and action_request_id defensively, rejecting ambiguity."""
+    candidates = set()
+    
+    # 1. custom_parameters.CustomField
+    cp = payload.get("custom_parameters")
+    if isinstance(cp, dict) and "CustomField" in cp:
+        val = cp.get("CustomField")
+        if _is_valid_correlation(val):
+            candidates.add(val)
+            
+    # 2. raw string custom_parameters
+    if isinstance(cp, str):
+        if _is_valid_correlation(cp):
+            candidates.add(cp)
+            
+    # 3. external_id
+    ext = payload.get("external_id")
+    if _is_valid_correlation(ext):
+        candidates.add(ext)
+        
+    # 4. root CustomField
+    root_cf = payload.get("CustomField")
+    if _is_valid_correlation(root_cf):
+        candidates.add(root_cf)
+        
+    if len(candidates) > 1:
+        raise HTTPException(status_code=400, detail="Ambiguous correlation fields")
+        
+    if len(candidates) == 1:
+        cand = candidates.pop()
+        parts = cand.split("|")
         return parts[0], parts[1]
+        
     return None, None
+
+def extract_provider_session_id(payload: dict) -> Optional[str]:
+    meta_sid = payload.get("metadata", {}).get("call_sid") if isinstance(payload.get("metadata"), dict) else None
+    root_sid = payload.get("CallSid")
+    
+    if meta_sid and root_sid and meta_sid != root_sid:
+        raise HTTPException(status_code=400, detail="Ambiguous provider session ID")
+        
+    return meta_sid or root_sid
 
 def get_repository():
     return CustomerEngagementRepository()
@@ -49,9 +91,8 @@ async def handle_session_start(
     """
     payload = await request.json()
     
-    custom_field = payload.get("CustomField")
-    call_sid = payload.get("CallSid")
-    engagement_id, action_request_id = parse_correlation_metadata(custom_field)
+    call_sid = extract_provider_session_id(payload)
+    engagement_id, action_request_id = parse_correlation_metadata(payload)
     
     if not engagement_id:
         raise HTTPException(status_code=400, detail="Missing CustomField correlation")
@@ -61,7 +102,8 @@ async def handle_session_start(
         raise HTTPException(status_code=404, detail="Engagement not found")
         
     # Establishes CallSid -> engagement mapping. Updates any orphan events retroactively.
-    await repo.update_engagement_correlation(engagement_id, session_id=call_sid)
+    if call_sid:
+        await repo.update_engagement_correlation(engagement_id, session_id=call_sid)
     
     # State transitions are strictly monotonic
     await repo.transition_state(engagement_id, EngagementState.CONNECTED)
@@ -82,8 +124,15 @@ async def handle_session_start(
         }
     }
 
-async def resolve_correlation(call_sid: str, repo: CustomerEngagementRepository) -> Optional[str]:
-    """Resolves engagement_id from CallSid if CustomField is missing."""
+async def resolve_correlation(call_sid: Optional[str], payload: dict, repo: CustomerEngagementRepository) -> Optional[str]:
+    """Resolves engagement_id from payload correlation, falling back to CallSid lookup."""
+    try:
+        engagement_id, _ = parse_correlation_metadata(payload)
+        if engagement_id:
+            return engagement_id
+    except HTTPException:
+        pass
+        
     if not call_sid:
         return None
     engagement = await repo.get_engagement_by_provider_correlation(provider="EXOTEL", session_id=call_sid)
@@ -98,8 +147,8 @@ async def handle_transcript(
 ):
     payload = await request.json()
     
-    call_sid = payload.get("CallSid")
-    engagement_id = await resolve_correlation(call_sid, repo)
+    call_sid = extract_provider_session_id(payload)
+    engagement_id = await resolve_correlation(call_sid, payload, repo)
     
     event = CustomerEngagementEvent(
         engagement_id=engagement_id,  # Might be None if out-of-order
@@ -124,8 +173,8 @@ async def handle_insights(
 ):
     payload = await request.json()
     
-    call_sid = payload.get("CallSid")
-    engagement_id = await resolve_correlation(call_sid, repo)
+    call_sid = extract_provider_session_id(payload)
+    engagement_id = await resolve_correlation(call_sid, payload, repo)
     
     event = CustomerEngagementEvent(
         engagement_id=engagement_id,
@@ -146,8 +195,8 @@ async def handle_session_end(
 ):
     payload = await request.json()
     
-    call_sid = payload.get("CallSid")
-    engagement_id = await resolve_correlation(call_sid, repo)
+    call_sid = extract_provider_session_id(payload)
+    engagement_id = await resolve_correlation(call_sid, payload, repo)
     
     event = CustomerEngagementEvent(
         engagement_id=engagement_id,
@@ -177,8 +226,8 @@ async def handle_pre_agent_transfer(
 ):
     payload = await request.json()
     
-    call_sid = payload.get("CallSid")
-    engagement_id = await resolve_correlation(call_sid, repo)
+    call_sid = extract_provider_session_id(payload)
+    engagement_id = await resolve_correlation(call_sid, payload, repo)
     
     event = CustomerEngagementEvent(
         engagement_id=engagement_id,
