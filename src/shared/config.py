@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str
     litellm_base_url: str = "http://localhost:4000"
-    litellm_model: str = "local-qwen"
+    litellm_model: str = "gemini/gemini-1.5-pro-latest"
     litellm_api_key: str = "sk-1234"
     llm_enforce_json_format: bool = False
     llm_routing_max_tokens: int = 150
@@ -29,10 +29,20 @@ class Settings(BaseSettings):
     packing_url: str = "https://api-packing.aarambooks.cloud"
     shiprocket_token: str = ""
     shopdeck_token: str = ""
+    shopdeck_ndr_transport: str = "api"
     identity_public_key: str = ""
     brain_client_id: str = ""
     brain_client_secret: str = ""
     capability_routes: dict[str, str] = {}
+    
+    # Exotel Configuration
+    exotel_api_key: str = ""
+    exotel_api_token: str = ""
+    exotel_subdomain: str = "api.exotel.com"
+    exotel_account_sid: str = ""
+    exotel_caller_id: str = ""
+    exotel_voicebot_flow_url: str = ""
+    aaram_exotel_webhook_secret: str = "default_unsafe_secret_replace_in_prod"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
