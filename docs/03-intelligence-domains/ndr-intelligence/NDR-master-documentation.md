@@ -455,3 +455,33 @@ NDR-ID is architected to deliver substantial, measurable improvements against un
 - **Working Capital Velocity:** Minimizing inventory trapped in transit loops.
 - **Preserved Customer Trust:** Replacing silent cancellations with proactive, supportive delivery resolutions.
 - **Continuous Intelligence Optimization:** Growing smarter and more effective with every observed delivery outcome.
+
+---
+
+## 23. V1 Execution & Certification Milestone
+
+The NDR V1 architecture has been formally **certified** against a strict boundary and execution model. This certification ensures that Aaram Brain acts purely as a cognitive intelligence layer and safely interacts with operational truth boundaries.
+
+### 23.1 Engineering & Technological Principles Followed
+- **Strict Network Boundary Isolation:** Aaram Brain / NDR-ID never executes direct operational mutations (writes) in the real external ShopDeck main ecosystem. Real external systems are treated as READ-ONLY boundaries.
+- **Mock Business System (BS) Simulation:** All write capabilities and intelligence persistence operations are handled by a controlled Mock ShopDeck Business System. This internal system faithfully mimics expected external behaviors (idempotency, conflict resolution, path security) for safe testing and architectural validation.
+- **Deterministic Artifact Generation:** NDR Action Reports are deterministically generated as immutable CSV and true binary PDF artifacts without external library dependencies. The underlying byte generation guarantees perfect reproducibility.
+- **Intelligent Idempotency:** Conflict detection mechanisms strictly enforce identical duplicate acceptance (HTTP 200) while rigorously rejecting conflicting intelligence state changes with 409 Conflict logic.
+- **Human-in-the-Loop V1 End-State:** The end product of NDR V1 is a deterministic Action Report downloaded securely by human operators to enact manual execution in the external ShopDeck ecosystem, strictly prohibiting autonomous agent mutation at this phase.
+
+### 23.2 The 20-Point Certification Matrix
+The entire intelligence boundary was verified against a rigorous 20-point dynamic test matrix. Critical assertions included:
+1. **Mock vs Real ShopDeck Isolation:** Network requests are systematically intercepted to prove zero writes reach the real ShopDeck ecosystem.
+2. **Schema Reproducibility:** Intelligence persistence is mapped to formalized internal PostgreSQL schemas (`shopdeck_ndr_intelligence_log`).
+3. **Data Immutability & No Fabrication:** Intelligence payload projection ensures zero hallucination of default fields (e.g. risk score, operator notes). 
+4. **Endpoint Security & Authentication:** Artifact download endpoints enforce strict internal API dependencies (`get_current_user`) and hardened path-traversal blocking.
+
+---
+
+## 24. Code Versioning & Checkpoint Strategy
+
+The certification has been tightly sealed using an explicit Git versioning strategy to provide a clean, immutable fallback checkpoint:
+
+- **Certification Commits:** The codebase was committed precisely at the moment of successful boundary validation (`chore(ndr): CERTIFIED NDR V1 execution boundary and reporting`).
+- **Semantic Release Tagging:** The achievement is anchored by the immutable Git tag `ndr-v1-certified`. This creates a mathematically verified "safe state." 
+- **Clean Fallback Utility:** If future iterations (such as V2 autonomous execution and mutation) destabilize the architecture or violate read-only principles, the repository can be instantly and cleanly reverted to this tagged checkpoint without contamination from untracked experimental scripts.
