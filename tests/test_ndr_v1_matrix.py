@@ -12,7 +12,7 @@ os.environ["DATABASE_URL"] = "postgres://fake:fake@localhost:5433/shopdeck"
 os.environ["DATABASE_URL_SYNC"] = "postgresql://fake:fake@localhost:5433/shopdeck"
 os.environ["SHOPDECK_MCP_URL"] = "http://localhost:8080"
 
-from business_systems.shopdeck.api.main import app
+from business_systems.shopdeck.backend.api.main import app
 from business_systems.shopdeck.api.dependencies import get_db_pool
 
 from src.intelligence_domains.ndr.reporting.service import NDRReportService
