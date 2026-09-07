@@ -25,7 +25,7 @@ jobs:
         safety check -r requirements.txt --full-report || true
     - name: Run Tests
       run: |
-        PYTHONPATH=. pytest -v
+        pip install pytest pytest-asyncio httpx && PYTHONPATH=. pytest -v
     - name: Build Production Image
       run: |
         docker build -t aarambooks-brain-core:prod .
