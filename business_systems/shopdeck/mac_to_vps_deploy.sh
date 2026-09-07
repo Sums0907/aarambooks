@@ -47,13 +47,17 @@ echo ""
 echo "[3/3] Connecting to VPS to pull and restart..."
 # This sends the deployment commands directly to your VPS over SSH!
 ssh $VPS_USER@$VPS_IP << EOF
+    echo "Updating VPS source code from GitHub..."
+    cd ~/aarambooks
+    git pull origin main
+
     cd ~/aarambooks/$APP_FOLDER
     
     echo "Pulling latest images..."
     docker compose -f docker-compose.prod.yml pull
     
     echo "Restarting containers..."
-    docker compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml up -d --build
     
     # Run migrations if it's the backend
     BACKEND_CONTAINER=\$(docker compose -f docker-compose.prod.yml ps -q | xargs -r docker inspect -f '{{.Name}}' | grep "backend" | sed 's/^\///' || true)
