@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+asyncpg
+pydantic
+PyJWT[crypto]
+httpx
+python-dotenv
