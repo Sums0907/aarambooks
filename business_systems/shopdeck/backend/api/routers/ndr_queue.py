@@ -120,10 +120,11 @@ async def update_queue_status(
         if request.status == "call_dispatched" and request.call_sid:
             # Update engagement with call_sid
             if request.engagement_id:
+                import datetime
                 await repo.update_engagement(
                     request.engagement_id,
                     call_sid=request.call_sid,
-                    dispatched_at="NOW()",  # handled separately
+                    dispatched_at=datetime.datetime.utcnow(),
                 )
                 async with (await _get_raw_pool(repo)).acquire() as conn:
                     await conn.execute(
