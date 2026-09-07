@@ -90,5 +90,6 @@ async def test_exotel_adapter_500_no_retry(adapter):
 async def test_exotel_adapter_missing_context(adapter):
     action = build_mock_action(phone=None)
 
-    with pytest.raises(ValueError, match="Customer phone number missing"):
-        await adapter.dispatch_call(action, "eng-456")
+    with patch('src.infrastructure.adapters.customer_engagement.exotel_adapter.settings.test_phone_override', ""):
+        with pytest.raises(ValueError, match="Customer phone number missing"):
+            await adapter.dispatch_call(action, "eng-456")

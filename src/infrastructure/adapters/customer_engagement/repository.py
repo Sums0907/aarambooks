@@ -48,13 +48,25 @@ class CustomerEngagementRepository:
         await events.create_index("engagement_id")
         await events.create_index("provider_session_id")
 
-    async def create_engagement(self, record: CustomerEngagementRecord) -> None:
+    async def create_engagement(self, record: CustomerEngagementRecord) -> CustomerEngagementRecord:
         db = await self._get_db()
         doc = record.model_dump()
         doc["normalization_status"] = NormalizationStatus.NOT_READY
         doc["created_at"] = datetime.now(UTC)
         doc["updated_at"] = doc["created_at"]
-        await db.customer_engagements.insert_one(doc)
+        
+        try:
+            await db.customer_engagements.insert_one(doc)
+            return record
+        except DuplicateKeyError:
+            existing = await db.customer_engagements.find_one({"engagement_id": record.engagement_id})
+            if existing:
+                if existing.get("action_request_id") == record.action_request_id:
+                    # Idempotent retry, safe to return existing
+                    return CustomerEngagementRecord(**existing)
+                else:
+                    raise ValueError(f"Engagement ID {record.engagement_id} already exists for a different action request.")
+            raise
 
     async def get_engagement(self, engagement_id: str) -> Optional[Dict[str, Any]]:
         db = await self._get_db()

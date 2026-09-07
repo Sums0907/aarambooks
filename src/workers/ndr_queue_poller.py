@@ -82,15 +82,8 @@ class NDRQueuePoller:
                     return True
 
             if not engagement_id:
-                # 2. Register engagement
-                engagement_id = f"eng_{uuid.uuid4().hex}"
-                idempotency_key = f"idem_{queue_item_id}"
-                await self.shopdeck_adapter.register_engagement(
-                    queue_item_id=queue_item_id,
-                    engagement_id=engagement_id,
-                    idempotency_key=idempotency_key
-                )
-                logging.info(f"Registered engagement {engagement_id} for queue item {queue_item_id}")
+                NAMESPACE_NDR = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+                engagement_id = f"eng_{uuid.uuid5(NAMESPACE_NDR, queue_item_id).hex}"
 
             # 3. Hydrate authoritative context
             try:
@@ -109,22 +102,40 @@ class NDRQueuePoller:
                         self.understanding = u
                         
                 class DummyAction:
-                    def __init__(self):
+                    def __init__(self, qid):
                         self.classified_requirement = DummyClassified(DummyUnderstanding())
                         self.parameters = {"awb_no": awb_no, "customer_phone": "1234567890"}
-                        self.action_request_id = str(uuid.uuid4())
+                        # Use deterministic action_request_id so idempotency matches on retry
+                        NAMESPACE_NDR = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+                        self.action_request_id = f"act_{uuid.uuid5(NAMESPACE_NDR, qid).hex}"
                         from src.brain_core.action_engine.contracts import ConversationalDirective
                         self.directive = ConversationalDirective(objective="Secure customer confirmation", context_summary="test", allowed_actions=[], constraints=[])
+                        from src.brain_core.action_engine.contracts import ExecutionIntent, ExecutionChannel
+                        self.execution_intent = ExecutionIntent(channel=ExecutionChannel.VOICE, provider_hint="EXOTEL", context_requirements=[])
                         
-                action = DummyAction()
+                action = DummyAction(queue_item_id)
                 ccc = await self.ccc_builder.build(action)
                 
-                # Assume exotel adapter returns a call_sid
-                call_sid_response = await self.comm_engine.executor.exotel_adapter.dispatch_call(
+                # 1. Brain local engagement creation
+                engagement = await self.comm_engine.executor.prepare_engagement(
                     action_request=action,
-                    engagement_id=engagement_id
+                    engagement_id=engagement_id,
+                    call_context={"awb_no": awb_no, "customer_phone": "1234567890"},
+                    ccc_snapshot=ccc.model_dump() if hasattr(ccc, "model_dump") else {}
                 )
-                call_sid = call_sid_response.get("provider_interaction_id") or f"mock_call_{uuid.uuid4().hex}"
+                logging.info(f"Prepared Brain local engagement {engagement_id}")
+
+                # 2. ShopDeck BS engagement registration
+                await self.shopdeck_adapter.register_engagement(
+                    queue_item_id=queue_item_id,
+                    engagement_id=engagement_id,
+                    idempotency_key=f"idem_{engagement_id}"
+                )
+                logging.info(f"Registered engagement {engagement_id} for queue item {queue_item_id}")
+                
+                # 3. Exotel Dispatch
+                dispatch_result = await self.comm_engine.executor.dispatch_provider_call(engagement, action)
+                call_sid = dispatch_result.get("provider_interaction_id") or dispatch_result.get("call_id") or f"mock_call_{uuid.uuid4().hex}"
                 if hasattr(call_sid, "status") and call_sid.status.name == "ACCEPTED":
                     call_sid = call_sid.provider_interaction_id or f"mock_call_{uuid.uuid4().hex}"
                 elif isinstance(call_sid, str):
@@ -132,6 +143,10 @@ class NDRQueuePoller:
                 else:
                     call_sid = f"mock_call_{uuid.uuid4().hex}"
                 
+                # 4. Persist provider correlation
+                await self.comm_engine.executor.persist_provider_correlation(engagement_id, call_sid)
+                
+                # 5. ShopDeck queue call_dispatched
                 await self.shopdeck_adapter.update_queue_status(
                     queue_item_id=queue_item_id,
                     status="call_dispatched",
