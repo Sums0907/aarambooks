@@ -30,6 +30,7 @@ services:
       - .:/app
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL_SYNC=${DATABASE_URL_SYNC}
       - SHOPDECK_MCP_URL=${SHOPDECK_MCP_URL}
       - SHOPDECK_MCP_TOKEN=${SHOPDECK_MCP_TOKEN}
       - AARAM_BRAIN_URL=${AARAM_BRAIN_URL:-}
