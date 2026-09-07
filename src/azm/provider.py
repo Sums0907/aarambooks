@@ -6,7 +6,6 @@ from src.azm.interfaces import AzmProvider
 from src.shared.semantic_resolution_contracts import SemanticConcept
 from src.azm.namespaces.inventory import INVENTORY_CONCEPTS, INVENTORY_PUBLIC_VIEWS
 from src.azm.namespaces.ndr import NDR_CONCEPTS, NDR_PUBLIC_VIEWS
-from src.azm.namespaces.shopdeck import SHOPDECK_CONCEPTS, SHOPDECK_PUBLIC_VIEWS
 
 logger = logging.getLogger(__name__)
 
@@ -20,21 +19,16 @@ class GlobalAzmProvider(AzmProvider):
     def __init__(self):
         self._concepts_by_namespace: Dict[str, List[SemanticConcept]] = {
             "inventory": INVENTORY_CONCEPTS,
-            "ndr": NDR_CONCEPTS,
-            "shopdeck": SHOPDECK_CONCEPTS
+            "ndr": NDR_CONCEPTS
         }
         
         self._views_by_namespace: Dict[str, dict] = {
             "inventory": INVENTORY_PUBLIC_VIEWS,
-            "ndr": NDR_PUBLIC_VIEWS,
-            "shopdeck": SHOPDECK_PUBLIC_VIEWS
+            "ndr": NDR_PUBLIC_VIEWS
         }
 
     def search_concepts_by_namespace(self, namespace: str, query: str) -> List[SemanticConcept]:
-        if namespace not in self._concepts_by_namespace:
-            raise ValueError(f"Unknown namespace: {namespace}")
-            
-        concepts = self._concepts_by_namespace[namespace]
+        concepts = self._concepts_by_namespace.get(namespace, [])
         query_lower = query.lower()
         
         results = []
@@ -49,6 +43,17 @@ class GlobalAzmProvider(AzmProvider):
                 if concept.concept_id == concept_id:
                     return concept
         raise ValueError(f"Concept {concept_id} not found in Azm")
+        
+    def resolve_concepts_by_alias(self, alias: str) -> List[SemanticConcept]:
+        results = []
+        # Exact alias match, case-sensitive/normalized to lower if needed, 
+        # but the prompt requires exact match. Let's do exact lowercase match.
+        alias_lower = alias.lower()
+        for concepts in self._concepts_by_namespace.values():
+            for concept in concepts:
+                if any(alias_lower == a.lower() for a in concept.aliases):
+                    results.append(concept)
+        return results
 
     def get_namespace_schema(self, namespace: str) -> dict:
         if namespace not in self._views_by_namespace:

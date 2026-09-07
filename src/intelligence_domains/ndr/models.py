@@ -15,9 +15,11 @@ class FailureCategory(str, Enum):
 class StrategyPatternType(str, Enum):
     AUTONOMOUS_RESCHEDULE = "AUTONOMOUS_RESCHEDULE"
     DOORSTEP_VERIFICATION_AND_DISPUTE = "DOORSTEP_VERIFICATION_AND_DISPUTE"
-    BUYER_COMMITMENT_AND_PREPAYMENT = "BUYER_COMMITMENT_AND_PREPAYMENT"
+    BUYER_INTENT_CONFIRMATION = "BUYER_INTENT_CONFIRMATION"
     ADDRESS_AND_LANDMARK_ENRICHMENT = "ADDRESS_AND_LANDMARK_ENRICHMENT"
     PRIORITY_CONCIERGE_ESCALATION = "PRIORITY_CONCIERGE_ESCALATION"
+    BUYER_COMMITMENT_AND_PREPAYMENT = "BUYER_COMMITMENT_AND_PREPAYMENT"
+    NO_ACTION = "NO_ACTION"
 
 class CaseLifecycleState(str, Enum):
     CASE_CREATED = "CASE_CREATED"
@@ -38,7 +40,7 @@ class NDREvent(BaseModel):
     courier_partner: str
     failure_code: str
     failure_description: str
-    attempt_count: int = 1
+    attempt_count: Optional[int] = None
     order_id: Optional[str] = None
     event_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -49,13 +51,14 @@ class NDRContext(BaseModel):
     customer_id: Optional[str] = None
     customer_name: Optional[str] = None
     customer_phone: Optional[str] = None
-    payment_mode: str = "cod"
-    order_value: float = 0.0
-    attempt_count: int = 1
-    ofd_count: int = 1
-    latest_ndr_reason: str = ""
+    payment_mode: Optional[str] = None
+    order_value: Optional[float] = None
+    attempt_count: Optional[int] = None
+    ofd_count: Optional[int] = None
+    latest_ndr_reason: Optional[str] = None
     destination_city: Optional[str] = None
     destination_pincode: Optional[str] = None
+    item_summary: Optional[str] = None
     prior_actions: List[Dict[str, Any]] = Field(default_factory=list)
 
 class FailureDiagnosis(BaseModel):
@@ -93,6 +96,7 @@ class InterventionRecommendation(BaseModel):
     action_type: str
     action_category: ActionCategory
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    execution_intent: Optional[Any] = None
     justification: str
     customer_message: Optional[str] = None
     requires_human_approval: bool = False
@@ -101,32 +105,32 @@ class DownstreamOutcomeSignal(BaseModel):
     awb_no: str
     order_status: str
     delivery_time: Optional[datetime] = None
-    execution_confirmed: bool = False
-    customer_engaged: bool = False
-    delivery_recovered: bool = False
-    rto_avoided: bool = False
-    is_final_rto: bool = False
+    execution_confirmed: Optional[bool] = None
+    customer_engaged: Optional[bool] = None
+    delivery_recovered: Optional[bool] = None
+    rto_avoided: Optional[bool] = None
+    is_final_rto: Optional[bool] = None
 
 class OutcomeEvaluation(BaseModel):
     case_id: str
     awb_no: str
     strategy_attempted: StrategyPatternType
-    was_recommendation_accepted: bool = False
-    was_action_executed: bool = False
-    was_customer_engaged: bool = False
-    was_delivery_recovered: bool = False
-    was_rto_avoided: bool = False
-    revenue_protected: float = 0.0
-    freight_saved: float = 0.0
+    was_recommendation_accepted: Optional[bool] = None
+    was_action_executed: Optional[bool] = None
+    was_customer_engaged: Optional[bool] = None
+    was_delivery_recovered: Optional[bool] = None
+    was_rto_avoided: Optional[bool] = None
+    revenue_protected: Optional[float] = None
+    freight_saved: Optional[float] = None
     evaluation_summary: str = ""
 
 class LearningEvidence(BaseModel):
     case_id: str
     awb_no: str
-    courier_partner: str
-    failure_category: FailureCategory
+    courier_partner: Optional[str] = None
+    failure_category: Optional[FailureCategory] = None
     strategy_used: StrategyPatternType
-    recovered: bool
+    recovered: Optional[bool] = None
     evidence_text: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

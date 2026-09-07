@@ -1,6 +1,6 @@
 from typing import Protocol, Any, List, Optional, Union
 from src.shared.conversational_contracts import ConversationalUnderstanding, ConversationalResponse
-from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessEvidenceResponse
+from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessEvidenceResponse, BusinessStateVerificationRequest, BusinessStateVerificationResponse
 from src.shared.memory_contracts import ConversationTurn
 from src.shared.decision_contracts import DecisionResponse
 
@@ -9,7 +9,7 @@ class IntelligenceDomainProvider(Protocol):
     Generic boundary for an Intelligence Domain (ID).
     Provides cognitive semantics and conversational understanding for a specific business domain.
     """
-    async def extract_understanding(self, query: str, history: Optional[List[ConversationTurn]] = None) -> ConversationalUnderstanding:
+    async def extract_understanding(self, query: Union[str, Any], history: Optional[List[ConversationTurn]] = None) -> ConversationalUnderstanding:
         ...
 
     async def interpret_evidence(self, response: Union[BusinessEvidenceResponse, DecisionResponse]) -> ConversationalResponse:
@@ -28,6 +28,9 @@ class ContextExecutionAdapter(Protocol):
     Executes the abstract evidence request against the physical business system.
     """
     async def execute_evidence_request(self, request: AbstractEvidenceRequest, auth_context: str) -> BusinessEvidenceResponse:
+        ...
+        
+    async def verify_business_state(self, request: BusinessStateVerificationRequest) -> BusinessStateVerificationResponse:
         ...
 
 class ContextExecutionResolver(Protocol):

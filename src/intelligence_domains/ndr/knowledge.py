@@ -13,7 +13,7 @@ from src.intelligence_domains.ndr.models import (
     OutcomeEvaluation,
     LearningEvidence
 )
-from src.brain_core.action_engine.contracts import ActionCategory
+from src.brain_core.action_engine.contracts import ActionCategory, ExecutionIntent, ExecutionChannel
 
 class NDRDiagnosticEngine:
     """
@@ -92,37 +92,32 @@ class NDRPriorityRiskEngine:
     ) -> PriorityAndRiskEvaluation:
         # 1. Operational Risk (0.0 to 1.0)
         # Driven by attempt degradation, payment exposure (COD is higher risk), and failure category
-        base_risk = 0.3 * min(context.attempt_count, 3)
-        if context.payment_mode.lower() == "cod":
-            base_risk += 0.2
-        if diagnosis.category == FailureCategory.BUYER_REMORSE_OR_REJECTION:
-            base_risk += 0.25
-        elif diagnosis.category == FailureCategory.CUSTOMER_UNAVAILABLE:
-            base_risk += 0.1
-        operational_risk = min(1.0, max(0.1, base_risk))
+        safe_attempt_count = context.attempt_count if context.attempt_count is not None else 1
+        base_risk = 0.3 * min(safe_attempt_count, 3)
+        payment_penalty = 0.2 if context.payment_mode and context.payment_mode.lower() == "cod" else 0.0
+        
+        operational_risk = min(base_risk + payment_penalty, 1.0)
 
         # 2. Commercial Priority (0.0 to 1.0)
-        # Driven by financial value
-        if context.order_value >= 5000:
+        # Driven by order value tiers and margin protection requirements
+        safe_order_value = context.order_value if context.order_value is not None else 0.0
+        if safe_order_value >= 5000:
             commercial_priority = 0.95
-        elif context.order_value >= 2500:
+        elif safe_order_value >= 2500:
             commercial_priority = 0.80
-        elif context.order_value >= 1000:
+        elif safe_order_value >= 1000:
             commercial_priority = 0.50
         else:
             commercial_priority = 0.25
 
-        # 3. Customer Experience Risk (0.0 to 1.0)
-        # Driven by customer distress, dispute state, and attempt friction
+        # 3. CX Risk Score (0.0 to 1.0)
+        base_cx_risk = 0.30
+        if safe_attempt_count >= 2:
+            base_cx_risk = 0.60
+        
         sentiment = customer_state.sentiment.upper() if customer_state else "NEUTRAL"
-        if sentiment in ["FRUSTRATED", "HOSTILE"]:
-            cx_risk = 0.90
-        elif diagnosis.is_carrier_disputed:
-            cx_risk = 0.75
-        elif context.attempt_count >= 2:
-            cx_risk = 0.60
-        else:
-            cx_risk = 0.30
+        sentiment_penalty = 0.4 if sentiment in ["FRUSTRATED", "HOSTILE", "NEGATIVE"] else 0.0
+        cx_risk = min(base_cx_risk + sentiment_penalty, 1.0)
 
         # RTO Probability & Recovery Probability
         rto_prob = min(0.95, operational_risk * 0.8 + (0.2 if sentiment in ["FRUSTRATED", "HOSTILE"] else 0.0))
@@ -131,7 +126,7 @@ class NDRPriorityRiskEngine:
         # Policy Constraint Check (Max 3 reattempts standard policy)
         policy_allows_autonomous = True
         policy_notes = None
-        if context.attempt_count >= 3:
+        if safe_attempt_count >= 3:
             policy_allows_autonomous = False
             policy_notes = "Max 3 autonomous reattempt policy reached. Requires human supervisor review."
 
@@ -161,12 +156,13 @@ class NDRStrategyEngine:
         rec_id = f"rec_{uuid.uuid4().hex[:8]}"
 
         # Rule 1: Policy Boundary or Terminal Attempt ➔ Concierge Escalation
+        # Policy constraints always supersede commercial priority.
         if not risk.policy_allows_autonomous_action or risk.customer_experience_risk_score >= 0.85:
             strategy = RecoveryStrategy(
                 strategy_type=StrategyPatternType.PRIORITY_CONCIERGE_ESCALATION,
                 strategy_name="Priority Concierge Escalation",
                 target_objective="Transfer case context to human care desk for high-touch intervention.",
-                parameters={"awb_no": context.awb_no, "urgency": "HIGH", "order_value": context.order_value},
+                parameters={"awb_no": context.awb_no, "urgency": "HIGH", "order_value": context.order_value if context.order_value is not None else "UNKNOWN"},
                 confidence=0.95,
                 rationale="High customer distress or policy threshold reached; autonomous resolution halted."
             )
@@ -187,7 +183,7 @@ class NDRStrategyEngine:
                 strategy_type=StrategyPatternType.DOORSTEP_VERIFICATION_AND_DISPUTE,
                 strategy_name="Doorstep Verification & Carrier Dispute",
                 target_objective="Verify customer doorstep status and file carrier dispute.",
-                parameters={"courier": context.courier_partner, "awb_no": context.awb_no},
+                parameters={"courier": context.courier_partner if context.courier_partner else "UNKNOWN", "awb_no": context.awb_no},
                 confidence=0.88,
                 rationale="Suspected fake attempt scan detected; carrier verification required."
             )
@@ -223,23 +219,23 @@ class NDRStrategyEngine:
             )
             return strategy, recommendation
 
-        # Rule 4: Buyer Remorse / COD Rejection ➔ Buyer Commitment & Prepayment
+        # Rule 4: Buyer Remorse / COD Rejection ➔ Buyer Intent Confirmation
         if diagnosis.category == FailureCategory.BUYER_REMORSE_OR_REJECTION:
             strategy = RecoveryStrategy(
-                strategy_type=StrategyPatternType.BUYER_COMMITMENT_AND_PREPAYMENT,
-                strategy_name="Buyer Commitment & Prepayment Conversion",
-                target_objective="Convert COD to instant digital prepaid or confirm genuine intent.",
-                parameters={"awb_no": context.awb_no, "payment_mode": context.payment_mode},
+                strategy_type=StrategyPatternType.BUYER_INTENT_CONFIRMATION,
+                strategy_name="Buyer Intent Confirmation",
+                target_objective="Confirm if the buyer still genuinely intends to receive the COD order.",
+                parameters={"awb_no": context.awb_no},
                 confidence=0.82,
-                rationale="Buyer hesitation detected; prepayment incentive recommended."
+                rationale="Buyer hesitation detected; need to confirm intent before reattempting."
             )
             recommendation = InterventionRecommendation(
                 recommendation_id=rec_id,
-                action_type="offer_prepayment_incentive",
+                action_type="confirm_intent_to_receive",
                 action_category=ActionCategory.RECOMMENDATION,
-                parameters={"awb_no": context.awb_no, "discount_percentage": 5.0},
-                justification="Offering verified prepayment link with 5% instant discount to eliminate COD refusal.",
-                customer_message="Would you like to complete payment online to enjoy guaranteed contactless delivery and 5% instant savings?",
+                parameters={"awb_no": context.awb_no},
+                justification="Asking the customer to confirm their intent to receive the order.",
+                customer_message="We noticed your order delivery was not completed. Would you still like us to deliver this order?",
                 requires_human_approval=False
             )
             return strategy, recommendation
@@ -249,18 +245,28 @@ class NDRStrategyEngine:
             strategy_type=StrategyPatternType.AUTONOMOUS_RESCHEDULE,
             strategy_name="Autonomous Rescheduling",
             target_objective="Capture firm customer reattempt date and schedule with courier.",
-            parameters={"awb_no": context.awb_no, "attempt_count": context.attempt_count},
+            parameters={"awb_no": context.awb_no, "attempt_count": context.attempt_count if context.attempt_count is not None else "UNKNOWN"},
             confidence=0.90,
             rationale="Customer temporarily unavailable; scheduled reattempt is optimal."
         )
-        target_date = customer_state.preferred_reattempt_date if (customer_state and customer_state.preferred_reattempt_date) else "NEXT_BUSINESS_DAY"
+        
+        target_date = customer_state.preferred_reattempt_date if (customer_state and customer_state.preferred_reattempt_date) else "UNKNOWN_DATE"
+        
+        if target_date == "UNKNOWN_DATE":
+            justification = "Recommending reattempt based on customer availability, date pending."
+            customer_message = "We noticed you were unavailable. When would you like us to reattempt delivery?"
+        else:
+            justification = f"Recommending reattempt on {target_date} based on customer availability."
+            customer_message = f"We noticed you were unavailable. We have requested delivery reattempt for {target_date}."
+            
         recommendation = InterventionRecommendation(
             recommendation_id=rec_id,
             action_type="seller_reattempt",
             action_category=ActionCategory.SUGGESTED_RESOLUTION,
-            parameters={"awb_no": context.awb_no, "reattempt_date": target_date},
-            justification=f"Recommending reattempt on {target_date} based on customer availability.",
-            customer_message=f"We noticed you were unavailable. We have requested delivery reattempt for {target_date}.",
+            parameters={"awb_no": context.awb_no, "reattempt_date": target_date, "customer_phone": context.customer_phone},
+            execution_intent=ExecutionIntent(intent_type="CUSTOMER_OUTREACH", channel=ExecutionChannel.VOICE),
+            justification=justification,
+            customer_message=customer_message,
             requires_human_approval=False
         )
         return strategy, recommendation
@@ -277,14 +283,31 @@ class NDROutcomeEvaluator:
         awb_no: str,
         strategy: RecoveryStrategy,
         signal: DownstreamOutcomeSignal,
-        order_value: float = 0.0
+        diagnosis: Optional[FailureDiagnosis] = None,
+        order_value: Optional[float] = None
     ) -> tuple[OutcomeEvaluation, LearningEvidence]:
         
-        is_recovered = signal.delivery_recovered and (signal.order_status.lower() in ["delivered", "complete"])
-        is_rto = signal.is_final_rto or (signal.order_status.lower() in ["rto_initiated", "rto_delivered", "returned"])
+        is_recovered = signal.delivery_recovered if signal.delivery_recovered is not None else None
+        if is_recovered is None and signal.order_status:
+            if signal.order_status.lower() in ["delivered", "complete"]:
+                is_recovered = True
+            elif signal.order_status.lower() in ["rto_initiated", "rto_delivered", "returned", "cancelled"]:
+                is_recovered = False
 
-        revenue_protected = order_value if is_recovered else 0.0
-        freight_saved = 120.0 if is_recovered else 0.0 # Estimated 2-way reverse logistics fee avoided
+        is_rto = signal.is_final_rto if signal.is_final_rto is not None else None
+        if is_rto is None and signal.order_status:
+            if signal.order_status.lower() in ["rto_initiated", "rto_delivered", "returned"]:
+                is_rto = True
+            elif signal.order_status.lower() in ["delivered", "complete"]:
+                is_rto = False
+
+        revenue_protected = None
+        if is_recovered is True and order_value is not None:
+            revenue_protected = order_value
+            
+        freight_saved = None
+        # Freight savings require an explicitly approved business rule or evidence.
+        # We cannot calculate it blindly from order_value or constant 120.0 without evidence.
 
         summary = (
             f"Case {case_id} (AWB: {awb_no}) evaluated. "
@@ -297,11 +320,11 @@ class NDROutcomeEvaluator:
             case_id=case_id,
             awb_no=awb_no,
             strategy_attempted=strategy.strategy_type,
-            was_recommendation_accepted=True,
+            was_recommendation_accepted=None, # Cannot infer from mere execution
             was_action_executed=signal.execution_confirmed,
             was_customer_engaged=signal.customer_engaged,
             was_delivery_recovered=is_recovered,
-            was_rto_avoided=not is_rto,
+            was_rto_avoided=False if is_rto is True else (True if is_rto is False else None),
             revenue_protected=revenue_protected,
             freight_saved=freight_saved,
             evaluation_summary=summary
@@ -310,8 +333,8 @@ class NDROutcomeEvaluator:
         evidence = LearningEvidence(
             case_id=case_id,
             awb_no=awb_no,
-            courier_partner=strategy.parameters.get("courier", "unknown"),
-            failure_category=FailureCategory.UNKNOWN,
+            courier_partner=strategy.parameters.get("courier"),
+            failure_category=diagnosis.category if diagnosis else None,
             strategy_used=strategy.strategy_type,
             recovered=is_recovered,
             evidence_text=summary

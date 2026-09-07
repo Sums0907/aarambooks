@@ -99,12 +99,7 @@ class UniversalAzmIngester:
         """
         Idempotent transactional ingestion of a Business System's contracts.
         """
-        db_path = self.db_url.replace("sqlite:///", "")
-        conn = sqlite3.connect(db_path)
-        conn.isolation_level = None  # autocommit
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON;")
-        conn.execute("PRAGMA journal_mode=WAL;")
+        conn = get_connection(self.db_url)
 
         execute_schema(conn)
 
@@ -125,9 +120,6 @@ class UniversalAzmIngester:
         )
 
         try:
-            conn.execute("BEGIN")
-
-            # 1. Namespace
             ns_id = get_or_create_namespace(
                 conn,
                 name=config.namespace_name,
@@ -227,6 +219,15 @@ class UniversalAzmIngester:
             # 5. External Mappings
             for m_def in config.external_mappings:
                 cid = concept_ids.get(m_def.native_concept_key)
+                if not cid:
+                    # Look up in DB for native concepts from other namespaces
+                    if conn.is_sqlite:
+                        res = conn.execute("SELECT id FROM azm_concepts WHERE semantic_key = ?", (m_def.native_concept_key,)).fetchone()
+                    else:
+                        res = conn.execute("SELECT id FROM azm_concepts WHERE semantic_key = %s", (m_def.native_concept_key,)).fetchone()
+                    if res:
+                        cid = res[0]
+                
                 if cid:
                     insert_external_mapping(
                         conn,
@@ -238,7 +239,7 @@ class UniversalAzmIngester:
                     )
 
             complete_ingestion_run(conn, run_id)
-            conn.execute("COMMIT")
+            conn.commit()
 
             concepts_count = conn.execute("SELECT COUNT(*) FROM azm_concepts WHERE namespace_id=?", (ns_id,)).fetchone()[0]
             refs_count = conn.execute("SELECT COUNT(*) FROM azm_schematic_refs WHERE namespace_id=?", (ns_id,)).fetchone()[0]
@@ -255,7 +256,7 @@ class UniversalAzmIngester:
 
         except Exception as exc:
             try:
-                conn.execute("ROLLBACK")
+                conn.rollback()
             except Exception:
                 pass
             fail_ingestion_run(conn, run_id, str(exc))

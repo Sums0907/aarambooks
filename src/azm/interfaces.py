@@ -22,6 +22,13 @@ class AzmProvider(Protocol):
         Retrieve a specific concept definition by its unique identifier.
         """
         ...
+        
+    def resolve_concepts_by_alias(self, alias: str) -> List[SemanticConcept]:
+        """
+        Exact alias resolution across all active namespaces.
+        Returns all active concepts that declare this exact alias.
+        """
+        ...
     
     def get_namespace_schema(self, namespace: str) -> dict:
         """

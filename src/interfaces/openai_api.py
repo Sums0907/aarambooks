@@ -98,12 +98,15 @@ async def classify_query_intent(gateway, user_query: str) -> dict:
     
     # 1. Instant deterministic keyword check (0.01ms)
     inventory_keywords = ["sku", "stock", "inventory", "ledger", "balance", "warehouse", "bin", "batch", "quantity", "on-hand", "jobwork"]
+    catalog_keywords = ["catalog", "variant", "product family", "shopdeck csv", "shopdeck publication", "shopdeck"]
     shopdeck_keywords = ["order", "shipping", "label", "revenue", "tax", "rto", "challan"]
     ndr_keywords = ["ndr", "delivery exception", "customer not available", "awb", "fake attempt", "delivery status", "failed delivery", "reschedule delivery", "reattempt"]
     
     domain = None
     if any(kw in lower_q for kw in inventory_keywords):
         domain = "inventory"
+    elif any(kw in lower_q for kw in catalog_keywords):
+        domain = "catalog"
     elif any(kw in lower_q for kw in shopdeck_keywords):
         domain = "shopdeck"
     elif any(kw in lower_q for kw in ndr_keywords):
@@ -126,7 +129,7 @@ async def classify_query_intent(gateway, user_query: str) -> dict:
     # 2. LLM Fallback for ambiguous queries
     system_prompt = """You are the Rabta Domain Router for AaramBooks.
 Determine whether the user query is about AaramBooks business operations or general knowledge.
-If business, specify the domain: 'inventory', 'shopdeck', 'ndr', or 'customer_query'.
+If business, specify the domain: 'inventory', 'catalog', 'shopdeck', 'ndr', or 'customer_query'.
 Respond strictly with JSON: {"category": "AZM", "domain": "inventory"} or {"category": "AALAM"}"""
     try:
         req = GatewayGenerationRequest(
@@ -246,6 +249,15 @@ async def create_chat_completion(
     # Extract the latest user query
     user_query = extract_text_content(payload.messages[-1].content)
     
+    # 0. Deterministic Slash Commands
+    slash_domain = None
+    lower_q = user_query.strip().lower()
+    for prefix, domain in [("/inventory", "inventory"), ("/catalog", "catalog"), ("/ndr", "ndr"), ("/shopdeck", "shopdeck")]:
+        if lower_q.startswith(prefix):
+            slash_domain = domain
+            user_query = user_query[len(prefix):].strip()
+            break
+    
     # Extract auth token from request header
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
@@ -262,9 +274,16 @@ async def create_chat_completion(
     gateway = getattr(request.app.state, "gateway", None)
     
     # Classify whether query belongs to [Azm] (Aaram ERP) or [Aalam] (General Knowledge)
-    route_info = {"category": "AZM", "id_urn": "urn:aarambooks:intelligence:inventory", "cem_urn": "urn:aarambooks:cem:inventory"}
-    if gateway:
+    if slash_domain:
+        route_info = {
+            "category": "AZM",
+            "id_urn": f"urn:aarambooks:intelligence:{slash_domain}",
+            "cem_urn": f"urn:aarambooks:cem:{slash_domain}"
+        }
+    elif gateway:
         route_info = await classify_query_intent(gateway, user_query)
+    else:
+        route_info = {"category": "AZM", "id_urn": "urn:aarambooks:intelligence:inventory", "cem_urn": "urn:aarambooks:cem:inventory"}
         
     category = route_info.get("category", "AALAM")
     id_urn = route_info.get("id_urn", "urn:aarambooks:intelligence:inventory")
@@ -279,8 +298,21 @@ async def create_chat_completion(
                 cem_urn=cem_urn,
                 auth_context=user_id
             )
-            cleaned_resp = clean_agent_tag(str(raw_response))
+            if hasattr(raw_response, "message"):
+                cleaned_resp = clean_agent_tag(str(raw_response.message))
+            else:
+                cleaned_resp = clean_agent_tag(str(raw_response))
+                
             response_text = f"🔸 ᴀᴢᴍ ┃ {cleaned_resp}"
+            
+            # Check for artifact directives and embed the link natively
+            if hasattr(raw_response, "render_directives") and raw_response.render_directives:
+                url = raw_response.render_directives.get("artifact_download_url")
+                if url:
+                    response_text += f"\n\n[📥 Download ShopDeck CSV]({url})"
+                    
+                # action_json remains in render_directives for internal API contracts,
+                # but we DO NOT expose it raw in the natural-language response.
         except Exception as e:
             import traceback
             traceback.print_exc()

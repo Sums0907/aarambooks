@@ -31,7 +31,7 @@ jobs:
         echo "SHOPDECK_MCP_URL=http://dummy:8000" >> .env
         echo "SHOPDECK_MCP_TOKEN=dummy" >> .env
         echo "OPENAI_API_KEY=dummy" >> .env
-        pip install pytest pytest-asyncio httpx
+        pip install pytest pytest-asyncio httpx psycopg2-binary
         PYTHONPATH=.:business_systems/shopdeck/backend pytest -v
     - name: Build Production Image
       run: |

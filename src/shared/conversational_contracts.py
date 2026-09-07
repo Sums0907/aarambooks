@@ -126,6 +126,12 @@ class NormalizedParameter(BaseModel):
             
         return self
 
+class MultimodalQuery(BaseModel):
+    text: str
+    image_uris: Optional[List[str]] = Field(default_factory=list)
+    video_uris: Optional[List[str]] = Field(default_factory=list)
+    context_metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+
 class ConversationalUnderstanding(BaseModel):
     understanding_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     original_query: str
@@ -147,6 +153,8 @@ class ConversationalResponseType(str, Enum):
     CLARIFICATION_REQUIRED = "CLARIFICATION_REQUIRED"
     EXECUTION_LIMITATION = "EXECUTION_LIMITATION"
     SYSTEM_FAILURE = "SYSTEM_FAILURE"
+    CONFIRMATION_REQUEST = "CONFIRMATION_REQUEST"
+
 
 class ConversationalResponse(BaseModel):
     response_type: ConversationalResponseType

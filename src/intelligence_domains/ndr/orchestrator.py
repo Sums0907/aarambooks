@@ -1,6 +1,7 @@
 import json
 import uuid
 import re
+import logging
 from datetime import datetime, UTC
 from typing import Optional, Tuple, List, Dict, Any
 
@@ -9,6 +10,14 @@ from src.shared.cognitive_planning_contracts import (
     EvidenceItem,
     ProvenanceMetadata
 )
+from src.shared.evidence_request_contracts import (
+    AbstractEvidenceRequest,
+    BusinessEvidenceResponse,
+    BusinessRealityStatus,
+    ExecutionLimitation
+)
+from src.shared.requirement_classification_contracts import ClassifiedRequirement
+from src.shared.memory_contracts import ConversationTurn
 from src.shared.conversational_contracts import (
     ConversationalUnderstanding,
     ConversationalIntent,
@@ -16,13 +25,6 @@ from src.shared.conversational_contracts import (
     InformationSource,
     ConversationalResponse,
     ConversationalResponseType
-)
-from src.shared.memory_contracts import ConversationTurn
-from src.shared.evidence_request_contracts import (
-    AbstractEvidenceRequest,
-    BusinessEvidenceResponse,
-    BusinessRealityStatus,
-    ExecutionLimitation
 )
 from src.brain_core.gateway.interfaces import (
     ModelGatewayProvider,
@@ -54,6 +56,14 @@ from src.intelligence_domains.ndr.knowledge import (
     NDROutcomeEvaluator
 )
 
+logger = logging.getLogger(__name__)
+
+# ── Statuses that indicate the NDR is already closed — no action needed ───────
+_CLOSED_NDR_STATUSES = {
+    "delivered", "rto_initiated", "rto_delivered", "cancelled",
+    "returned", "closed", "resolved", "lost", "expired"
+}
+
 class NDRIntelligenceOrchestrator:
     """
     NDR Resolution Intelligence Domain Orchestrator.
@@ -65,13 +75,11 @@ class NDRIntelligenceOrchestrator:
         gateway: ModelGatewayProvider,
         knowledge: KnowledgeProvider,
         memory: MemoryProvider,
-        sql_engine: Any = None,
         azm_provider: Any = None
     ):
         self.gateway = gateway
         self.knowledge = knowledge
         self.memory = memory
-        self.sql_engine = sql_engine
         self.azm_provider = azm_provider
 
     # =========================================================================
@@ -79,20 +87,61 @@ class NDRIntelligenceOrchestrator:
     # =========================================================================
     async def extract_understanding(
         self,
-        query: str,
+        query: Any,
         history: Optional[List[ConversationTurn]] = None
     ) -> ConversationalUnderstanding:
-        query_lower = query.lower()
+        from src.shared.conversational_contracts import MultimodalQuery, SemanticAttribute, InformationSource
+        
+        if isinstance(query, MultimodalQuery):
+            query_text = query.text
+            context_metadata = query.context_metadata or {}
+        else:
+            query_text = str(query)
+            context_metadata = {}
+
+        query_lower = query_text.lower()
         entities: List[SemanticEntityReference] = []
+        attributes: List[SemanticAttribute] = []
 
         # Extract AWB number (e.g. AWB12345, 14371289123, etc.)
-        awb_match = re.search(r'\b(?:awb\s*[:#-]?\s*|\b)([A-Z0-9]{8,16})\b', query, re.IGNORECASE)
+        awb_match = re.search(r'\b(?:awb\s*[:#-]?\s*|\b)([A-Z0-9]{8,16})\b', query_text, re.IGNORECASE)
         if awb_match:
             entities.append(SemanticEntityReference(
                 original_expression=awb_match.group(1),
                 source=InformationSource.EXPLICIT,
                 inferred_type="ndr.entity.awb"
             ))
+            
+        # Extract preferred_date via Gateway if context is present
+        session_timestamp = context_metadata.get("session_timestamp")
+        if session_timestamp and self.gateway:
+            system_prompt = (
+                "You are an assistant. Extract any customer-requested delivery reattempt date from the conversation transcript. "
+                f"Resolve relative dates (like 'tomorrow') against this System Context Timestamp: {session_timestamp}. "
+                "Return ONLY a JSON object: {\"preferred_date\": \"YYYY-MM-DD\"} or {\"preferred_date\": null}."
+            )
+            try:
+                req = GatewayGenerationRequest(
+                    messages=[
+                        GatewayMessage(role="system", content=system_prompt),
+                        GatewayMessage(role="user", content=query_text)
+                    ],
+                    model="local-qwen"
+                )
+                resp = await self.gateway.generate(req)
+                content = resp.content
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0]
+                parsed = json.loads(content)
+                pref_date = parsed.get("preferred_date")
+                if pref_date:
+                    attributes.append(SemanticAttribute(
+                        attribute_name="customer.attribute.preferred_date",
+                        original_expression=pref_date,
+                        source=InformationSource.INFERRED
+                    ))
+            except Exception as e:
+                logger.error(f"Date extraction failed: {e}")
 
         # Classify intent
         if any(w in query_lower for w in ["reschedule", "retry", "reattempt", "change date", "dispute", "update address"]):
@@ -103,65 +152,11 @@ class NDRIntelligenceOrchestrator:
             intent = ConversationalIntent.RETRIEVE
 
         return ConversationalUnderstanding(
-            original_query=query,
+            original_query=query_text,
             intent=intent,
-            entities=entities
+            entities=entities,
+            attributes=attributes
         )
-
-    # =========================================================================
-    # 2. Rabta R-4/R-5: Dynamic Read Substrate (Text-to-SQL Execution)
-    # =========================================================================
-    async def execute_read_query(self, abstract_request: AbstractEvidenceRequest) -> BusinessEvidenceResponse:
-        query = abstract_request.classified_requirement.understanding.original_query
-        try:
-            if self.azm_provider:
-                schemas = self.azm_provider.get_namespace_schema("ndr")
-            else:
-                schemas = {
-                    "vw_shopdeck_shipment_ndr_reports": {
-                        "columns": {
-                            "awb_no": "STRING",
-                            "order_status": "STRING",
-                            "courier_partner": "STRING",
-                            "payment_mode": "STRING",
-                            "latest_ndr_reason": "STRING",
-                            "ndr_count": "INTEGER"
-                        }
-                    }
-                }
-
-            if self.sql_engine:
-                sql_query = await self.sql_engine.generate_sql(query, schemas, "PostgreSQL")
-                raw_data = [{"query_executed": sql_query, "status": "simulated_read"}]
-            else:
-                raw_data = [{"error": "SQL Engine not configured"}]
-
-            evidence_package = EvidencePackage(
-                package_id=str(uuid.uuid4()),
-                plan_id=str(uuid.uuid4()),
-                sufficiency_assessment="SUFFICIENT",
-                evidence_items=[
-                    EvidenceItem(
-                        item_id=str(uuid.uuid4()),
-                        semantic_identity="ndr.sql_result",
-                        data_payload={"data": raw_data},
-                        provenance=ProvenanceMetadata(
-                            source_system="urn:aarambooks:system:sql_engine",
-                            retrieval_timestamp=datetime.now(UTC)
-                        ),
-                        confidence_quality="HIGH"
-                    )
-                ]
-            )
-            return BusinessEvidenceResponse(
-                status=BusinessRealityStatus.EVIDENCE_AVAILABLE,
-                evidence_data={"data": raw_data, "package_id": str(uuid.uuid4())}
-            )
-        except Exception as e:
-            return BusinessEvidenceResponse(
-                status=BusinessRealityStatus.EXECUTION_LIMITATION,
-                execution_limitations=[ExecutionLimitation(missing_parameter="sql", reason=str(e))]
-            )
 
     # =========================================================================
     # 3. Rabta R-8: Conversational Interpretation & Response Generation
@@ -191,52 +186,74 @@ class NDRIntelligenceOrchestrator:
         self,
         trigger_evidence: EvidencePackage
     ) -> Tuple[DecisionRecommendation, Optional[ActionRequest], Optional[str]]:
+
+        # ── Step 0 & 1: Extract Semantic NDR Context Across All Evidence ───────
+        # Aggregate semantic evidence across all items sequentially.
+        payload = {}
+        for item in trigger_evidence.evidence_items:
+            # Overwrite earlier evidence with later evidence (assuming chronological order)
+            if item.data_payload:
+                payload.update(item.data_payload)
         
-        # Step 1: Extract and assemble context
-        item = trigger_evidence.evidence_items[0] if trigger_evidence.evidence_items else None
-        payload = item.data_payload if item else {}
+        # Determine Canonical Shipment Identity
+        awb_no = payload.get("ndr.entity.awb") or "UNKNOWN_AWB"
 
-        shipment_data = payload.get("shipment_context", {})
-        customer_data = payload.get("customer_context", {})
-        order_data = payload.get("order_context", {})
+        if awb_no == "UNKNOWN_AWB":
+            logger.warning("NDR event received with no canonical AWB identity. Skipping.")
+            return self._noop_decision("No AWB provided"), None, None
+            
+        ndr_status = (payload.get("ndr.vocabulary.ndr_status") or payload.get("shopdeck.metric.ndr_status") or "unknown").lower().strip()
+        order_status = (payload.get("shopdeck.metric.order_status") or "unknown").lower().strip()
 
-        awb_no = shipment_data.get("shipment_id") or shipment_data.get("awb_no", "UNKNOWN_AWB")
-        courier_partner = shipment_data.get("courier_partner", "Delhivery")
-        attempt_count = int(shipment_data.get("attempt_count", 1))
-        latest_reason = shipment_data.get("latest_ndr_reason") or payload.get("failure_description", "Customer unavailable")
-        payment_mode = order_data.get("payment_mode", "cod") if order_data else shipment_data.get("payment_mode", "cod")
-        order_value = float(order_data.get("order_value", 1299.0)) if order_data else 1299.0
+        if ndr_status in _CLOSED_NDR_STATUSES or order_status in _CLOSED_NDR_STATUSES:
+            logger.info(f"[NDR-ID] AWB {awb_no}: Skipping — NDR is already closed (ndr_status={ndr_status}, order_status={order_status})")
+            return self._noop_decision(f"NDR already closed: {ndr_status or order_status}"), None, None
+
+        courier_partner = payload.get("ndr.entity.courier_partner", "Unknown")
+        attempt_count = int(payload.get("shopdeck.metric.ndr_count") or 1)
+        latest_reason = payload.get("shopdeck.event.delivery_exception.reason") or "Customer unavailable"
+        payment_mode = payload.get("shopdeck.entity.payment.mode", "cod")
+        customer_name = payload.get("ndr.entity.customer")
+        customer_id = payload.get("ndr.entity.customer_id") # Note: assuming customer id if mapped
+        order_value = float(payload.get("shopdeck.entity.order.gross_value") or 0.0)
 
         context = NDRContext(
             awb_no=awb_no,
             courier_partner=courier_partner,
-            order_id=order_data.get("order_id") if order_data else None,
-            customer_id=customer_data.get("customer_id"),
-            customer_name=customer_data.get("name"),
-            customer_phone=customer_data.get("phone"),
+            order_id=payload.get("ndr.entity.order_id"),
+            customer_id=customer_id,
+            customer_name=customer_name,
+            customer_phone=payload.get("customer.attribute.phone"), # Keeping derived intent/sentiment as they are
             payment_mode=payment_mode,
             order_value=order_value,
             attempt_count=attempt_count,
             latest_ndr_reason=latest_reason
         )
 
-        # Step 2: Failure Diagnosis
-        diagnosis = NDRDiagnosticEngine.diagnose_failure(latest_reason, courier_partner, attempt_count)
-
-        # Step 3: Parse customer state/sentiment if available
-        customer_state = CustomerState(
-            intent=payload.get("customer_intent", "PENDING_CONTACT"),
-            sentiment=payload.get("customer_sentiment", "NEUTRAL"),
-            preferred_reattempt_date=payload.get("preferred_date")
+        logger.info(
+            f"[NDR-ID] AWB {awb_no}: ACTIVE NDR — reason='{latest_reason}', "
+            f"attempts={attempt_count}, payment={payment_mode}, courier={courier_partner}"
         )
 
-        # Step 4: Priority & Risk Evaluation (Strict separation of Operational Risk, Commercial Priority, CX Risk)
+        # ── Step 4: Failure Diagnosis ─────────────────────────────────────────
+        diagnosis = NDRDiagnosticEngine.diagnose_failure(latest_reason, courier_partner, attempt_count)
+        logger.info(f"[NDR-ID] AWB {awb_no}: Diagnosed as {diagnosis.category.value} (confidence={diagnosis.confidence})")
+
+        # ── Step 5: Parse customer state / sentiment if available ─────────────
+        customer_state = CustomerState(
+            intent=payload.get("customer.state.intent", "PENDING_CONTACT"),
+            sentiment=payload.get("customer.state.sentiment", "NEUTRAL"),
+            preferred_reattempt_date=payload.get("customer.attribute.preferred_date")
+        )
+
+        # ── Step 6: Priority & Risk Evaluation ───────────────────────────────
         risk = NDRPriorityRiskEngine.evaluate_priority_and_risk(context, diagnosis, customer_state)
 
-        # Step 5: Recovery Strategy Determination (First-class Strategy abstraction)
+        # ── Step 7: Recovery Strategy Determination ───────────────────────────
         strategy, recommendation = NDRStrategyEngine.determine_strategy(context, diagnosis, risk, customer_state)
+        logger.info(f"[NDR-ID] AWB {awb_no}: Strategy={strategy.strategy_name} | Action={recommendation.action_type}")
 
-        # Step 6: Formulate Governed Decision Recommendation
+        # ── Step 8: Formulate Governed Decision Recommendation ────────────────
         decision = DecisionRecommendation(
             recommended_alternative_id=strategy.strategy_type.value,
             alternatives_considered=[
@@ -248,21 +265,41 @@ class NDRIntelligenceOrchestrator:
                     expected_outcomes=["delivery_recovery", "rto_avoidance"]
                 )
             ],
-            justification=f"[{strategy.strategy_name}] {strategy.rationale} (Operational Risk: {risk.operational_risk_score}, Commercial Priority: {risk.commercial_priority_score})"
+            justification=(
+                f"[{strategy.strategy_name}] {strategy.rationale} "
+                f"(Operational Risk: {risk.operational_risk_score}, "
+                f"Commercial Priority: {risk.commercial_priority_score})"
+            )
         )
 
-        # Step 7: Formulate Governed Action Request for Business System Execution
+        # ── Step 9: Formulate Governed Action Request ─────────────────────────
+        from src.brain_core.action_engine.contracts import ConversationalDirective
+        
+        directive = ConversationalDirective(
+            objective=strategy.target_objective,
+            context_summary=strategy.rationale,
+            allowed_actions=[recommendation.action_type],
+            constraints=["Do not explicitly name the courier partner in conversation", "Acknowledge the customer's intent clearly"]
+        )
+
         action = ActionRequest(
+            action_request_id=f"act_{uuid.uuid4().hex[:8]}",
             category=recommendation.action_category,
             reasoning=recommendation.justification,
-            parameters=recommendation.parameters
+            parameters=recommendation.parameters,
+            execution_intent=recommendation.execution_intent,
+            directive=directive
         )
 
-        # Step 8: Persist Case Evidence to Domain Memory
+        # ── Step 10: Persist Case Evidence to Domain Memory ──────────────────
         session_id = f"ndr_shipment_{awb_no}"
         await self.memory.write_memory(
             MemoryEntry(
-                content=f"NDR Triage Formulated: Strategy={strategy.strategy_type.value}, Action={recommendation.action_type}, Risk={risk.operational_risk_score}, Priority={risk.commercial_priority_score}",
+                content=(
+                    f"NDR Triage Formulated: Strategy={strategy.strategy_type.value}, "
+                    f"Action={recommendation.action_type}, Risk={risk.operational_risk_score}, "
+                    f"Priority={risk.commercial_priority_score}"
+                ),
                 metadata={
                     "awb_no": awb_no,
                     "strategy": strategy.strategy_type.value,
@@ -276,6 +313,14 @@ class NDRIntelligenceOrchestrator:
         )
 
         return decision, action, recommendation.customer_message
+
+    def _noop_decision(self, reason: str) -> DecisionRecommendation:
+        """Returns a no-op decision for closed/ineligible NDRs."""
+        return DecisionRecommendation(
+            recommended_alternative_id="NO_ACTION",
+            alternatives_considered=[],
+            justification=reason
+        )
 
     # =========================================================================
     # 5. Outcome Evaluation & Learning Evidence Loop

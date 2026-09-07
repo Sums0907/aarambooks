@@ -62,3 +62,21 @@ class BusinessEvidenceResponse(BaseModel):
     resolved_candidates: Dict[str, List[CandidateEntity]] = {}
     capabilities_discovered: List[str] = []
     execution_limitations: List[ExecutionLimitation] = []
+
+class BusinessStateVerificationRequest(BaseModel):
+    """
+    Read-only verification request allowing an Intelligence Domain to deterministically
+    check Business System state without mutation or database access.
+    """
+    domain_urn: str
+    verification_target: str # e.g. 'product_code', 'family_existence', 'sku_identity'
+    context_payload: Dict[str, Any]
+
+class BusinessStateVerificationResponse(BaseModel):
+    """
+    Authoritative read-only response from the CEM.
+    """
+    is_verified: bool
+    status: BusinessRealityStatus
+    evidence_data: Optional[Dict[str, Any]] = None
+    execution_limitations: List[ExecutionLimitation] = []

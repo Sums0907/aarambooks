@@ -68,15 +68,17 @@ class InventoryCemAdapter(ContextExecutionAdapter):
 
         understanding = request.classified_requirement.understanding
         sku_id = None
+        product_name = None
         for entity in (understanding.entities or []):
             if entity.inferred_type in ("sku_id", "item_code"):
                 sku_id = entity.original_expression
-                break
+            elif entity.inferred_type == "product_name":
+                product_name = entity.original_expression
 
-        if not sku_id:
+        if not sku_id and not product_name:
             return BusinessEvidenceResponse(
                 status=BusinessRealityStatus.EXECUTION_LIMITATION,
-                execution_limitations=[{"missing_parameter": "sku_id", "reason": "Missing sku_id / item_code in SEARCH request"}]
+                execution_limitations=[{"missing_parameter": "sku_id", "reason": "Missing sku_id / product_name in SEARCH request"}]
             )
 
         # Acquire M2M token from the Aaram Identity service
@@ -103,34 +105,25 @@ class InventoryCemAdapter(ContextExecutionAdapter):
         headers = {"Authorization": f"Bearer {token}"}
 
         try:
+            import urllib.parse
             async with httpx.AsyncClient(timeout=8.0) as client:
-                # Primary: look up by item_code (e.g. '125BS')
-                resp = await client.get(f"{base}/api/v1/masters/skus/by-item-code/{sku_id}", headers=headers)
+                resp = None
+                if sku_id:
+                    # Primary: look up by item_code (e.g. '125BS')
+                    resp = await client.get(f"{base}/api/v1/masters/skus/by-item-code/{urllib.parse.quote(sku_id)}", headers=headers)
+                    if resp.status_code == 404:
+                        # Secondary: try shopdeck_sku_id / Product Code
+                        resp = await client.get(f"{base}/api/v1/masters/skus/by-shopdeck-sku-id/{urllib.parse.quote(sku_id)}", headers=headers)
+                elif product_name:
+                    resp = await client.get(f"{base}/api/v1/masters/skus/by-product-name/{urllib.parse.quote(product_name)}", headers=headers)
 
-                if resp.status_code == 404:
-                    # Secondary: try shopdeck_sku_id / Product Code (e.g. 'BLUSHBLOOM-FRLK-KDB-5PC')
-                    resp = await client.get(f"{base}/api/v1/masters/skus/by-shopdeck-sku-id/{sku_id}", headers=headers)
-
-                if resp.status_code == 200:
+                if resp and resp.status_code == 200:
                     payload = resp.json().get("data", {})
                     product = payload.get("product") or {}
 
-                    # Build a rich description from available structured attributes
-                    desc_parts = []
-                    if payload.get("material"):
-                        desc_parts.append(payload["material"])
-                    if payload.get("color"):
-                        desc_parts.append(payload["color"])
-                    if payload.get("size"):
-                        desc_parts.append(f"Size: {payload['size']}")
-                    if payload.get("thread_count"):
-                        desc_parts.append(f"Thread Count: {payload['thread_count']}")
-                    if payload.get("pattern"):
-                        desc_parts.append(payload["pattern"])
-                    description = ", ".join(desc_parts) if desc_parts else None
-
                     pricing = payload.get("pricing") or {}
                     images = payload.get("images") or []
+                    attributes = payload.get("attribute_values") or {}
 
                     return BusinessEvidenceResponse(
                         status=BusinessRealityStatus.EVIDENCE_AVAILABLE,
@@ -139,13 +132,17 @@ class InventoryCemAdapter(ContextExecutionAdapter):
                             "sku_uuid": str(payload.get("id")),
                             "product_name": product.get("product_name"),
                             "product_code": product.get("product_code"),
-                            "description": description,
+                            "description": product.get("description"),
                             "size": payload.get("size"),
                             "color": payload.get("color"),
                             "material": payload.get("material"),
                             "selling_price": pricing.get("selling_price"),
                             "mrp": pricing.get("mrp"),
                             "image_url": images[0]["image_url"] if images else None,
+                            "return_exchange_condition": attributes.get("Return/Exchange Condition"),
+                            "attr_style": attributes.get("Style"),
+                            "attr_pattern": attributes.get("Pattern") or payload.get("pattern"),
+                            "attr_package_contents": attributes.get("Package Contents")
                         }
                     )
                 elif resp.status_code == 404:

@@ -186,7 +186,25 @@ def insert_concept(
     capability_urn: Optional[str] = None,
     capability_constraints: Optional[List[str]] = None,
 ) -> str:
-    """Insert one concept row. Returns its AZM UUID."""
+    """Insert or update one concept row. Returns its AZM UUID."""
+    now = utcnow()
+    cap_constraints_str = json.dumps(capability_constraints) if capability_constraints else None
+    
+    cursor = conn.execute("SELECT id FROM azm_concepts WHERE semantic_key = ?", (semantic_key,))
+    row = cursor.fetchone()
+    if row:
+        concept_id = row["id"]
+        conn.execute(
+            """
+            UPDATE azm_concepts
+            SET concept_name = ?, concept_type = ?, definition = ?, knowledge_kind = ?,
+                capability_urn = ?, capability_constraints = ?, provenance_id = ?
+            WHERE id = ?
+            """,
+            (concept_name, concept_type, definition, knowledge_kind, capability_urn, cap_constraints_str, provenance_id, concept_id)
+        )
+        return concept_id
+        
     concept_id = new_uuid()
     conn.execute(
         """
@@ -200,9 +218,9 @@ def insert_concept(
             concept_id, semantic_key, namespace_id, concept_name, concept_type,
             definition, knowledge_kind,
             capability_urn,
-            json.dumps(capability_constraints) if capability_constraints else None,
+            cap_constraints_str,
             provenance_id,
-            utcnow(),
+            now,
         ),
     )
     return concept_id
@@ -214,13 +232,15 @@ def insert_aliases(
 ) -> None:
     now = utcnow()
     for alias in aliases:
-        conn.execute(
-            """
-            INSERT INTO azm_aliases (id, concept_id, alias, lifecycle, created_at)
-            VALUES (?, ?, ?, 'ACTIVE', ?)
-            """,
-            (new_uuid(), concept_id, alias, now),
-        )
+        cursor = conn.execute("SELECT id FROM azm_aliases WHERE concept_id = ? AND alias = ?", (concept_id, alias))
+        if not cursor.fetchone():
+            conn.execute(
+                """
+                INSERT INTO azm_aliases (id, concept_id, alias, lifecycle, created_at)
+                VALUES (?, ?, ?, 'ACTIVE', ?)
+                """,
+                (new_uuid(), concept_id, alias, now),
+            )
 
 
 def insert_relationship(
@@ -231,6 +251,20 @@ def insert_relationship(
     knowledge_kind: str,
     provenance_id: str,
 ) -> str:
+    now = utcnow()
+    cursor = conn.execute(
+        "SELECT id FROM azm_relationships WHERE source_concept_id = ? AND target_concept_id = ? AND relationship_type = ?",
+        (source_concept_id, target_concept_id, relationship_type)
+    )
+    row = cursor.fetchone()
+    if row:
+        rel_id = row["id"]
+        conn.execute(
+            "UPDATE azm_relationships SET knowledge_kind = ?, provenance_id = ? WHERE id = ?",
+            (knowledge_kind, provenance_id, rel_id)
+        )
+        return rel_id
+        
     rel_id = new_uuid()
     conn.execute(
         """
@@ -240,7 +274,7 @@ def insert_relationship(
         VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?)
         """,
         (rel_id, source_concept_id, target_concept_id, relationship_type,
-         knowledge_kind, provenance_id, utcnow()),
+         knowledge_kind, provenance_id, now),
     )
     return rel_id
 
@@ -253,6 +287,20 @@ def insert_schematic_ref(
     provenance_id: str,
     description: Optional[str] = None,
 ) -> str:
+    now = utcnow()
+    cursor = conn.execute(
+        "SELECT id FROM azm_schematic_refs WHERE namespace_id = ? AND ref_name = ? AND version = 1",
+        (namespace_id, ref_name)
+    )
+    row = cursor.fetchone()
+    if row:
+        ref_id = row["id"]
+        conn.execute(
+            "UPDATE azm_schematic_refs SET surface_type = ?, description = ?, provenance_id = ? WHERE id = ?",
+            (surface_type, description, provenance_id, ref_id)
+        )
+        return ref_id
+        
     ref_id = new_uuid()
     conn.execute(
         """
@@ -261,7 +309,7 @@ def insert_schematic_ref(
              knowledge_kind, version, lifecycle, provenance_id, created_at)
         VALUES (?, ?, ?, ?, ?, 'SOURCE_DECLARED', 1, 'ACTIVE', ?, ?)
         """,
-        (ref_id, namespace_id, ref_name, surface_type, description, provenance_id, utcnow()),
+        (ref_id, namespace_id, ref_name, surface_type, description, provenance_id, now),
     )
     return ref_id
 
@@ -276,6 +324,24 @@ def insert_schematic_attr(
     is_derived: int = 0,
     is_channel_field: int = 0,
 ) -> str:
+    now = utcnow()
+    cursor = conn.execute(
+        "SELECT id FROM azm_schematic_attrs WHERE schematic_ref_id = ? AND field_name = ?",
+        (schematic_ref_id, field_name)
+    )
+    row = cursor.fetchone()
+    if row:
+        attr_id = row["id"]
+        conn.execute(
+            """
+            UPDATE azm_schematic_attrs
+            SET field_type = ?, description = ?, is_derived = ?, is_channel_field = ?, provenance_id = ?
+            WHERE id = ?
+            """,
+            (field_type, description, is_derived, is_channel_field, provenance_id, attr_id)
+        )
+        return attr_id
+        
     attr_id = new_uuid()
     conn.execute(
         """
@@ -286,7 +352,7 @@ def insert_schematic_attr(
         VALUES (?, ?, ?, ?, ?, ?, ?, 'SOURCE_DECLARED', 1, 'ACTIVE', ?, ?)
         """,
         (attr_id, schematic_ref_id, field_name, field_type, description,
-         is_derived, is_channel_field, provenance_id, utcnow()),
+         is_derived, is_channel_field, provenance_id, now),
     )
     return attr_id
 
@@ -299,6 +365,20 @@ def insert_attr_mapping(
     mapping_confidence: str = "EXPLICIT",
     knowledge_kind: str = "SOURCE_DECLARED",
 ) -> str:
+    now = utcnow()
+    cursor = conn.execute(
+        "SELECT id FROM azm_attr_mappings WHERE concept_id = ? AND schematic_attr_id = ?",
+        (concept_id, schematic_attr_id)
+    )
+    row = cursor.fetchone()
+    if row:
+        mapping_id = row["id"]
+        conn.execute(
+            "UPDATE azm_attr_mappings SET mapping_confidence = ?, knowledge_kind = ?, provenance_id = ? WHERE id = ?",
+            (mapping_confidence, knowledge_kind, provenance_id, mapping_id)
+        )
+        return mapping_id
+        
     mapping_id = new_uuid()
     conn.execute(
         """
@@ -308,7 +388,7 @@ def insert_attr_mapping(
         VALUES (?, ?, ?, ?, ?, 1, 'ACTIVE', ?, ?)
         """,
         (mapping_id, concept_id, schematic_attr_id, mapping_confidence,
-         knowledge_kind, provenance_id, utcnow()),
+         knowledge_kind, provenance_id, now),
     )
     return mapping_id
 
@@ -321,6 +401,20 @@ def insert_external_mapping(
     provenance_id: str,
     external_display_name: Optional[str] = None,
 ) -> str:
+    now = utcnow()
+    cursor = conn.execute(
+        "SELECT id FROM azm_external_mappings WHERE aaram_native_concept_id = ? AND external_system = ? AND external_key = ?",
+        (aaram_native_concept_id, external_system, external_key)
+    )
+    row = cursor.fetchone()
+    if row:
+        ext_id = row["id"]
+        conn.execute(
+            "UPDATE azm_external_mappings SET external_display_name = ?, provenance_id = ? WHERE id = ?",
+            (external_display_name, provenance_id, ext_id)
+        )
+        return ext_id
+        
     ext_id = new_uuid()
     conn.execute(
         """
@@ -331,6 +425,6 @@ def insert_external_mapping(
         VALUES (?, ?, ?, ?, ?, 'SOURCE_DECLARED', 'ACTIVE', ?, ?)
         """,
         (ext_id, aaram_native_concept_id, external_system, external_key,
-         external_display_name, provenance_id, utcnow()),
+         external_display_name, provenance_id, now),
     )
     return ext_id

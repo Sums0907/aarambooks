@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     # External Ecosystem
     identity_url: str = "https://api-identity.aarambooks.cloud"
     # ==============================================================================
-    # LEGACY COMPATIBILITY
     # These fields are required by surviving legacy Event Bus and NDR adapters.
     # They MUST NOT participate in Stage F ContextCapabilityGateway routing.
     # ==============================================================================
     inventory_url: str = "https://api-inventory.aarambooks.cloud"
+    shopdeck_url: str = "https://api-shopdeck.aarambooks.cloud"
     packing_url: str = "https://api-packing.aarambooks.cloud"
     shiprocket_token: str = ""
     shopdeck_token: str = ""
@@ -42,7 +42,9 @@ class Settings(BaseSettings):
     exotel_account_sid: str = ""
     exotel_caller_id: str = ""
     exotel_voicebot_flow_url: str = ""
+    exotel_webhook_base_url: str = ""
     aaram_exotel_webhook_secret: str = "default_unsafe_secret_replace_in_prod"
+    test_phone_override: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

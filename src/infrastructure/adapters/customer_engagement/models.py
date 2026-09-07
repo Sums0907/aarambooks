@@ -50,6 +50,8 @@ class CustomerEngagementRecord(BaseModel):
     ended_at: Optional[datetime] = None
     raw_observational_outcome: Optional[str] = None
     normalized_outcome: Optional[ObservationalOutcome] = None
+    call_context: Dict[str, Any] = Field(default_factory=dict)
+    ccc_snapshot: Optional[Dict[str, Any]] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 

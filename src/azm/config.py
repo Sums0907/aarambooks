@@ -1,5 +1,5 @@
 """
-AZM (Aaram Zameer) — Persistent Database Configuration
+AZM  — Persistent Database Configuration
 
 AZM_DATABASE_URL controls the database backend.
 Default: SQLite file in the project root (development).
@@ -10,7 +10,7 @@ import os
 # Database connection
 AZM_DATABASE_URL: str = os.environ.get(
     "AZM_DATABASE_URL",
-    "sqlite:///azm_knowledge.db"
+    "postgresql://postgres:postgres@localhost:5434/aarambooks_brain_core_dev"
 )
 
 # Source contract paths (relative to project root)

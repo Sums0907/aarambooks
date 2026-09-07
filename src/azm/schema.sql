@@ -1,5 +1,5 @@
 -- =============================================================================
--- AZM (Aaram Zameer) — Persistent Knowledge Database Schema
+-- AZM  — Persistent Knowledge Database Schema
 -- Version: 1.0
 -- =============================================================================
 -- Design principles:

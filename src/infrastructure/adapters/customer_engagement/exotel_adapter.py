@@ -2,7 +2,7 @@ import httpx
 import logging
 from typing import Dict, Any
 from src.shared.config import settings
-from src.intelligence_domains.ndr.contracts.action_request import ActionRequest
+from src.brain_core.action_engine.contracts import ActionRequest
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,14 @@ class ExotelVoiceBotAdapter:
         if not self.account_sid or not self.api_key or not self.flow_url:
             raise ValueError("Exotel credentials or flow URL not fully configured.")
 
-        customer_phone = action_request.context.get("customer_phone")
+        customer_phone = action_request.parameters.get("customer_phone")
+        
+        if getattr(settings, "test_phone_override", ""):
+            customer_phone = settings.test_phone_override
+            logger.info(f"TEST MODE: Overriding customer phone to {customer_phone}")
+            
         if not customer_phone:
-            raise ValueError("Customer phone number missing in context.")
+            raise ValueError("Customer phone number missing in parameters.")
 
         endpoint = f"{self.base_url}/Calls/connect.json"
         

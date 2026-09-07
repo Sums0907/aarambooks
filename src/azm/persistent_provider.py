@@ -112,6 +112,30 @@ class PersistentAzmProvider(AzmProvider):
         finally:
             conn.close()
 
+    def resolve_concepts_by_alias(self, alias: str) -> List[SemanticConcept]:
+        conn = get_connection(self.db_url)
+        try:
+            alias_lower = alias.lower()
+            sql = """
+            SELECT DISTINCT c.semantic_key
+            FROM azm_concepts c
+            JOIN azm_aliases a ON c.id = a.concept_id AND a.lifecycle = 'ACTIVE'
+            WHERE c.lifecycle = 'ACTIVE'
+              AND LOWER(a.alias) = ?
+            """
+            rows = conn.execute(sql, (alias_lower,)).fetchall()
+            
+            results = []
+            for row in rows:
+                results.append(self.get_concept_by_id(row["semantic_key"]))
+                
+            if not results and self.legacy_fallback:
+                return self.legacy_fallback.resolve_concepts_by_alias(alias)
+                
+            return results
+        finally:
+            conn.close()
+
     def get_namespace_schema(self, namespace: str) -> dict:
         conn = get_connection(self.db_url)
         try:
