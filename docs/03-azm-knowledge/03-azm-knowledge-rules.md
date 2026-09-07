@@ -1,7 +1,7 @@
 # Azm Knowledge Rules & Invariants
 
 **Document Reference:** `docs/03-azm-knowledge/03-azm-knowledge-rules.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

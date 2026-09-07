@@ -91,8 +91,10 @@ async def test_logical_e2e_ndr_update(mock_gateway, mock_knowledge, mock_memory)
     payload = {
         "event_type": "ndr_update",
         "content": {
-            "shipment_context": {"shipment_id": "S123", "awb_no": "A123", "status": "NDR", "courier": "DHL"},
-            "customer_context": {"customer_id": "C123"}
+            "ndr.entity.awb": "A123",
+            "ndr.vocabulary.ndr_status": "NDR",
+            "shopdeck.event.delivery_exception.reason": "Customer unavailable",
+            "ndr.entity.courier_partner": "DHL"
         }
     }
     

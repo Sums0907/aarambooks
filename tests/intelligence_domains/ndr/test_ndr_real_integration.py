@@ -26,13 +26,6 @@ def mock_memory():
     return memory
 
 @pytest.fixture
-def mock_sql_engine():
-    engine = AsyncMock()
-    # Simulate a SQL query that retrieves fake attempt from ShopDeck
-    engine.generate_sql.return_value = "SELECT * FROM vw_shopdeck_shipment_ndr_reports WHERE awb_no = 'AWB_TEST_REAL_1'"
-    return engine
-
-@pytest.fixture
 def mock_azm_provider():
     azm = MagicMock()
     # Simulate the real schema
@@ -49,7 +42,7 @@ def mock_azm_provider():
     return azm
 
 @pytest.mark.asyncio
-async def test_real_ndr_query_path(mock_gateway, mock_memory, mock_sql_engine, mock_azm_provider):
+async def test_real_ndr_query_path(mock_gateway, mock_memory, mock_azm_provider):
     """
     Test Phase 3: Trace a conversational NDR request through the real Rabta architecture 
     to the NDR-ID read substrate mapping to the ShopDeck business truth.
@@ -58,16 +51,24 @@ async def test_real_ndr_query_path(mock_gateway, mock_memory, mock_sql_engine, m
         gateway=mock_gateway,
         knowledge=AsyncMock(),
         memory=mock_memory,
-        sql_engine=mock_sql_engine,
         azm_provider=mock_azm_provider
     )
     
     mock_id_resolver = MagicMock()
     mock_id_resolver.resolve.side_effect = lambda urn: ndr_orch if urn == "urn:aarambooks:intelligence:ndr" else None
 
+    from src.shared.evidence_request_contracts import BusinessEvidenceResponse, BusinessRealityStatus
+    mock_cem_adapter = AsyncMock()
+    mock_cem_adapter.execute_evidence_request.return_value = BusinessEvidenceResponse(
+        status=BusinessRealityStatus.EVIDENCE_AVAILABLE,
+        retrieved_evidence={"shipment_ndr_reports": [{"awb_no": "12345"}]}
+    )
+    mock_cem_resolver = MagicMock()
+    mock_cem_resolver.resolve.return_value = mock_cem_adapter
+
     rabta = RabtaOrchestrator(
         id_resolver=mock_id_resolver,
-        cem_resolver=MagicMock(),
+        cem_resolver=mock_cem_resolver,
         classifier=RequirementClassifier(mock_gateway),
         memory_provider=mock_memory
     )
@@ -163,7 +164,7 @@ async def test_outcome_path_and_business_value():
     assert outcome.was_customer_engaged is False
     assert outcome.was_delivery_recovered is False
     assert outcome.was_rto_avoided is False
-    assert outcome.freight_saved == 0.0
+    assert outcome.freight_saved is None
     
     # Scenario: Delivery recovered successfully
     signal_success = DownstreamOutcomeSignal(
@@ -178,4 +179,4 @@ async def test_outcome_path_and_business_value():
     assert outcome_success.was_delivery_recovered is True
     assert outcome_success.was_rto_avoided is True
     assert outcome_success.revenue_protected == 2000.0
-    assert outcome_success.freight_saved > 0.0
+    assert outcome_success.freight_saved is None

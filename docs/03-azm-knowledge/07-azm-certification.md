@@ -1,7 +1,7 @@
 # Azm Architecture Certification
 
 **Document Reference:** `docs/03-azm-knowledge/07-azm-certification.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

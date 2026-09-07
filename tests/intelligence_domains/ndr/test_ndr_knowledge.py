@@ -117,8 +117,8 @@ def test_candidate_strategy_patterns():
     diag3 = FailureDiagnosis(category=FailureCategory.BUYER_REMORSE_OR_REJECTION, root_cause_explanation="remorse")
     risk3 = NDRPriorityRiskEngine.evaluate_priority_and_risk(context, diag3)
     strat3, rec3 = NDRStrategyEngine.determine_strategy(context, diag3, risk3)
-    assert strat3.strategy_type == StrategyPatternType.BUYER_COMMITMENT_AND_PREPAYMENT
-    assert rec3.action_type == "offer_prepayment_incentive"
+    assert strat3.strategy_type == StrategyPatternType.BUYER_INTENT_CONFIRMATION
+    assert rec3.action_type == "confirm_intent_to_receive"
 
     # 4. Address Defect -> Address Enrichment
     diag4 = FailureDiagnosis(category=FailureCategory.ADDRESS_OR_LOCATION_DEFECT, root_cause_explanation="missing landmark")
@@ -160,7 +160,9 @@ def test_outcome_evaluator_distinctions():
     assert outcome_failed.was_action_executed is True
     assert outcome_failed.was_delivery_recovered is False
     assert outcome_failed.was_rto_avoided is False
-    assert outcome_failed.revenue_protected == 0.0
+    assert outcome_failed.revenue_protected is None
+    assert outcome_failed.freight_saved is None
+    assert outcome_failed.was_recommendation_accepted is None
 
     # Scenario B: Action executed, and parcel successfully delivered!
     signal_success = DownstreamOutcomeSignal(
@@ -182,4 +184,4 @@ def test_outcome_evaluator_distinctions():
     assert outcome_success.was_delivery_recovered is True
     assert outcome_success.was_rto_avoided is True
     assert outcome_success.revenue_protected == 2500.0
-    assert outcome_success.freight_saved == 120.0
+    assert outcome_success.freight_saved is None

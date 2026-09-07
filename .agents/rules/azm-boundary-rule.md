@@ -19,4 +19,6 @@ When building, refactoring, or modifying any **Intelligence Domain (ID)**, you *
 ## Your Obligation
 Every single time you work on an Intelligence Domain (e.g., Catalog ID, NDR ID, Inventory ID), you must first check if the necessary semantic concepts and Public Read Contract schemas exist in the `src/azm/namespaces/` directory. If they do not, you must build them in AZM, **not** in the ID. 
 
+**CRITICAL FEATURE (Cross-Domain Intelligence):** Intelligence Domains frequently require knowledge spanning multiple Business Systems. For example, NDR ID needs both Catalog and ShopDeck knowledge. **An ID MUST NEVER go directly to those Business Systems to reconstruct their meaning or schemas.** It must ALWAYS ask AZM, which holds the global semantic and schematic knowledge for the entire ecosystem.
+
 Azm means "resolve" or "determination". It is the emotional and architectural soul of the project's knowledge. Never bypass it.

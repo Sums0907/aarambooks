@@ -1,0 +1,3 @@
+normalization_id,brain_decision_id,awb_no,ndr_reason,diagnosis_category,risk_score,recommended_action,action_parameters,reasoning,manual_action_guidance,expected_business_benefit,action_taken,operator_notes
+norm_123,dec_456,AWB_TEST_1,Customer unavailable,NOT_AVAILABLE,NOT_AVAILABLE,seller_reattempt,"{""date"": ""tomorrow""}",High value order,Manually perform the recommended seller_reattempt action in the ShopDeck main ecosystem.,NOT_AVAILABLE,,
+norm_456,dec_789,AWB_TEST_2,Refused delivery,NOT_AVAILABLE,NOT_AVAILABLE,courier_dispute,"{""reason"": ""fake attempt""}",Repeated fake attempts,Manually perform the recommended courier_dispute action in the ShopDeck main ecosystem.,NOT_AVAILABLE,,

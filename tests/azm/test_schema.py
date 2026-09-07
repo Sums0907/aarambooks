@@ -22,12 +22,9 @@ def _mem_url():
     return "sqlite:///:memory:"
 
 
-def make_conn() -> sqlite3.Connection:
+def make_conn():
     """Create a fresh in-memory connection with schema applied."""
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys=ON;")
-    return conn
+    return get_connection("sqlite:///:memory:")
 
 
 # ── A. DB creation ─────────────────────────────────────────────────────────
@@ -96,8 +93,7 @@ def test_empty_db_has_no_knowledge_rows():
 # ── E. is_initialized() ────────────────────────────────────────────────────
 
 def test_is_initialized_returns_false_before_schema():
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn = get_connection("sqlite:///:memory:")
     assert not is_initialized(conn)
     conn.close()
 

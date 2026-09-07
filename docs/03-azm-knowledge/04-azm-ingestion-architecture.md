@@ -1,7 +1,7 @@
 # Azm Ingestion Architecture
 
 **Document Reference:** `docs/03-azm-knowledge/04-azm-ingestion-architecture.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

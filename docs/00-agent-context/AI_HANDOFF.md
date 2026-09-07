@@ -1,6 +1,6 @@
 # AI Handoff Document: AaramBooks Brain Core
 
-**Last Updated:** 2026-09-02
+**Last Updated:** 2026-09-02  
 **Updated By:** Antigravity (AG)
 
 ---
@@ -9,131 +9,149 @@
 
 ### 1.1 RABTA Brain Core — CERTIFIED & FROZEN
 
-All 11 RABTA phases are implemented, certified, and frozen:
-
-| Phase | Description | Status |
-|---|---|---|
-| R-2 | Context Extraction | ✅ Implemented |
-| R-3 | Requirement Classification | ✅ Implemented |
-| R-4 | Business Discovery (CEM) | ✅ Implemented |
-| R-5 | Entity Resolution (CEM) | ✅ Implemented |
-| R-6 | Orchestration / Refinement Loop | ✅ Implemented (max 2-pass bounded) |
-| R-7 | Business Execution (CEM) | ✅ Implemented |
-| R-8 | Conversational Interpretation | ✅ Implemented (deterministic, LLM-free) |
-| R-9 | Decision & Action Safety | ✅ Implemented |
-| R-10 | Memory Continuity | ✅ Implemented |
-| R-11 | Ecosystem Communication | ✅ Implemented |
+All 11 RABTA phases are implemented, certified, and frozen.
 
 ### 1.2 NDR Intelligence Domain — CERTIFIED
 
-NDR ID is fully implemented and certified including:
-- Resolution engine
-- Outcome evaluation & learning loop
-- Real integration validation (including `vw_shopdeck_shipment_ndr_reports` execution)
-- Boundary audit complete (see `execution-boundary-audit.md`)
+NDR ID is fully implemented and certified including resolution engine, outcome evaluation, learning loop, and real integration validation. Boundary audit complete (`src/intelligence_domains/ndr/execution-boundary-audit.md`).
 
-### 1.3 Catalog Intelligence Domain — SPECIFICATION COMPLETE, IMPLEMENTATION PENDING
+### 1.3 AZM Persistent Database — CERTIFIED & LIVE
 
-Catalog ID specification is fully documented (7-document suite) in `docs/03-intelligence-domains/catalog-intelligence/`. **No Catalog ID code has been implemented yet.**
+The AZM persistent database (`azm_knowledge.db`, SQLite) is fully implemented and certified:
+
+| Deliverable | File | Status |
+|---|---|---|
+| Physical DB schema | `src/azm/schema.sql` | ✅ Done |
+| Universal ingestion engine | `src/azm/ingestion/universal_ingester.py` | ✅ Done |
+| Generic contract parser | `src/azm/ingestion/contract_parser.py` | ✅ Done |
+| Persistent DB provider | `src/azm/persistent_provider.py` | ✅ Done |
+| Catalog semantic knowledge ingested | via `catalog-semantic-public-contract.md` | ✅ Done |
+| Catalog schematic knowledge ingested | via `catalog-schematic-public-contract.md` | ✅ Done |
+| AZM certification | `docs/03-azm-knowledge/07-azm-certification.md` | ✅ Certified |
+| Contract grammar | `docs/03-azm-knowledge/08-azm-contract-grammar.md` | ✅ Done |
+| Universal ingestion certification | `docs/03-azm-knowledge/09-azm-universal-contract-ingestion-certification.md` | ✅ Done |
+
+**Legacy Python namespaces** (`src/azm/namespaces/inventory.py`, `src/azm/namespaces/ndr.py`) remain as deprecated bootstrap. `shopdeck.py` has been deleted. The Inventory namespace must NOT be migrated until Inventory BS publishes formal public contracts.
+
+### 1.4 Phase 5B Architectural Boundaries — CERTIFIED
+
+Typed multimodal and CEM read/verify boundaries are certified:
+> `docs/03-intelligence-domains/architectural_boundary_certification_phase5b.md`
+
+Key deliverables:
+- `MultimodalQuery` contract — `src/shared/conversational_contracts.py`
+- `BusinessStateVerificationRequest/Response` — `src/shared/evidence_request_contracts.py`
+- `ContextExecutionResolver` — `src/shared/rabta_interfaces.py`
+
+### 1.5 Catalog Intelligence Domain — PHASE 5B IMPLEMENTED
+
+Phase 5B cognitive pipeline is fully implemented and all 23 tests pass:
+
+| Component | File | Status |
+|---|---|---|
+| `CatalogDraft` (46 typed `DraftField`s) | `src/intelligence_domains/catalog_intelligence/models.py` | ✅ Done |
+| `CatalogIntelligenceOrchestrator` | `src/intelligence_domains/catalog_intelligence/orchestrator.py` | ✅ Done |
+| Cognitive pipeline (SABAQ → AZM → Qwen → Firewall → CEM) | orchestrator.py | ✅ Done |
+| `CatalogCemAdapter` | `src/infrastructure/adapters/catalog_cem_adapter.py` | ✅ Done |
+| `PostgresSabaqProvider` | `src/infrastructure/adapters/postgres_sabaq.py` | ✅ Done |
+| All 23 cognitive/integration tests | `tests/intelligence_domains/catalog_intelligence/` | ✅ PASSING |
+
+### 1.6 Business-Value Certification — FAILED GATE (Active Design Work)
+
+The Phase 5B business-value certification FAILED the gate (only ~30% time reduction vs manual).  
+Root cause: the Provenance Firewall naively erases all Qwen-proposed operational fields, forcing operators to retype dimensions, weights, and pricing — even when valid SABAQ historical precedent exists.
+
+**Current state:** A revised Provenance Reuse Framework is in final design review. **No code changes are permitted until the framework design is approved.**
 
 ---
 
-## 2. CRITICAL ARCHITECTURAL INVARIANT — 4-Box Architecture
-
-The ecosystem is governed by a strict 4-box architecture. **This must never be collapsed:**
+## 2. CRITICAL ARCHITECTURAL INVARIANT — 4-Box Architecture (FROZEN)
 
 ```
-BUSINESS SYSTEM
-    │
-    │  Semantic Public Contract (what concepts mean)
-    │  Schematic Public Contract (how concepts are exposed)
-    ▼
-   AZM (Aaram Zameer)
-    │
-    │  Persistent semantic/schematic knowledge
-    ▼
- BRAIN CORE
-    │
-    │  Reasoning / Orchestration
-    ▼
-INTELLIGENCE DOMAIN
+SABAQ             = Intelligence Training & Prior Data (advisory only, never authority)
+AZM               = Semantic/Schematic Authority (from BS public contracts, not runtime)
+CATALOG BS        = Current Operational Truth (accessed via CEM boundary only)
+MEMORY PROVIDER   = Session/conversational state only
+QWEN              = Inference engine only, never authority, never trusted for provenance
+CATALOG ID        = Reasoning/Orchestration
+CEM               = Business System Read/Write Boundary (typed contracts only)
 ```
 
-### The Knowledge Flow Rule
-
-> **Brain Core NEVER reads Business System Public Contracts directly.**
-> Brain reads knowledge **exclusively through AZM**.
+**The Brain Core NEVER reads Business System contracts directly. All knowledge flows through AZM.**
 
 ---
 
-## 3. AZM — Architecture CERTIFIED (Final Boundary Certification: commit `7b32376`)
+## 3. Active Design Work: Provenance Firewall (Audit Mode — No Code Changes)
 
-**Current state of AZM:** `docs/03-azm-knowledge/` contains the complete 7-document architecture specification — fully certified after adversarial review.
+### Approved Principle
+> **SABAQ_REUSED must NEVER be granted because Qwen outputs that tag.**  
+> The application layer (Provenance Firewall) is the sole authority on provenance assignment.  
+> Qwen may only propose *candidate values* and *evidence references*.
 
-### Key AZM Principles (Certified Invariants)
+### Three Structural Corrections (Approved — Awaiting Final Design)
 
-- **AZM IS:** The persistent, ecosystem-wide semantic & schematic knowledge repository with its own independent identity, knowledge model, and persistent database.
-- **AZM IS NOT:** A contract repository, a BS mirror, a second Business System, a semantic authority, an operational data store, or a runtime reasoning engine.
-- **BS is the semantic authority.** Business Systems declare authoritative domain meaning through Semantic Public Contracts. AZM represents (but does not define or override) that declared knowledge.
-- **AZM is NOT Brain.** AZM performs limited, governed knowledge derivation at **ingestion time only**. Runtime reasoning belongs exclusively to Brain Core.
-- **Source material:** Exactly **TWO** Business System Public Contracts feed into AZM (Semantic + Schematic).
-- **Cross-BS purpose:** AZM's primary justification is representing relationships *across* Business Systems.
-- **Python namespaces (`src/azm/namespaces/`):** **DEPRECATED legacy bootstrap.** The Persistent AZM DB is the target.
+**Correction 1 — Scenario classification must be CEM-grounded, not Qwen-grounded:**
+Scenarios A/B/C/D (restoration / family variant / new SKU / new family) may ONLY be determined after a `BusinessStateVerificationRequest` resolves the candidate `product_code` against the current Catalog BS. Qwen's unverified product_code proposal must never drive scenario classification.
 
-| AZM Document | Description |
-|---|---|
-| `01-azm-architecture.md` | 4-box architecture, AZM identity, source authority vs knowledge representation |
-| `02-azm-knowledge-model.md` | Logical primitives: Concept, Relationship, SchematicRef, SchematicAttr, Provenance |
-| `03-azm-knowledge-rules.md` | Hard invariants — AZM not semantic authority, ingestion-time derivation only, no BS bypass |
-| `04-azm-ingestion-architecture.md` | Ingestion lifecycle, source-declared vs AZM-derived, versioning |
-| `05-azm-query-boundary.md` | AZM is NOT Brain, Brain→AZM boundary, Intelligence Domain prohibition |
-| `06-azm-persistence-model.md` | Persistence requirements, technology as future decision (not mandate) |
-| `07-azm-certification.md` | Full certification checklist including AZM-not-Brain and AZM-not-semantic-authority |
+**Correction 2 — Each reusable field needs its own explicit applicability rule:**  
+"Same family + same size" is not sufficient proof for packaging dimensions. Every candidate reusable field must have a deterministic applicability rule that includes: applicable scenarios, exact matching keys, AZM bounds check, absence of conflicting business configuration, and a defined fallback (`UNKNOWN_REQUIRES_USER`).
 
----
+**Correction 3 — Scenario A requires explicit historical identity:**  
+Visual or descriptive similarity does NOT establish that a SKU is an exact historical restoration. Scenario A requires: explicit historical SKU identity supplied by the user, OR deterministic identity match against authoritative records.
 
-## 4. Catalog Business System — PUBLIC CONTRACTS ESTABLISHED
+### SABAQ_REUSED Definition (Approved)
+> `SABAQ_REUSED` means: *"The application deterministically established that this exact historical value is applicable under an approved reuse rule."*  
+> It does NOT mean: *"Qwen found a similar historical product."*
 
-The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational system.
-
-### Catalog Public Contracts
-
-| Contract | Location |
-|---|---|
-| **Semantic Public Contract** | `business_systems/catalog/public-contracts/catalog-semantic-public-contract.md` |
-| **Schematic Public Contract** | `business_systems/catalog/public_views.sql` |
-
-### Critical Catalog Rules
-
-- Catalog BS owns **Aaram-native** Catalog semantics (`Product`, `SKU`).
-- **ShopDeck is an external commerce channel.** Its fields (`commerce_available_qty`, `customer_sku_short_id`) are channel-specific and must NOT redefine Aaram-native Catalog concepts.
-- The architecture must survive: *"ShopDeck disappears tomorrow."* Aaram Catalog semantics remain valid.
+### Dependency Order (Approved)
+```
+Qwen (propose candidate + evidence reference)
+  → CEM Verification (establish family relationship / scenario A/B/C/D)
+  → SABAQ (retrieve historical precedent for verified family)
+  → AZM (check bounds and categorical constraints)
+  → Provenance Firewall (deterministic promotion decision)
+```
 
 ---
 
-## 5. Open Gaps / Decision Required
+## 4. Field Safety Classification (Approved)
 
-| Gap | Location |
+| Field | Auto-Reuse Eligible? | Applicability Rule Summary |
+|---|---|---|
+| `packaging_length_cm` / `breadth` / `height` | Yes (Scenario B/C only) | Same `product_code` (CEM-verified) + same `size` + same `pack_configuration` + within AZM bounds |
+| `packaging_weight_kg` | Yes (Scenario B/C only) | Same rules as dims — independently verified, not inherited from dims match |
+| `mrp` | Conditionally (Scenario B/C only) | Same `product_code` (CEM-verified) + same `size` + AZM "Uniform Family Pricing" config active |
+| `selling_price` | Never | Volatile marketing/discount truth — always `UNKNOWN_REQUIRES_USER` |
+| `cost_price` | Never | Historical cost is not current operational cost — always `UNKNOWN_REQUIRES_USER` |
+| `product_code` | Pattern only | SABAQ informs generation pattern; final identity requires CEM verification |
+| `sku_id` | Pattern only | SABAQ informs generation pattern; final identity requires CEM verification |
+| Descriptive fields (`product_name`, `description`, etc.) | Yes (`AI_PROPOSED` accepted) | Subject to AZM category constraints; operator confirmation required |
+
+---
+
+## 5. Open Work (In Priority Order)
+
+| Item | Status |
 |---|---|
-| AZM physical DB implementation (tables, indexes) | `06-azm-persistence-model.md` |
-| AZM ingestion engine implementation | `04-azm-ingestion-architecture.md` |
-| Brain→AZM exact query API/protocol | `05-azm-query-boundary.md` |
-| Conflict resolution when two BS declarations differ on a shared concept | `04-azm-ingestion-architecture.md` |
-| Catalog ID implementation | `docs/03-intelligence-domains/catalog-intelligence/` |
-| Inventory BS legacy Python namespace (`src/azm/namespaces/inventory.py`) must be migrated to proper BS Public Contracts | `src/azm/` |
+| Final provenance reuse framework design (artifact panel) | ⏳ Awaiting user approval |
+| Implement `evaluate_provenance_promotion()` in orchestrator | 🔒 Blocked on approval |
+| Write provenance firewall unit tests | 🔒 Blocked on approval |
+| Run REAL 10-SKU reproducible benchmark (not simulated) | 🔒 Blocked on approval |
+| Inventory BS public contracts (for AZM migration of legacy namespace) | ❌ Not started |
 
 ---
 
 ## 6. Do NOT Do
 
-- **Do NOT modify Catalog BS** code, DDL, schema, service, or tests.
-- **Do NOT implement Catalog ID** without explicit instruction.
-- **Do NOT allow Brain Core to read BS Public Contracts directly** — all knowledge passes through AZM.
-- **Do NOT allow ShopDeck fields to become Aaram-native Catalog concepts.**
-- **Do NOT collapse the 4-box architecture** into fewer layers.
-- **Do NOT treat the `src/azm/namespaces/*.py` files as permanent architectural truth** — they are legacy bootstrap, deprecated once persistent DB is live.
-- **Do NOT make AZM perform runtime reasoning** — AZM ingests and stores; Brain reasons.
-- **Do NOT finalise the NDR AZM namespace in this window** — that is the NDR window's responsibility.
+- **Do NOT modify SABAQ, AZM, Rabta, CEM, or the four-box architecture** during the benchmark phase.
+- **Do NOT let Qwen self-certify provenance** — the Firewall is the sole provenance authority.
+- **Do NOT classify scenarios A/B/C/D from unverified Qwen output** — CEM verification is required first.
+- **Do NOT assume same family + same size proves packaging dimensions** — each field has its own rule.
+- **Do NOT automatically reuse historical pricing** — `cost_price` and `selling_price` are never auto-reusable.
+- **Do NOT proceed to NDR or Customer Query implementation** until Catalog Phase 5B passes the business-value gate.
+- **Do NOT collapse the 4-box architecture.**
+- **Do NOT allow Brain Core to read BS Public Contracts directly.**
+- **Do NOT treat the simulated 10-SKU benchmark as business-value evidence** — a real reproducible benchmark is required.
 
 ---
 
@@ -141,69 +159,12 @@ The Catalog BS (`business_systems/catalog/`) is a certified, frozen operational 
 
 | Artifact | Path |
 |---|---|
-| RABTA Brain Core Architecture | `docs/02-brain-core/` |
-| NDR Intelligence Domain | `docs/03-intelligence-domains/ndr-intelligence/` |
-| Catalog Intelligence Domain (spec) | `docs/03-intelligence-domains/catalog-intelligence/` |
-| AZM Architecture Specification | `docs/03-azm-knowledge/` |
+| Phase 5B Boundary Certification | `docs/03-intelligence-domains/architectural_boundary_certification_phase5b.md` |
+| AZM Architecture | `docs/03-azm-knowledge/` |
+| AZM Contract Grammar | `docs/03-azm-knowledge/08-azm-contract-grammar.md` |
+| SABAQ Architecture | `docs/04-sabaq/` |
+| Business-Value Certification (FAIL) | `docs/04-sabaq/phase-5b-business-value-certification.md` |
+| Catalog Business Rules | `business_systems/catalog/docs/03-catalog-business-rules.md` |
 | Catalog Semantic Public Contract | `business_systems/catalog/public-contracts/catalog-semantic-public-contract.md` |
-| Catalog Schematic Public Contract | `business_systems/catalog/public_views.sql` |
+| Catalog Schematic Public Contract | `business_systems/catalog/public-contracts/catalog-schematic-public-contract.md` |
 | Ecosystem Architecture | `docs/01-architecture/ecosystem-architecture.md` |
-| NDR Boundary Audit | `src/intelligence_domains/ndr/execution-boundary-audit.md` |
-
----
-
----
-
-## 8. Current Implementation State — AZM
-
-> **This window's active focus is the AZM Persistent Database implementation.**
-
-### What exists today (ALL legacy bootstrap — NOT the architectural target)
-
-| File | Classification | Status |
-|---|---|---|
-| `src/azm/namespaces/inventory.py` | Legacy bootstrap — hardcoded Python dicts | No formal Inventory BS Public Contracts published yet |
-| `src/azm/namespaces/ndr.py` | Legacy bootstrap — references `vw_shopdeck_*` views | No formal NDR/Logistics BS Schematic Contract yet |
-| `src/azm/namespaces/shopdeck.py` | Legacy bootstrap — treated as peer namespace | ShopDeck is `EXTERNAL_CHANNEL`, not Aaram-native |
-| `src/azm/provider.py` | Legacy bootstrap `GlobalAzmProvider` | Reads from Python dicts, not a persistent DB |
-
-**No Intelligence Domain currently has proper semantic or schematic knowledge in AZM.** The Python namespace files are scaffold only.
-
-### The NDR ID parallel window
-
-NDR ID is actively being developed in a **separate conversation window**. Once this window delivers the AZM Persistent Database, the NDR window will be directed here to build the NDR AZM namespace.
-
-**Do NOT attempt to finalise the NDR AZM namespace in this window.**
-
----
-
-## 9. AZM Implementation Plan (Active)
-
-A full implementation plan is available in the artifact:
-> `implementation_plan.md` (visible in artifact panel)
-
-**Summary of planned deliverables:**
-
-| Deliverable | File | Status |
-|---|---|---|
-| Physical DB schema (10 tables) | `src/azm/schema.sql` | NOT STARTED |
-| Python models for AZM primitives | `src/azm/models.py` | NOT STARTED |
-| Persistent DB provider | `src/azm/provider.py` (updated) | NOT STARTED |
-| Catalog static ingester | `src/azm/ingestion/catalog_ingester.py` | NOT STARTED |
-| DB init + seed script | `src/azm/init_db.py` | NOT STARTED |
-| Tests | `tests/azm/test_azm_persistent_provider.py` | NOT STARTED |
-
-**Open decisions to resolve before starting:**
-- Dev database: SQLite (zero-config) vs PostgreSQL (production-target)
-- ORM vs raw SQL
-- DB URL config location
-
----
-
-## 10. Next Logical Steps (In Order)
-
-1. **Resolve open implementation decisions** (DB engine for dev, ORM/raw SQL, config location).
-2. **Implement AZM Persistent Database** — schema, models, PersistentAzmProvider, Catalog ingester, init script, tests.
-3. **NDR window → NDR AZM namespace** — after DB exists, direct NDR window to publish formal contracts and ingest into AZM DB.
-4. **Inventory BS Public Contracts** — Inventory BS must publish formal Semantic and Schematic contracts before legacy Python namespace can be migrated.
-5. **Catalog ID Implementation** — Build Catalog ID using the established spec, consuming knowledge through AZM.

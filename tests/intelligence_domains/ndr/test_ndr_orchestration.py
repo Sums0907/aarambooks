@@ -88,25 +88,18 @@ async def test_ndr_orchestrate_resolution_vertical_slice(mock_gateway, mock_know
                 item_id=str(uuid.uuid4()),
                 semantic_identity="ndr.event_payload",
                 data_payload={
-                    "shipment_context": {
-                        "shipment_id": "AWB_DEL_7788",
-                        "courier_partner": "Delhivery",
-                        "attempt_count": 1,
-                        "latest_ndr_reason": "Customer unavailable / door locked",
-                        "payment_mode": "cod"
-                    },
-                    "customer_context": {
-                        "customer_id": "cust_456",
-                        "name": "Rahul Verma",
-                        "phone": "+919876543210"
-                    },
-                    "order_context": {
-                        "order_id": "ORD-9901",
-                        "order_value": 1850.0,
-                        "payment_mode": "cod"
-                    },
-                    "preferred_date": "2026-09-04",
-                    "customer_sentiment": "NEUTRAL"
+                    "ndr.entity.order_id": "ORD-9901",
+                    "shopdeck.entity.order.gross_value": 1850.0,
+                    "shopdeck.entity.payment.mode": "cod",
+                    "shopdeck.metric.ndr_count": 1,
+                    "shopdeck.event.delivery_exception.reason": "Customer unavailable / door locked",
+                    "ndr.entity.courier_partner": "Delhivery",
+                    "ndr.entity.customer_id": "cust_456",
+                    "ndr.entity.customer": "Rahul Verma",
+                    "customer.attribute.phone": "+919876543210",
+                    "customer.attribute.preferred_date": "2026-09-04",
+                    "customer.state.sentiment": "NEUTRAL",
+                    "ndr.entity.awb": "AWB_DEL_7788"
                 },
                 provenance=ProvenanceMetadata(
                     source_system="urn:aarambooks:webhook:ndr",
@@ -177,7 +170,7 @@ async def test_ndr_outcome_evaluation_and_learning_loop(mock_gateway, mock_knowl
     assert outcome.was_delivery_recovered is True
     assert outcome.was_rto_avoided is True
     assert outcome.revenue_protected == 1850.0
-    assert outcome.freight_saved == 120.0
+    assert outcome.freight_saved is None
 
     # Evidence written to memory
     assert mock_memory.write_memory.call_count == 1
@@ -204,34 +197,7 @@ async def test_ndr_extract_understanding():
     assert action_understanding.intent == ConversationalIntent.ACTION
 
 @pytest.mark.asyncio
-async def test_ndr_execute_read_query_text_to_sql(mock_sql_engine, mock_azm_provider):
-    """
-    Test Phase 6: Rabta R-4/R-5 dynamic read substrate execution.
-    """
-    orchestrator = NDRIntelligenceOrchestrator(
-        gateway=AsyncMock(),
-        knowledge=AsyncMock(),
-        memory=AsyncMock(),
-        sql_engine=mock_sql_engine,
-        azm_provider=mock_azm_provider
-    )
-
-    req = AbstractEvidenceRequest(
-        classified_requirement=ClassifiedRequirement(
-            understanding=ConversationalUnderstanding(
-                original_query="Show failed deliveries for AWB12345",
-                intent=ConversationalIntent.RETRIEVE
-            ),
-            components=[]
-        )
-    )
-
-    res = await orchestrator.execute_read_query(req)
-    assert res.status == BusinessRealityStatus.EVIDENCE_AVAILABLE
-    assert mock_sql_engine.generate_sql.call_count == 1
-
-@pytest.mark.asyncio
-async def test_ndr_rabta_end_to_end_conversational_routing(mock_gateway, mock_memory, mock_sql_engine, mock_azm_provider):
+async def test_ndr_rabta_end_to_end_conversational_routing(mock_gateway, mock_memory, mock_azm_provider):
     """
     Test Phase 7: Complete conversational query routing from Rabta Orchestrator to NDR-ID.
     """
@@ -239,22 +205,28 @@ async def test_ndr_rabta_end_to_end_conversational_routing(mock_gateway, mock_me
         gateway=mock_gateway,
         knowledge=AsyncMock(),
         memory=mock_memory,
-        sql_engine=mock_sql_engine,
         azm_provider=mock_azm_provider
     )
-
+    
     mock_id_resolver = MagicMock(spec=IntelligenceDomainResolver)
     mock_id_resolver.resolve.side_effect = lambda urn: ndr_orch if urn == "urn:aarambooks:intelligence:ndr" else None
-
+    
+    from src.shared.evidence_request_contracts import BusinessEvidenceResponse, BusinessRealityStatus
+    mock_cem_adapter = AsyncMock()
+    mock_cem_adapter.execute_evidence_request.return_value = BusinessEvidenceResponse(
+        status=BusinessRealityStatus.EVIDENCE_AVAILABLE,
+        retrieved_evidence={"shipment_ndr_reports": [{"awb_no": "12345"}]}
+    )
     mock_cem_resolver = MagicMock(spec=ContextExecutionResolver)
-
+    mock_cem_resolver.resolve.return_value = mock_cem_adapter
+    
     rabta = RabtaOrchestrator(
         id_resolver=mock_id_resolver,
         cem_resolver=mock_cem_resolver,
         classifier=RequirementClassifier(mock_gateway),
         memory_provider=mock_memory
     )
-
+    
     query = "What is the NDR status of AWB 12345?"
     response = await rabta.process_query(
         query=query,
@@ -263,7 +235,7 @@ async def test_ndr_rabta_end_to_end_conversational_routing(mock_gateway, mock_me
         auth_context="test_auth",
         session_id="session_ndr_1"
     )
-
+    
     assert response is not None
     assert response.response_type == ConversationalResponseType.SUCCESS
     assert "NDR shipment record located" in response.message

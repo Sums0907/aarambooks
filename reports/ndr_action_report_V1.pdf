@@ -1,0 +1,61 @@
+%PDF-1.4
+%Þ­¾ï
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> >>
+endobj
+4 0 obj
+<< /Length 1239 >>
+stream
+BT
+/F1 12 Tf
+10 800 Td
+15 TL
+(=========================================) Tj T*
+(      NDR ACTION REPORT \(SUMMARY\)      ) Tj T*
+(=========================================) Tj T*
+(Report ID: ndr_action_report_V1) Tj T*
+(Generated At: 2026-09-05T18:04:26.191546+00:00) Tj T*
+(Reporting Period: Last 24h) Tj T*
+(Total NDRs: 2) Tj T*
+() Tj T*
+(--- ACTION QUEUE ---) Tj T*
+(AWB: AWB_TEST_1) Tj T*
+(Reason: Customer unavailable) Tj T*
+(Diagnosis: NOT_AVAILABLE) Tj T*
+(Risk: NOT_AVAILABLE) Tj T*
+(Recommendation: seller_reattempt) Tj T*
+(Guidance: Manually perform the recommended seller_reattempt action in the ShopDeck main ecosystem.) Tj T*
+(Reasoning: High value order) Tj T*
+(----------------------------------------) Tj T*
+(AWB: AWB_TEST_2) Tj T*
+(Reason: Refused delivery) Tj T*
+(Diagnosis: NOT_AVAILABLE) Tj T*
+(Risk: NOT_AVAILABLE) Tj T*
+(Recommendation: courier_dispute) Tj T*
+(Guidance: Manually perform the recommended courier_dispute action in the ShopDeck main ecosystem.) Tj T*
+(Reasoning: Repeated fake attempts) Tj T*
+(----------------------------------------) Tj T*
+() Tj T*
+(NDR V1 provides recommendations for manual human execution.) Tj T*
+(No autonomous mutation is performed against the ShopDeck main ecosystem.) Tj T*
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000121 00000 n 
+0000000296 00000 n 
+trailer
+<< /Size 5 /Root 1 0 R >>
+startxref
+1587
+%%EOF

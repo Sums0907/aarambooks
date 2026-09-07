@@ -83,8 +83,10 @@ def test_shiprocket_route_blocked(client):
     assert response.status_code == 501
     assert mock_receiver.called == False
 
-def test_shopdeck_route_blocked(client):
+def test_shopdeck_route_success(client):
     test_client, mock_receiver = client
-    response = test_client.post("/api/v1/webhooks/inbound/shopdeck", data="{}")
-    assert response.status_code == 501
-    assert mock_receiver.called == False
+    payload = {"event_type": "ndr_update", "content": {"awb_no": "A123"}}
+    response = test_client.post("/api/v1/webhooks/inbound/shopdeck", json=payload)
+    assert response.status_code == 200
+    assert response.json()["status"] == "ACKNOWLEDGED"
+    assert mock_receiver.called == True

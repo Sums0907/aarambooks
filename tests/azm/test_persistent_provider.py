@@ -9,7 +9,9 @@ import sqlite3
 import pytest
 
 from src.azm.db import get_connection, execute_schema
-from src.azm.ingestion.catalog_ingester import ingest_catalog
+from src.azm.ingestion.contract_parser import ingest_contracts
+import functools
+ingest_catalog = functools.partial(ingest_contracts, "business_systems/catalog/public-contracts/catalog-semantic-public-contract.md", "business_systems/catalog/public-contracts/catalog-schematic-public-contract.md")
 from src.azm.persistent_provider import PersistentAzmProvider
 from src.azm.provider import AzmProviderFactory, GlobalAzmProvider
 

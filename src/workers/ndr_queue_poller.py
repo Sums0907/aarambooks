@@ -111,16 +111,20 @@ class NDRQueuePoller:
                 class DummyAction:
                     def __init__(self):
                         self.classified_requirement = DummyClassified(DummyUnderstanding())
-                        self.objective = "Secure customer confirmation for delivery reattempt."
+                        self.parameters = {"awb_no": awb_no, "customer_phone": "1234567890"}
+                        self.action_request_id = str(uuid.uuid4())
+                        from src.brain_core.action_engine.contracts import ConversationalDirective
+                        self.directive = ConversationalDirective(objective="Secure customer confirmation", context_summary="test", allowed_actions=[], constraints=[])
                         
                 action = DummyAction()
                 ccc = await self.ccc_builder.build(action)
                 
-                # Assume exotel adapter returns a call_sid (mocked implementation for tests might return hardcoded sid)
-                call_sid = await self.comm_engine.executor.exotel_adapter.execute(
-                    payload=ccc.model_dump(),
-                    authorization_context="brain_internal"
+                # Assume exotel adapter returns a call_sid
+                call_sid_response = await self.comm_engine.executor.exotel_adapter.dispatch_call(
+                    action_request=action,
+                    engagement_id=engagement_id
                 )
+                call_sid = call_sid_response.get("provider_interaction_id") or f"mock_call_{uuid.uuid4().hex}"
                 if hasattr(call_sid, "status") and call_sid.status.name == "ACCEPTED":
                     call_sid = call_sid.provider_interaction_id or f"mock_call_{uuid.uuid4().hex}"
                 elif isinstance(call_sid, str):

@@ -22,7 +22,9 @@ import sqlite3
 import pytest
 
 from src.azm.db import get_connection, execute_schema
-from src.azm.ingestion.catalog_ingester import ingest_catalog
+from src.azm.ingestion.contract_parser import ingest_contracts
+import functools
+ingest_catalog = functools.partial(ingest_contracts, "business_systems/catalog/public-contracts/catalog-semantic-public-contract.md", "business_systems/catalog/public-contracts/catalog-schematic-public-contract.md")
 from src.azm.ingestion.ingestion_utils import (
     hash_content, is_already_ingested, start_ingestion_run,
     fail_ingestion_run, build_provenance,
@@ -34,18 +36,13 @@ from src.azm.ingestion.ingestion_utils import (
 
 @pytest.fixture
 def fresh_db():
-    """In-memory DB with schema applied, ready for ingestion."""
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys=ON;")
-    execute_schema(conn)
-    conn.close()
-    # We'll use a temp file path so ingest_catalog can open its own connection
-    # Actually, use the in-memory URL trick via a tmp file
     import tempfile, os
     tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
     tmp.close()
     db_url = f"sqlite:///{tmp.name}"
+    conn = get_connection(db_url)
+    execute_schema(conn)
+    conn.close()
     yield db_url
     os.unlink(tmp.name)
 
@@ -505,20 +502,16 @@ class TestRollback:
         """
         import os
         db_path = fresh_db.replace("sqlite:///", "")
-        # Use explicit isolation_level=None for manual transaction control
-        conn = sqlite3.connect(db_path)
-        conn.isolation_level = None  # autocommit mode — allows explicit BEGIN/ROLLBACK
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA foreign_keys=ON;")
+        conn = get_connection(fresh_db)
         execute_schema(conn)
 
         run_id = start_ingestion_run(conn, "catalog", "FULL", "faKEhash123", "test")
-        conn.execute("BEGIN")
+        conn.commit()
         conn.execute(
             """INSERT INTO azm_namespaces (id, name, classification, lifecycle, created_at)
                VALUES ('fake-ns-id', 'catalog_test_rollback', 'AARAM_NATIVE', 'ACTIVE', '2026-01-01')"""
         )
-        conn.execute("ROLLBACK")
+        conn.rollback()
 
         fail_ingestion_run(conn, run_id, "Simulated failure")
 

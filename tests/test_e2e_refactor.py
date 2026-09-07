@@ -1,7 +1,9 @@
 import asyncio
+import pytest
 from httpx import AsyncClient
 from src.main import app
 
+@pytest.mark.asyncio
 async def test_read_query():
     print("Testing READ query...")
     async with AsyncClient(app=app, base_url="http://test") as ac:
@@ -15,6 +17,7 @@ async def test_read_query():
         print(f"Status: {response.status_code}")
         print(f"Response: {response.json()}")
         
+@pytest.mark.asyncio
 async def test_action_query():
     print("\nTesting ACTION query...")
     async with AsyncClient(app=app, base_url="http://test") as ac:

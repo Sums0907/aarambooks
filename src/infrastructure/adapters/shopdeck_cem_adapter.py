@@ -253,7 +253,7 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
             elif resp.status_code == 204:
                 return None
             else:
-                resp.raise_for_status()
+                print(resp.text); resp.raise_for_status()
 
     async def register_engagement(self, queue_item_id: str, engagement_id: str, idempotency_key: str) -> Dict[str, Any]:
         url = urljoin(self.base_url, "/api/v1/ndr/engagements")
@@ -265,7 +265,7 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
         }
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(url, headers=headers, json=payload)
-            resp.raise_for_status()
+            print(resp.text); resp.raise_for_status()
             return resp.json()
 
     async def update_queue_status(self, queue_item_id: str, status: str, engagement_id: Optional[str] = None, **extra) -> Dict[str, Any]:
@@ -277,7 +277,7 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
         payload.update(extra)
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.patch(url, headers=headers, json=payload)
-            resp.raise_for_status()
+            print(resp.text); resp.raise_for_status()
             return resp.json()
 
     async def submit_intelligence(self, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -285,5 +285,5 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
         headers = await self._get_auth_header()
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(url, headers=headers, json=payload)
-            resp.raise_for_status()
+            print(resp.text); resp.raise_for_status()
             return resp.json()

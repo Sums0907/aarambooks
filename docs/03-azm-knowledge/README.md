@@ -1,7 +1,7 @@
-# Azm (Aaram Zameer): The Semantic & Schematic Repository
+# AZM: The Semantic & Schematic Repository
 
 **Document Reference:** `docs/03-azm-knowledge/README.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Domain Layer:** Central Knowledge Registry (Container 3)
 **Classification:** Foundational Architecture & Boundary Grounding
 

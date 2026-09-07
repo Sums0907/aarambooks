@@ -1,0 +1,24 @@
+# Auth / secrets — never commit
+.token.json
+.auth_state.json
+.env
+
+# Python runtime
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Logs & local runtime files
+*.log
+shopdeck_sync_daemon.log
+data/
+
+# Scratch / dev artifacts
+scratch/
+
+# IDE
+.vscode/
+shopdeck.code-workspace

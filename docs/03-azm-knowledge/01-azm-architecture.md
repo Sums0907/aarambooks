@@ -1,7 +1,7 @@
 # Azm Persistent Architecture Specification
 
 **Document Reference:** `docs/03-azm-knowledge/01-azm-architecture.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

@@ -1,0 +1,18 @@
+Timestamp,AWB Number,Channel,Customer Reply,Detected Intent,Target Date,Address Notes,Action To Take (ShopDeck)
+2026-09-04 20:10:55,142285239995710,ivr,"Agent: Hello! It looks like there was an issue with your order for AWB 142285239995710. Could you please let me know if you need help rescheduling or canceling the delivery?
+Customer: what did I order
+Agent: You ordered some books. Could you please let me know if you need help rescheduling or canceling the delivery?
+Customer: I did not order any
+Agent: I apologize for the confusion. It seems there might be a mix-up. Could you please confirm the details of your order so I can assist you better?
+Customer: bye
+",End Conversation,,,End the conversation
+2026-09-04 20:08:54,142285239995710,ivr,"Agent: Hello! It seems your order for AWB 142285239995710 didn't arrive yet. Is there something specific I can help with?
+",inquiry,,,check_status
+2026-09-04 20:06:26,142285239995710,ivr,"Agent: Hello! This is AaramBooks support. I'm sorry to hear about the delivery issue with AWB 142285239995710. What seems to be the problem? Would you like to reschedule or cancel the delivery?
+",inquiry,,,reschedule or cancel delivery
+2026-09-04 19:52:25,142285239995710,ivr,I would like to deliver it on 8 September at 9:30 a.m.,reschedule delivery,,,Reschedule the delivery to 2023-09-08T09:30:00
+2026-09-04 19:42:25,142285239995710,whatsapp,8th sept 9:30 am,delivery_failure,,,reschedule_delivery
+2026-09-04 19:40:42,142285239995710,whatsapp,8th september at 9 AM,UNCLEAR,,,Human review required: LLM parsing failed.
+2026-09-04 19:36:13,142285239995710,whatsapp,tomorrow at 6pm,UNCLEAR,,,Human review required: LLM parsing failed.
+2026-09-04 19:33:07,142285239995710,whatsapp,tomorrow at 6pm,UNCLEAR,,,Human review required: LLM parsing failed.
+2026-09-04 19:31:48,142285239995710,whatsapp,yes tomorrow at 5:00Pm please,UNCLEAR,,,Human review required: LLM parsing failed.

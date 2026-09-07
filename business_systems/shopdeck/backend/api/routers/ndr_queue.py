@@ -88,21 +88,23 @@ async def claim_queue_item(
 # ------------------------------------------------------------------
 # STATUS UPDATE
 # ------------------------------------------------------------------
-@router.patch("/{queue_item_id}/status", response_model=QueueStatusUpdateResponse,
-              dependencies=[Depends(get_current_user)])
+@router.patch("/{queue_item_id}/status", response_model=QueueStatusUpdateResponse)
 async def update_queue_status(
     queue_item_id: str,
     request: QueueStatusUpdateRequest,
     repo: NDRQueueRepository = Depends(_get_queue_repo),
+    user: dict = Depends(get_current_user_edit),
 ):
     """
     Brain reports status transitions. Enforces valid transition matrix.
     Brain CANNOT set action_ready or permanently_failed.
     """
+    claimer_id = user.get("sub")
     try:
         if request.status == "failed_retryable":
             updated = await repo.apply_failure(
                 queue_item_id,
+                claimer_id=claimer_id,
                 failure_class=request.failure_class or "call_failed",
                 failure_reason=request.failure_reason or "Brain reported failure",
             )

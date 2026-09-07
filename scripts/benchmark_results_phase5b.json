@@ -1,0 +1,3623 @@
+{
+  "benchmark_run": "LIVE",
+  "scenario_a_status": "NOT_EXECUTABLE \u2014 documented gap",
+  "aggregate_all": {
+    "total_skus": 11,
+    "total_sabaq_reused_fields": 0,
+    "total_ai_proposed_fields": 0,
+    "total_unknown_requires_user_fields": 279,
+    "total_simulated_manual_fields": 97
+  },
+  "aggregate_real_csv": {
+    "total_skus": 10,
+    "total_sabaq_reused_fields": 0,
+    "total_ai_proposed_fields": 0,
+    "total_unknown_requires_user_fields": 253,
+    "total_simulated_manual_fields": 88
+  },
+  "aggregate_synthetic": {
+    "total_skus": 1,
+    "total_sabaq_reused_fields": 0,
+    "total_ai_proposed_fields": 0,
+    "total_unknown_requires_user_fields": 26,
+    "total_simulated_manual_fields": 9
+  },
+  "cem_mutations_performed": 0,
+  "interaction_timing_type": "SIMULATED",
+  "business_value_delta": "NOT_CALCULATED \u2014 CEM mutations not performed in this pass",
+  "sku_reports": [
+    {
+      "sku_id": "104MP",
+      "product_code": "TLS-MP-CB-DBF",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "TLS-MP-CB-DBF",
+        "Amazon ASIN": "",
+        "Name": "Mattress Cover | Protector | 100% Waterproof | Coffee Brown",
+        "Sku Id": "104MP",
+        "Selling Price": "1499",
+        "MRP": "2999",
+        "Cost Price": "700",
+        "Quantity": "2",
+        "Packaging Length (in cm)": "33",
+        "Packaging Breadth (in cm)": "27",
+        "Packaging Height (in cm)": "11",
+        "Packaging Weight (in kg)": "1.3",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_7FY4SQ0I5H_2025-10-14_1.jpg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_ZTJ4DJXR4H_2025-12-24_1.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_CB_DBF_1759704932556_p1n7cxjd0ihyyjp.jpg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_2FDDMPZK2H_2025-10-14_2.jpg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_FW3SAPD0JT_2025-11-09_1.jpg",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_93NGXV19Z1_2025-11-09_2.jpg",
+        "Image 7": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_6L4PILUPYP_2025-11-09_3.jpg",
+        "Image 8": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_9UW83LFA5M_2025-11-09_4.jpg",
+        "Image 9": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_E572APKWL5_2025-11-09_5.jpg",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_improvement__utility",
+        "Size Type": "size",
+        "Size": "72x78 + 12\"",
+        "Colour": "Coffee Brown",
+        "Description": "Premium Waterproof Quilted Mattress Protector\nKeep your mattress safe and make your bed look stylish with this elegant Coffee Brown Waterproof Quilted Mattress Protector. Its soft, quilted top adds an extra layer of comfort, while the waterproof backing protects your mattress from spills, stains, dust, and allergens. It\u2019s a perfect blend of comfort, hygiene, and durability for everyday use.\nKey Features:\n- Soft quilted fabric for extra comfort\n- 100% waterproof and dust-resistant protection\n- Breathable material to keep your mattress fresh\n- Deep pockets for a snug, secure fit on all mattresses\n- Super Easy to wash and maintain",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "Fitted style with deep pockets",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Diamond quilted pattern",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "1 Mattress protector: 72x78 + 12\"",
+        "attr_Colour": "Coffee Brown",
+        "attr_Brand": "Aaram Homes",
+        "attr_Material": "Cotton on top and waterproof sheet below",
+        "attr_Ideal For": "Home",
+        "attr_Key Features": "Premium Quality",
+        "attr_Durability": "Built with high-quality, durable materials",
+        "attr_Country of Origin": "India",
+        "attr_Set includes": "1 mattress protector",
+        "attr_Packaging": "Eco-friendly packaging",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_7FY4SQ0I5H_2025-10-14_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_ZTJ4DJXR4H_2025-12-24_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_CB_DBF_1759704932556_p1n7cxjd0ihyyjp.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_2FDDMPZK2H_2025-10-14_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_FW3SAPD0JT_2025-11-09_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_93NGXV19Z1_2025-11-09_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_6L4PILUPYP_2025-11-09_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_9UW83LFA5M_2025-11-09_4.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_E572APKWL5_2025-11-09_5.jpg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "B",
+      "brain_input_text": "Add new catalog product: Mattress Cover | Protector | 100% Waterproof | Coffee Brown. Colour: Coffee Brown. Size: 72x78 + 12\". Product Code: TLS-MP-CB-DBF. SKU: 104MP.",
+      "processing_time_brain_s": 0.0018,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "6eb91bf1304d4ff5b5fd9f9e25909c34",
+        "product_code": {
+          "value": "TLS-MP-CB-DBF",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "104MP",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "B"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 26,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Coffee Brown",
+        "size": "72x78 + 12\"",
+        "mrp": "2999",
+        "selling_price": "1499",
+        "cost_price": "700",
+        "packaging_length_cm": "33",
+        "packaging_breadth_cm": "27",
+        "packaging_height_cm": "11",
+        "packaging_weight_kg": "1.3"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "102MP",
+      "product_code": "TLS-MP-DR-DBF",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "TLS-MP-DR-DBF",
+        "Amazon ASIN": "",
+        "Name": "Mattress Cover | Protector | 100% Waterproof | Dark Red",
+        "Sku Id": "102MP",
+        "Selling Price": "1499",
+        "MRP": "2999",
+        "Cost Price": "760",
+        "Quantity": "5",
+        "Packaging Length (in cm)": "33",
+        "Packaging Breadth (in cm)": "27",
+        "Packaging Height (in cm)": "11",
+        "Packaging Weight (in kg)": "1.3",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_2JOFO83M81_2025-10-04_1.jpg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_L3414CRQVX_2025-10-04_2.jpg",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_2O9MBE6N8K_2025-10-04_3.jpg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_7MJS6RD9DF_2025-11-09_1.jpg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_II185WSP0I_2025-11-09_2.jpg",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_GHG9JR09J1_2025-11-09_3.jpg",
+        "Image 7": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_EB32UUFDRI_2025-11-09_4.jpg",
+        "Image 8": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_4KOO6LABMR_2025-11-09_5.jpg",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_improvement__utility",
+        "Size Type": "size",
+        "Size": "72x78 + 12\"",
+        "Colour": "Dark Red",
+        "Description": "Keep your mattress safe and make your bed look stylish with this Dark Red Waterproof Quilted Mattress Protector. Its soft, quilted top adds an extra layer of comfort, while the waterproof backing protects your mattress from spills, stains, dust, and allergens. It\u2019s a perfect blend of comfort, hygiene, and durability for everyday use.\nKey Features:\nSoft quilted fabric for extra comfort\n- 100% waterproof and dust-resistant protection\n- Breathable material to keep your mattress fresh\n- Deep pockets for a snug, secure fit on all standard mattresses\n- Super Easy to wash and maintain",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "Fitted style with deep pockets",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Diamond quilted pattern",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "Mattress protector: 72x78 + 12\"tor",
+        "attr_Colour": "Dark Red",
+        "attr_Brand": "Aaram Homes",
+        "attr_Material": "Cotton on top and waterproof sheet below",
+        "attr_Ideal For": "Home",
+        "attr_Key Features": "Premium Quality",
+        "attr_Durability": "Built with high-quality, durable materials",
+        "attr_Country of Origin": "India",
+        "attr_Set includes": "1 mattress protector",
+        "attr_Packaging": "Eco-friendly packaging",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_2JOFO83M81_2025-10-04_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_L3414CRQVX_2025-10-04_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_2O9MBE6N8K_2025-10-04_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_7MJS6RD9DF_2025-11-09_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_II185WSP0I_2025-11-09_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_GHG9JR09J1_2025-11-09_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_EB32UUFDRI_2025-11-09_4.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/X3qPxcRS_4KOO6LABMR_2025-11-09_5.jpg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Mattress Cover | Protector | 100% Waterproof | Dark Red. Colour: Dark Red. Size: 72x78 + 12\". Product Code: TLS-MP-DR-DBF. SKU: 102MP.",
+      "processing_time_brain_s": 0.0015,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "1f0181b4784d4c4b9bf3175dc882d015",
+        "product_code": {
+          "value": "TLS-MP-DR-DBF",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "102MP",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 26,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Dark Red",
+        "size": "72x78 + 12\"",
+        "mrp": "2999",
+        "selling_price": "1499",
+        "cost_price": "760",
+        "packaging_length_cm": "33",
+        "packaging_breadth_cm": "27",
+        "packaging_height_cm": "11",
+        "packaging_weight_kg": "1.3"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "101MP",
+      "product_code": "TLS-MP-RYB-DBF",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "TLS-MP-RYB-DBF",
+        "Amazon ASIN": "",
+        "Name": "Mattress Cover | Protector |  100% Waterproof | Royal Blue",
+        "Sku Id": "101MP",
+        "Selling Price": "1499",
+        "MRP": "2999",
+        "Cost Price": "760",
+        "Quantity": "8",
+        "Packaging Length (in cm)": "23",
+        "Packaging Breadth (in cm)": "23",
+        "Packaging Height (in cm)": "23",
+        "Packaging Weight (in kg)": "3.0",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_7FAQ1OX3FD_2025-12-24_1.jpeg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_RH8M20ZA9M_2025-10-14_1.jpg",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_RYB_DBF_1759703739341_tsz9fyzxoxpbw4m.jpg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_3GD14UCPKH_2025-11-09_1.jpg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_6DKO3D022L_2025-11-09_2.jpg",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_PJ350OAXYA_2025-11-09_3.jpg",
+        "Image 7": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_FNCCAKWNOM_2025-11-09_5.jpg",
+        "Image 8": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_7082M0SLMF_2025-11-09_4.jpg",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_improvement__utility",
+        "Size Type": "size",
+        "Size": "72x78 + 12\"",
+        "Colour": "Royal Blue",
+        "Description": "Protect your mattress in style with this Royal Blue Waterproof Quilted Mattress Protector. The soft, cushioned quilted top adds extra comfort to your bed, while the waterproof backing shields your mattress from spills, stains, dust, and allergens. It\u2019s designed to keep your sleeping space fresh, hygienic, and beautifully put together.\n\nKey Features:\n- Soft, quilted fabric for added comfort\n- 100% waterproof and dust-resistant\n- Breathable material keeps your mattress fresh\n- Deep pockets for a secure fit on all standard mattresses\n- Super Easy to wash and maintain\n\n\n\n\n\nNote : We strive to present our products as accurately as possible. However, slight variations in colour may occur due to photography and individual screen settings.",
+        "Return/Exchange Condition": "2",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "1",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "Fitted style with deep pockets",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Diamond quilted pattern",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "1 Mattress protector: 72x78 + 12\"",
+        "attr_Colour": "Royal Blue",
+        "attr_Brand": "Aaram Homes",
+        "attr_Material": "Cotton on top and waterproof sheet below",
+        "attr_Ideal For": "Home",
+        "attr_Key Features": "Premium Quality",
+        "attr_Durability": "Built with high-quality, durable materials",
+        "attr_Country of Origin": "India",
+        "attr_Set includes": "1 mattress protector (Fits upto King size)",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_7FAQ1OX3FD_2025-12-24_1.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_RH8M20ZA9M_2025-10-14_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_RYB_DBF_1759703739341_tsz9fyzxoxpbw4m.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_3GD14UCPKH_2025-11-09_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_6DKO3D022L_2025-11-09_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_PJ350OAXYA_2025-11-09_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_FNCCAKWNOM_2025-11-09_5.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/fi_gpkEj_7082M0SLMF_2025-11-09_4.jpg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Mattress Cover | Protector |  100% Waterproof | Royal Blue. Colour: Royal Blue. Size: 72x78 + 12\". Product Code: TLS-MP-RYB-DBF. SKU: 101MP.",
+      "processing_time_brain_s": 0.0008,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "a5526e8c05f54b1f8f683a7b995bc0ac",
+        "product_code": {
+          "value": "TLS-MP-RYB-DBF",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "101MP",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": "BL",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "USER_PROVIDED",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "size": "72x78 + 12\"",
+        "mrp": "2999",
+        "selling_price": "1499",
+        "cost_price": "760",
+        "packaging_length_cm": "23",
+        "packaging_breadth_cm": "23",
+        "packaging_height_cm": "23",
+        "packaging_weight_kg": "3.0"
+      },
+      "simulated_manual_field_count": 8,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "123BS",
+      "product_code": "DREAMYPINK-FRLK-KDB-5PC",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "DREAMYPINK-FRLK-KDB-5PC",
+        "Amazon ASIN": "",
+        "Name": "Dreamy Pink Floral Frill King size Bedsheet Set- with filled cushions",
+        "Sku Id": "123BS",
+        "Selling Price": "1790",
+        "MRP": "3399",
+        "Cost Price": "700",
+        "Quantity": "5",
+        "Packaging Length (in cm)": "61",
+        "Packaging Breadth (in cm)": "40",
+        "Packaging Height (in cm)": "7",
+        "Packaging Weight (in kg)": "2.00",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_I0VADCQIXP_2026-05-08_1.jpg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_XQ5IJ9Z95N_2026-05-08_3.jpg",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_OL450NPMST_2026-05-08_2.jpg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_IHOFSVA0S2_2026-05-08_4.jpg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_KOFBN6L901_2026-05-08_5.jpg",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_QR6LIRVK9F_2026-05-27_1.jpeg",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "",
+        "Size Type": "size",
+        "Size": "108 x 108 inches",
+        "Colour": "Soft Pink",
+        "Description": "Turn your bedroom into the softest corner of your home with this blush pink floral bedding set designed for comfort lovers and aesthetic homes. The delicate floral print paired with elegant frill-detail cushions gives your space a cozy, calm, and beautifully styled look without trying too hard. Its soothing pastel tones instantly make the room feel brighter, warmer, and more inviting.\nWhether you love Pinterest-inspired interiors, soft feminine decor, or simply enjoy coming back to a neat and peaceful bed after a long day, this bedding set blends beautifully into modern Indian homes. The subtle floral pattern keeps it timeless, while the ruffle cushion detailing adds that premium boutique-style charm.\n\nThis 5-piece bedding set includes 1 king size bedsheet, 2 pillow covers, and 2 matching frill cushions with fillers to give your bed a complete, thoughtfully styled look. \nPerfect for master bedrooms, guest rooms, gifting, home makeovers, and festive room refreshes.\n\nWhy You\u2019ll Love It:\n- Soft pink floral design that feels fresh and elegant\n- Frill cushion detailing for aesthetic touch\n- Creates a cozy, Instagram-worthy bedroom setup\n- Easy to style with neutral and pastel interiors\n- Ideal for modern, minimal, and feminine bedroom decor\n\nPerfect for everyday use or special home styling moments\n\n\nNote : We strive to present our products as accurately as possible; however, slight variations in colour may occur due to photography and individual screen settings.",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "Scandinavian Inspired | Minimal Aesthetic",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "Includes: 1 King Size Bedsheet, 2 Pillow Covers, 2 Cushions with Frill Design",
+        "attr_Fabric Type": "220 gsm imported cotton blend",
+        "attr_Pattern": "Minimal Floral Vine Print with Micro Check Frill Accents",
+        "attr_Season": "Suitable for All Seasons",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "",
+        "attr_Brand": "",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_I0VADCQIXP_2026-05-08_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_XQ5IJ9Z95N_2026-05-08_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_OL450NPMST_2026-05-08_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_IHOFSVA0S2_2026-05-08_4.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_KOFBN6L901_2026-05-08_5.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/0vZdmugz_QR6LIRVK9F_2026-05-27_1.jpeg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Dreamy Pink Floral Frill King size Bedsheet Set- with filled cushions. Colour: Soft Pink. Size: 108 x 108 inches. Product Code: DREAMYPINK-FRLK-KDB-5PC. SKU: 123BS.",
+      "processing_time_brain_s": 0.0009,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "81b43012b879409c95db047615cf3ed4",
+        "product_code": {
+          "value": "DREAMYPINK-FRLK-KDB-5PC",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "123BS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": "BED",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "USER_PROVIDED",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Soft Pink",
+        "size": "108 x 108 inches",
+        "mrp": "3399",
+        "selling_price": "1790",
+        "cost_price": "700",
+        "packaging_length_cm": "61",
+        "packaging_breadth_cm": "40",
+        "packaging_height_cm": "7",
+        "packaging_weight_kg": "2.00"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "122BS",
+      "product_code": "TERRACOTTA-FRLK-KDB-5PC",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "TERRACOTTA-FRLK-KDB-5PC",
+        "Amazon ASIN": "",
+        "Name": "Terracotta Bloom Bedsheet set- with filled cushions",
+        "Sku Id": "122BS",
+        "Selling Price": "1790",
+        "MRP": "3199",
+        "Cost Price": "700",
+        "Quantity": "1",
+        "Packaging Length (in cm)": "61",
+        "Packaging Breadth (in cm)": "37",
+        "Packaging Height (in cm)": "7",
+        "Packaging Weight (in kg)": "3.2",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_9I9H4YXHU8_2026-06-14_1.png",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Zi7jKjN__BNYEJIO2KV_2026-06-14_1.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_M59V8TQA0V_2026-06-14_2.png",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_VA3FMC50SP_2026-06-14_3.png",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_FI94OF6HSV_2026-06-14_4.png",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_4ZNGM3ND2V_2026-06-14_5.png",
+        "Image 7": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Zi7jKjN__ORO20GL2I8_2026-06-14_2.png",
+        "Image 8": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_GGKUH9AEBZ_2026-06-14_7.png",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_furnishing__bed_linen",
+        "Size Type": "size",
+        "Size": "108 x 108 inches",
+        "Colour": "Rusty Peach",
+        "Description": "Wake up to the softness of a peaceful morning wrapped in delicate floral charm. The Terracotta Bloom Bedsheet Set brings together soothing tones, graceful floral motifs, and the breathable comfort of pure cotton to create a bedroom that feels warm, welcoming, and effortlessly elegant.\nInspired by blooming wildflowers scattered across a sunlit meadow, this bedsheet features intricate floral borders paired with subtle floral sprigs that add a touch of timeless beauty without overwhelming the space. The soft peach accents lend a calm and cozy feel, making it perfect for contemporary, minimal, and romantic bedroom interiors.\nWhether you're refreshing your bedroom d\u00e9cor or creating a cozy retreat after a long day, this bedding set adds comfort, beauty, and serenity to your everyday living.\n\nKey Features\n\u2714 King Size Bedsheet for Comfortable Coverage\n\u2714 Elegant Floral Border Design\n\u2714 Lightweight & Suitable for All Seasons\n\u2714 Durable Colourfast Printing\n\u2714 Easy Maintenance & Machine Washable\n\u2714 Perfect for Modern, Minimal & Romantic Interiors",
+        "Return/Exchange Condition": "2",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "Floral Border Print with Scattered Floral Buti Motifs",
+        "attr_Style": "Modern Floral | Cottagecore | Soft Romantic",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "Rusty Peach, Ivory Cream & Soft Beige",
+        "attr_Package Contents": "One King Size Bedsheet, 2 large pillow covers, and 2 filled cushions",
+        "attr_Fabric Type": "220gsm imported cotton blend",
+        "attr_Pattern": "",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "",
+        "attr_Brand": "",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_9I9H4YXHU8_2026-06-14_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Zi7jKjN__BNYEJIO2KV_2026-06-14_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_M59V8TQA0V_2026-06-14_2.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_VA3FMC50SP_2026-06-14_3.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_FI94OF6HSV_2026-06-14_4.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_4ZNGM3ND2V_2026-06-14_5.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Zi7jKjN__ORO20GL2I8_2026-06-14_2.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Terracotta_Bloom_Bedsheet_set__with_filled_cushions_GGKUH9AEBZ_2026-06-14_7.png"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Terracotta Bloom Bedsheet set- with filled cushions. Colour: Rusty Peach. Size: 108 x 108 inches. Product Code: TERRACOTTA-FRLK-KDB-5PC. SKU: 122BS.",
+      "processing_time_brain_s": 0.0008,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "ac380efaa5d7430c9de6064f7b77f899",
+        "product_code": {
+          "value": "TERRACOTTA-FRLK-KDB-5PC",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "122BS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": "BED",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "USER_PROVIDED",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Rusty Peach",
+        "size": "108 x 108 inches",
+        "mrp": "3199",
+        "selling_price": "1790",
+        "cost_price": "700",
+        "packaging_length_cm": "61",
+        "packaging_breadth_cm": "37",
+        "packaging_height_cm": "7",
+        "packaging_weight_kg": "3.2"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "102BS",
+      "product_code": "KD-PINKGULBAHAR-KDB",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "KD-PINKGULBAHAR-KDB",
+        "Amazon ASIN": "",
+        "Name": "Blush Pink Gulbahar Handblock Printed Cotton Bedsheet Set",
+        "Sku Id": "102BS",
+        "Selling Price": "1349",
+        "MRP": "2699",
+        "Cost Price": "600",
+        "Quantity": "12",
+        "Packaging Length (in cm)": "38",
+        "Packaging Breadth (in cm)": "30",
+        "Packaging Height (in cm)": "4",
+        "Packaging Weight (in kg)": "1.2",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_RKLV70JOJK_2026-02-08_2.jpeg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_9IT97LU58N_2026-02-08_4.jpeg",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_692E1AQK5P_2026-02-08_1.jpeg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_IZIXT7S020_2026-02-08_3.jpeg",
+        "Image 5": "",
+        "Image 6": "",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "",
+        "Size Type": "size",
+        "Size": "100*108 inches",
+        "Colour": "Blush Pink",
+        "Description": "Add timeless elegance to your bedroom with this aeshtetic Blush  Pink Gulbahar Handblock Printed Cotton Bedsheet Set, crafted using traditional handblock printing techniques and natural colours.\n\n Featuring a soft blush pink base adorned with intricate floral vines and bird motifs, this bedsheet reflects the beauty of Indian craftsmanship blended with a gentle, pastel aesthetic.\n\nMade from 100% pure cotton, this handblock printed bedsheet is breathable, skin-friendly, and perfect for year-round comfort. The use of eco-friendly natural dyes gives the fabric a soft, earthy finish while ensuring a calm and soothing sleep experience. Each piece is individually hand printed by skilled artisans, making every bedsheet unique in character and charm.\nIdeal for customers searching for handblock printed aesthetic cotton bedsheets with natural dyes, this design brings warmth, elegance, and heritage luxury into modern homes.\n\n\nNote : We strive to present our products as accurately as possible; however, slight variations in colour may occur due to photography and individual screen settings.",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Handcrafted Indian Bedding\nVintage Botanical\nPastel Heritage Luxury\nEco-friendly & Sustainable Home Linen",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "Traditional handblock printed floral and bird motif inspired by botanical gardens, finished with a detailed ornamental border.",
+        "attr_Brand": "Blush Pink / Soft Rose",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "Gentle hand wash or machine wash separately. Use mild detergent. Do not soak or bleach. Dry in shade to maintain natural colour.",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_RKLV70JOJK_2026-02-08_2.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_9IT97LU58N_2026-02-08_4.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_692E1AQK5P_2026-02-08_1.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/NgJIjKDp_IZIXT7S020_2026-02-08_3.jpeg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "B",
+      "brain_input_text": "Add new catalog product: Blush Pink Gulbahar Handblock Printed Cotton Bedsheet Set. Colour: Blush Pink. Size: 100*108 inches. Product Code: KD-PINKGULBAHAR-KDB. SKU: 102BS.",
+      "processing_time_brain_s": 0.0007,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "f49e714b125c430ca2bf82c2d4de8390",
+        "product_code": {
+          "value": "KD-PINKGULBAHAR-KDB",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "102BS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": "BED",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "B"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "USER_PROVIDED",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Blush Pink",
+        "size": "100*108 inches",
+        "mrp": "2699",
+        "selling_price": "1349",
+        "cost_price": "600",
+        "packaging_length_cm": "38",
+        "packaging_breadth_cm": "30",
+        "packaging_height_cm": "4",
+        "packaging_weight_kg": "1.2"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "116BS",
+      "product_code": "KD-SSK-AQGB-KDB",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "KD-SSK-AQGB-KDB",
+        "Amazon ASIN": "",
+        "Name": "Aqua Gulbahar Handblock Printed Cotton Bedsheet Set",
+        "Sku Id": "116BS",
+        "Selling Price": "1299",
+        "MRP": "1699",
+        "Cost Price": "600",
+        "Quantity": "2",
+        "Packaging Length (in cm)": "38",
+        "Packaging Breadth (in cm)": "30",
+        "Packaging Height (in cm)": "4",
+        "Packaging Weight (in kg)": "1.2",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_9MZUQEGCSS_2026-02-08_5.png",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_4WA6OAI9TA_2026-02-08_2.jpeg",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_FECNLKEXPK_2026-02-08_1.png",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_QNYLLEDZ4Y_2026-02-08_3.jpeg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_DOL06L604F_2026-02-08_4.jpeg",
+        "Image 6": "",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "",
+        "Size Type": "size",
+        "Size": "100*108 inches",
+        "Colour": "Teal Green",
+        "Description": "Upgrade your bedroom with the Aqua Gulbahar Handblock Printed Cotton Bedsheet Set, crafted using traditional handblock printing techniques and natural colours. This premium bedsheet features a soothing aqua blue base with intricately hand-printed floral and bird motifs inspired by Indian botanical gardens.\nMade from 100% breathable cotton, this handblock printed bedsheet is gentle on the skin, eco-friendly, and ideal for all seasons. The use of natural dyes gives the fabric a soft, earthy finish while ensuring comfort and durability. Each bedsheet is individually hand printed by skilled artisans, making every piece truly unique.\nPerfect for those searching for handblock printed cotton bedsheets online, this design blends heritage craftsmanship with modern pastel aesthetics\u2014adding calm, freshness, and elegance to your bedroom d\u00e9cor.",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Handcrafted Indian Bedding\nEco-friendly & Sustainable Home Linen\nPastel Botanical Bedroom D\u00e9cor\nTraditional Craft with Modern Elegance",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "Traditional handblock printed floral and bird design with detailed botanical vines and an ornamental border.",
+        "attr_Brand": "Aqua with blush pink & soft green motifs",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "Gentle hand wash or machine wash separately. Use mild detergent. Do not soak or bleach. Dry in shade to maintain natural colours",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_9MZUQEGCSS_2026-02-08_5.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_4WA6OAI9TA_2026-02-08_2.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_FECNLKEXPK_2026-02-08_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_QNYLLEDZ4Y_2026-02-08_3.jpeg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/lWWNIQew_DOL06L604F_2026-02-08_4.jpeg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Aqua Gulbahar Handblock Printed Cotton Bedsheet Set. Colour: Teal Green. Size: 100*108 inches. Product Code: KD-SSK-AQGB-KDB. SKU: 116BS.",
+      "processing_time_brain_s": 0.0008,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "66e4ec3749904860911507171b669e14",
+        "product_code": {
+          "value": "KD-SSK-AQGB-KDB",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "116BS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": "BED",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "USER_PROVIDED",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Teal Green",
+        "size": "100*108 inches",
+        "mrp": "1699",
+        "selling_price": "1299",
+        "cost_price": "600",
+        "packaging_length_cm": "38",
+        "packaging_breadth_cm": "30",
+        "packaging_height_cm": "4",
+        "packaging_weight_kg": "1.2"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "103OTTO",
+      "product_code": "AH-OTTO-BLUE-HS",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "AH-OTTO-BLUE-HS",
+        "Amazon ASIN": "",
+        "Name": "Blue Boho Handwoven Ottoman Stool with Pom-Pom Detailing",
+        "Sku Id": "103OTTO",
+        "Selling Price": "1449",
+        "MRP": "2899",
+        "Cost Price": "720",
+        "Quantity": "17",
+        "Packaging Length (in cm)": "43",
+        "Packaging Breadth (in cm)": "43",
+        "Packaging Height (in cm)": "43",
+        "Packaging Weight (in kg)": "17",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_U2PBTBUHM3_2026-06-18_1.png",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_H89SQFOHHN_2026-06-18_2.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_OJK3METFZM_2026-06-18_3.png",
+        "Image 4": "",
+        "Image 5": "",
+        "Image 6": "",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_improvement__utility",
+        "Size Type": "size",
+        "Size": "16x16 Inches",
+        "Colour": "Blue",
+        "Description": "Bring artisanal charm into your home with the Boho Handwoven Ottoman Stool. Thoughtfully crafted with intricate woven detailing, playful pom-pom accents, and elegant fringe trim, this ottoman effortlessly blends functionality with style. The soothing blue and ivory palette adds a fresh, calming touch to living rooms, bedrooms, reading corners, or cozy lounge spaces.\nSupported by sturdy wooden legs and designed for everyday versatility, it serves as a comfortable footrest, extra seating option, decorative accent piece, or stylish companion to your favourite armchair. Whether your decor leans toward bohemian, coastal, Scandinavian, or modern farmhouse aesthetics, this handcrafted ottoman becomes an instant focal point that elevates any space.\n\nKey Uses\n- Comfortable footrest after a long day\n- Extra seating for guests\n- Accent furniture for living rooms and bedrooms\n- Reading nook companion\n- Decorative styling piece for cozy interiors\n- Ideal for bohemian, coastal, and modern homes\n\nWhat is this ottoman used for?\nThis ottoman can be used as an extra seat, footrest, decorative accent piece, or styling element in living rooms and bedrooms.\n\nWhat style of home decor does it suit?\nIts bohemian-inspired woven texture and blue chevron pattern complement boho, coastal, Scandinavian, and farmhouse interiors.\n\nWhat colour is the ottoman?\nThe ottoman features an elegant ivory white base with sky blue woven geometric detailing.\n\nWhat material look does it have?\nIt showcases a handcrafted woven cotton-texture appearance with decorative pom-poms and fringe accents for a premium artisan look",
+        "Return/Exchange Condition": "2",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "Chevron Geometric Pattern with Textured Dot Weave",
+        "attr_Style": "Bohemian | Coastal | Modern Farmhouse",
+        "attr_Colour Shade Name": "Blue on Ivory Base",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "",
+        "attr_Brand": "",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_U2PBTBUHM3_2026-06-18_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_H89SQFOHHN_2026-06-18_2.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/44unON7l_OJK3METFZM_2026-06-18_3.png"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Blue Boho Handwoven Ottoman Stool with Pom-Pom Detailing. Colour: Blue. Size: 16x16 Inches. Product Code: AH-OTTO-BLUE-HS. SKU: 103OTTO.",
+      "processing_time_brain_s": 0.0007,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "e5b496e96f2746648be111c396f4d6dc",
+        "product_code": {
+          "value": "AH-OTTO-BLUE-HS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "103OTTO",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": "BL",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "USER_PROVIDED",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "size": "16x16 Inches",
+        "mrp": "2899",
+        "selling_price": "1449",
+        "cost_price": "720",
+        "packaging_length_cm": "43",
+        "packaging_breadth_cm": "43",
+        "packaging_height_cm": "43",
+        "packaging_weight_kg": "17"
+      },
+      "simulated_manual_field_count": 8,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "103QD",
+      "product_code": "PETAL-DREAMS-QUILTED-DOHAR-QDB",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "PETAL-DREAMS-QUILTED-DOHAR-QDB",
+        "Amazon ASIN": "",
+        "Name": "Petal Dreams Reversible Quilted Dohar \u2013 Double Bed",
+        "Sku Id": "103QD",
+        "Selling Price": "1249",
+        "MRP": "1899",
+        "Cost Price": "510",
+        "Quantity": "8",
+        "Packaging Length (in cm)": "38",
+        "Packaging Breadth (in cm)": "30",
+        "Packaging Height (in cm)": "6",
+        "Packaging Weight (in kg)": "1.8",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/B75xmCo14yrX_S1RCHPRZVE_2026-08-31_1.png",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/B75xmCo14yrX_I27ZFP0ZPN_2026-08-31_2.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_IPRY6J2AEO_2026-08-31_1.png",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_BONSC9WIFH_2026-08-31_4.png",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_H3QFUYWTBT_2026-08-31_5.png",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_KDDP078YJZ_2026-08-31_6.png",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "",
+        "Size Type": "size",
+        "Size": "90 x 100 Inches",
+        "Colour": "Baby Pink",
+        "Description": "Where delicate blooms meet everyday comfort.\nBring a soft, dreamy charm to your bedroom with Petal Dreams, a beautifully crafted reversible quilted dohar from Aaram Homes.\nThe floral side features delicate white blossoms, graceful botanical branches and fine floral detailing on a soothing blush-pink background. Turn it over and discover a subtle pink-and-white leafy pattern for a softer, more understated look.\nDesigned to give you the freedom to change your bedroom's mood, Petal Dreams offers two beautiful looks in one reversible dohar.\nWhether you're creating a peaceful retreat after a long day or simply refreshing your bedroom d\u00e9cor, its gentle floral palette and quilted texture bring together comfort, elegance and effortless style.\n\nOne dohar. Two designs. A little more beauty in every bedtime.\n\nWhy You'll Love It:\n- Reversible Design \u2014 Two beautiful coordinating patterns in one dohar.\n- Elegant Floral Front \u2014 Delicate blooms and botanical branches create a graceful look.\n- Beautiful Leafy Reverse \u2014 Turn it over for a subtle, minimal botanical aesthetic.\n- Soft Blush-Pink Palette \u2014 Creates a calm, warm and inviting bedroom.\n- Quilted Texture \u2014 Adds a beautiful dimensional texture and refined finish.\n- Double Bed Size \u2014 Designed for double-bed styling.\n- Easy Bedroom Refresh \u2014 Change the look simply by reversing the dohar.",
+        "Return/Exchange Condition": "2",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "6304",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "\u2022 Floral \u2022 Botanical \u2022 Romantic",
+        "attr_Colour Shade Name": "Baby Pink",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Reversible Floral & Botanical",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "",
+        "attr_Brand": "",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "Reversible Quilted Dohar/Comforter",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/B75xmCo14yrX_S1RCHPRZVE_2026-08-31_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/B75xmCo14yrX_I27ZFP0ZPN_2026-08-31_2.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_IPRY6J2AEO_2026-08-31_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_BONSC9WIFH_2026-08-31_4.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_H3QFUYWTBT_2026-08-31_5.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Petal_Dreams_Reversible_Quilted_Dohar___Double_Bed_KDDP078YJZ_2026-08-31_6.png"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Petal Dreams Reversible Quilted Dohar \u2013 Double Bed. Colour: Baby Pink. Size: 90 x 100 Inches. Product Code: PETAL-DREAMS-QUILTED-DOHAR-QDB. SKU: 103QD.",
+      "processing_time_brain_s": 0.0008,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "16be529db8fd45288282f8063d6f898d",
+        "product_code": {
+          "value": "PETAL-DREAMS-QUILTED-DOHAR-QDB",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "103QD",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": "BED",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "USER_PROVIDED",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 25,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Baby Pink",
+        "size": "90 x 100 Inches",
+        "mrp": "1899",
+        "selling_price": "1249",
+        "cost_price": "510",
+        "packaging_length_cm": "38",
+        "packaging_breadth_cm": "30",
+        "packaging_height_cm": "6",
+        "packaging_weight_kg": "1.8"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "104CS",
+      "product_code": "OLIVE-GGNM-CHECK-CS-4PC",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "OLIVE-GGNM-CHECK-CS-4PC",
+        "Amazon ASIN": "",
+        "Name": "Olive Beige Gingham Comforter Set",
+        "Sku Id": "104CS",
+        "Selling Price": "2499",
+        "MRP": "3299",
+        "Cost Price": "900",
+        "Quantity": "9",
+        "Packaging Length (in cm)": "60",
+        "Packaging Breadth (in cm)": "45",
+        "Packaging Height (in cm)": "11",
+        "Packaging Weight (in kg)": "3.8",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_EYKMFP6N69_2026-08-25_1.png",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_55I8Q9QYIN_2026-08-25_2.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_GYFQIJ85PV_2026-08-25_3.png",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_LB23DEKYNY_2026-08-25_4.png",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_HIRQ5JV29U_2026-08-25_5.png",
+        "Image 6": "",
+        "Image 7": "",
+        "Image 8": "",
+        "Image 9": "",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "",
+        "Size Type": "size",
+        "Size": "90 x 100 Inches",
+        "Colour": "Olive",
+        "Description": "Bring a warm, timeless look to your bedroom with this olive beige gingham checkered comforter set. \nFeaturing a neat small-check pattern in soft beige and white, this bedding set creates a cozy yet sophisticated aesthetic that works beautifully with modern, and contemporary interiors. The coordinated gingham pillow covers complete the look for an effortlessly styled bed.\n\nThe classic gingham-inspired check pattern gives the comforter a refined yet relaxed appearance, making it suitable for both everyday use and beautifully styled bedrooms. The coordinated pillow covers continue the same pattern, creating a cohesive and polished look across the bed. The versatile neutral palette makes this beige comforter set easy to pair with solid-coloured cushions, throws and decorative pillows.\nWith its balanced pattern, understated colours and effortlessly stylish appearance, this gingham comforter set is an easy way to refresh your bedroom and create a comfortable, inviting space.\n\n\nReasons You'll Love It:\n- Classic gingham checks for a timeless bedroom look\n- Elegant, versatile styling suited to modern and contemporary bedrooms\n- Coordinated pillow covers create a polished, put-together bed\n- Visually balanced small-check pattern adds character without overwhelming the room\n- Perfect for creating a warm, cozy and inviting bedroom aesthetic",
+        "Return/Exchange Condition": "2",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "Small Gingham Check",
+        "attr_Style": "Modern \u2022 Scandinavian \u2022 Cozy Minimalist",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "Olive Beige & IVory",
+        "attr_Package Contents": "1 Double bedsheet, 2 pillow covers, 1 double bed comforter",
+        "attr_Fabric Type": "160 gsm super soft cotton blend",
+        "attr_Pattern": "",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "",
+        "attr_Colour": "",
+        "attr_Brand": "",
+        "attr_Material": "",
+        "attr_Ideal For": "",
+        "attr_Key Features": "",
+        "attr_Durability": "",
+        "attr_Country of Origin": "",
+        "attr_Set includes": "",
+        "attr_Packaging": "",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_EYKMFP6N69_2026-08-25_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_55I8Q9QYIN_2026-08-25_2.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_GYFQIJ85PV_2026-08-25_3.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_LB23DEKYNY_2026-08-25_4.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Olive_Beige_Gingham_Comforter_Set_HIRQ5JV29U_2026-08-25_5.png"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "D",
+      "scenario_source": "REAL_CSV",
+      "cem_classified_scenario": "D",
+      "brain_input_text": "Add new catalog product: Olive Beige Gingham Comforter Set. Colour: Olive. Size: 90 x 100 Inches. Product Code: OLIVE-GGNM-CHECK-CS-4PC. SKU: 104CS.",
+      "processing_time_brain_s": 0.0007,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "59ff0b2b318246e599fff1333fe7e705",
+        "product_code": {
+          "value": "OLIVE-GGNM-CHECK-CS-4PC",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "104CS",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "D"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 26,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Olive",
+        "size": "90 x 100 Inches",
+        "mrp": "3299",
+        "selling_price": "2499",
+        "cost_price": "900",
+        "packaging_length_cm": "60",
+        "packaging_breadth_cm": "45",
+        "packaging_height_cm": "11",
+        "packaging_weight_kg": "3.8"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    },
+    {
+      "sku_id": "BNCTEST-1",
+      "product_code": "TLS-MP-CB-DBF",
+      "source_csv_name": "shopdeck_sample_catalog.csv",
+      "source_csv_row": {
+        "Product Code": "TLS-MP-CB-DBF",
+        "Amazon ASIN": "",
+        "Name": "Mattress Cover | Protector | 100% Waterproof | Coffee Brown",
+        "Sku Id": "104MP",
+        "Selling Price": "1499",
+        "MRP": "2999",
+        "Cost Price": "700",
+        "Quantity": "2",
+        "Packaging Length (in cm)": "33",
+        "Packaging Breadth (in cm)": "27",
+        "Packaging Height (in cm)": "11",
+        "Packaging Weight (in kg)": "1.3",
+        "GST %": "5",
+        "Image 1": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_7FY4SQ0I5H_2025-10-14_1.jpg",
+        "Image 2": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_ZTJ4DJXR4H_2025-12-24_1.png",
+        "Image 3": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_CB_DBF_1759704932556_p1n7cxjd0ihyyjp.jpg",
+        "Image 4": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_2FDDMPZK2H_2025-10-14_2.jpg",
+        "Image 5": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_FW3SAPD0JT_2025-11-09_1.jpg",
+        "Image 6": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_93NGXV19Z1_2025-11-09_2.jpg",
+        "Image 7": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_6L4PILUPYP_2025-11-09_3.jpg",
+        "Image 8": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_9UW83LFA5M_2025-11-09_4.jpg",
+        "Image 9": "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_E572APKWL5_2025-11-09_5.jpg",
+        "Image 10": "",
+        "Video 1": "",
+        "Video 2": "",
+        "Product Type": "home__home_improvement__utility",
+        "Size Type": "size",
+        "Size": "72x78 + 12\"",
+        "Colour": "Coffee Brown",
+        "Description": "Premium Waterproof Quilted Mattress Protector\nKeep your mattress safe and make your bed look stylish with this elegant Coffee Brown Waterproof Quilted Mattress Protector. Its soft, quilted top adds an extra layer of comfort, while the waterproof backing protects your mattress from spills, stains, dust, and allergens. It\u2019s a perfect blend of comfort, hygiene, and durability for everyday use.\nKey Features:\n- Soft quilted fabric for extra comfort\n- 100% waterproof and dust-resistant protection\n- Breathable material to keep your mattress fresh\n- Deep pockets for a snug, secure fit on all mattresses\n- Super Easy to wash and maintain",
+        "Return/Exchange Condition": "6",
+        "Visibility": "true",
+        "Size Chart": "",
+        "Pickup Address Code": "Panipat_132103_0180d",
+        "HSN Code": "",
+        "Customisation Id": "",
+        "Associated Pixel": "",
+        "attr_Print /Pattern Type": "",
+        "attr_Style": "Fitted style with deep pockets",
+        "attr_Colour Shade Name": "",
+        "attr_Colour Family": "",
+        "attr_Package Contents": "",
+        "attr_Fabric Type": "",
+        "attr_Pattern": "Diamond quilted pattern",
+        "attr_Season": "",
+        "attr_Country_of_Origin": "",
+        "attr_Ideal for": "",
+        "attr_Fabric": "",
+        "attr_Colour Code": "",
+        "attr_Size": "1 Mattress protector: 72x78 + 12\"",
+        "attr_Colour": "Coffee Brown",
+        "attr_Brand": "Aaram Homes",
+        "attr_Material": "Cotton on top and waterproof sheet below",
+        "attr_Ideal For": "Home",
+        "attr_Key Features": "Premium Quality",
+        "attr_Durability": "Built with high-quality, durable materials",
+        "attr_Country of Origin": "India",
+        "attr_Set includes": "1 mattress protector",
+        "attr_Packaging": "Eco-friendly packaging",
+        "attr_Thread Count (TC)": "",
+        "attr_Usage Instructions": "",
+        "attr_Color": "",
+        "attr_Pattern Type": "",
+        "attr_Package contents": "",
+        "attr_Standard Size": "",
+        "attr_Fabric Feel": "",
+        "attr_Features": "",
+        "attr_Additional Feature": "",
+        "attr_Basic Colour": "",
+        "attr_Product Type": "",
+        "attr_Features 1": "",
+        "attr_Features 2": "",
+        "attr_Theme": "",
+        "attr_Work Type": "",
+        "attr_Quantity": "",
+        "attr_Secondary Color": "",
+        "attr_Finish": "",
+        "attr_Design": "",
+        "attr_Wash Care": "",
+        "attr_Bedsheet Dimensions": ""
+      },
+      "image_uris": [
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_7FY4SQ0I5H_2025-10-14_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_ZTJ4DJXR4H_2025-12-24_1.png",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/TLS_MP_CB_DBF_1759704932556_p1n7cxjd0ihyyjp.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_2FDDMPZK2H_2025-10-14_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_FW3SAPD0JT_2025-11-09_1.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_93NGXV19Z1_2025-11-09_2.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_6L4PILUPYP_2025-11-09_3.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_9UW83LFA5M_2025-11-09_4.jpg",
+        "https://s3.ap-south-1.amazonaws.com/nushop-catalogue/68c015dd317e68f10e190e4c/cat_img/Vccfno1A_E572APKWL5_2025-11-09_5.jpg"
+      ],
+      "image_source": "csv",
+      "scenario_intent": "B/C",
+      "scenario_source": "SYNTHETIC_BENCHMARK_ONLY",
+      "cem_classified_scenario": "B",
+      "brain_input_text": "Add new catalog product: Mattress Cover | Protector | 100% Waterproof | Coffee Brown. Colour: Coffee Brown. Size: 72x78 + 12\". Product Code: TLS-MP-CB-DBF. SKU: BNCTEST-1.",
+      "processing_time_brain_s": 0.0007,
+      "draft_before_firewall": "captured_inside_orchestrator",
+      "draft_after_firewall": {
+        "draft_id": "db64945e547840b3934a0d06ddef4134",
+        "product_code": {
+          "value": "TLS-MP-CB-DBF",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_id": {
+          "value": "BNCTEST-1",
+          "provenance": "USER_PROVIDED",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_name": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "description": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "brand": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "hsn_code": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "gst_percentage": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "fabric_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "care_instructions": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "set_composition": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "colour": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_type": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "pack_configuration": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "mrp": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "selling_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "cost_price": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_length_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_breadth_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_height_cm": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "packaging_weight_kg": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "sku_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "product_media_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "size_chart_url": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "video_urls": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "collection_tags": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "lifecycle_state": {
+          "value": null,
+          "provenance": "UNKNOWN_REQUIRES_USER",
+          "candidate_sabaq_reference_id": null
+        },
+        "is_confirmed": false,
+        "cem_classified_scenario": "B"
+      },
+      "field_provenance_map": {
+        "product_code": "USER_PROVIDED",
+        "sku_id": "USER_PROVIDED",
+        "product_name": "UNKNOWN_REQUIRES_USER",
+        "description": "UNKNOWN_REQUIRES_USER",
+        "product_type": "UNKNOWN_REQUIRES_USER",
+        "brand": "UNKNOWN_REQUIRES_USER",
+        "hsn_code": "UNKNOWN_REQUIRES_USER",
+        "gst_percentage": "UNKNOWN_REQUIRES_USER",
+        "fabric_type": "UNKNOWN_REQUIRES_USER",
+        "care_instructions": "UNKNOWN_REQUIRES_USER",
+        "set_composition": "UNKNOWN_REQUIRES_USER",
+        "colour": "UNKNOWN_REQUIRES_USER",
+        "size": "UNKNOWN_REQUIRES_USER",
+        "size_type": "UNKNOWN_REQUIRES_USER",
+        "pack_configuration": "UNKNOWN_REQUIRES_USER",
+        "mrp": "UNKNOWN_REQUIRES_USER",
+        "selling_price": "UNKNOWN_REQUIRES_USER",
+        "cost_price": "UNKNOWN_REQUIRES_USER",
+        "packaging_length_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_breadth_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_height_cm": "UNKNOWN_REQUIRES_USER",
+        "packaging_weight_kg": "UNKNOWN_REQUIRES_USER",
+        "sku_media_urls": "UNKNOWN_REQUIRES_USER",
+        "product_media_urls": "UNKNOWN_REQUIRES_USER",
+        "size_chart_url": "UNKNOWN_REQUIRES_USER",
+        "video_urls": "UNKNOWN_REQUIRES_USER",
+        "collection_tags": "UNKNOWN_REQUIRES_USER",
+        "lifecycle_state": "UNKNOWN_REQUIRES_USER"
+      },
+      "unknown_requires_user_fields": [
+        "product_name",
+        "description",
+        "product_type",
+        "brand",
+        "hsn_code",
+        "gst_percentage",
+        "fabric_type",
+        "care_instructions",
+        "set_composition",
+        "colour",
+        "size",
+        "size_type",
+        "pack_configuration",
+        "mrp",
+        "selling_price",
+        "cost_price",
+        "packaging_length_cm",
+        "packaging_breadth_cm",
+        "packaging_height_cm",
+        "packaging_weight_kg",
+        "sku_media_urls",
+        "product_media_urls",
+        "size_chart_url",
+        "video_urls",
+        "collection_tags",
+        "lifecycle_state"
+      ],
+      "sabaq_reused_fields": [],
+      "ai_proposed_fields": [],
+      "unknown_count": 26,
+      "sabaq_reused_count": 0,
+      "ai_proposed_count": 0,
+      "simulated_operator_inputs": {
+        "colour": "Coffee Brown",
+        "size": "72x78 + 12\"",
+        "mrp": "2999",
+        "selling_price": "1499",
+        "cost_price": "700",
+        "packaging_length_cm": "33",
+        "packaging_breadth_cm": "27",
+        "packaging_height_cm": "11",
+        "packaging_weight_kg": "1.3"
+      },
+      "simulated_manual_field_count": 9,
+      "interaction_timing": "SIMULATED",
+      "turn_count": "SIMULATED",
+      "cem_mutation": "NOT_PERFORMED_IN_DRY_BENCHMARK",
+      "cem_result": "NOT_PERFORMED",
+      "post_generation_corrections": 0
+    }
+  ]
+}

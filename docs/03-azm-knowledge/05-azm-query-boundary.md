@@ -1,7 +1,7 @@
 # Azm Query Boundary
 
 **Document Reference:** `docs/03-azm-knowledge/05-azm-query-boundary.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

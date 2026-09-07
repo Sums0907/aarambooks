@@ -1,7 +1,7 @@
 # Azm Logical Knowledge Model
 
 **Document Reference:** `docs/03-azm-knowledge/02-azm-knowledge-model.md`
-**System Name:** Aaram Zameer (`Azm`)
+**System Name:** AZM
 **Classification:** Foundational Architecture
 
 ---

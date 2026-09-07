@@ -1,0 +1,23 @@
+=========================================
+      NDR ACTION REPORT (SUMMARY)      
+=========================================
+Report ID: ndr_action_report_V1
+Generated At: 2026-09-05T17:42:48.734622+00:00
+Reporting Period: Last 24h
+Total NDRs: 2
+
+--- ACTION QUEUE ---
+AWB: AWB_TEST_1
+Reason: Customer unavailable
+Recommendation: seller_reattempt
+Guidance: Manually perform the recommended seller_reattempt action in the ShopDeck main ecosystem.
+Reasoning: High value order
+----------------------------------------
+AWB: AWB_TEST_2
+Reason: Refused delivery
+Recommendation: courier_dispute
+Guidance: Manually perform the recommended courier_dispute action in the ShopDeck main ecosystem.
+Reasoning: Repeated fake attempts
+----------------------------------------
+
+NDR V1 provides recommendations for manual human execution. No autonomous mutation is performed against the ShopDeck main ecosystem.
