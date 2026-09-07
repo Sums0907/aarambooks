@@ -25,13 +25,13 @@ jobs:
         safety check -r requirements.txt --full-report || true
     - name: Run Tests
       run: |
-        echo "database_url=postgresql://postgres:postgres@localhost:5432/dummy" > .env
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/dummy" >> .env
-        echo "DATABASE_URL_SYNC=postgresql://postgres:postgres@localhost:5432/dummy" >> .env
+        echo "database_url=postgresql+asyncpg://postgres:postgres@localhost:5432/dummy" > .env
+        echo "DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/dummy" >> .env
+        echo "DATABASE_URL_SYNC=postgresql+asyncpg://postgres:postgres@localhost:5432/dummy" >> .env
         echo "SHOPDECK_MCP_URL=http://dummy:8000" >> .env
         echo "SHOPDECK_MCP_TOKEN=dummy" >> .env
         echo "OPENAI_API_KEY=dummy" >> .env
-        pip install pytest pytest-asyncio httpx psycopg2-binary
+        pip install pytest pytest-asyncio httpx psycopg2-binary motor pymongo
         PYTHONPATH=.:business_systems/shopdeck/backend pytest -v
     - name: Build Production Image
       run: |
