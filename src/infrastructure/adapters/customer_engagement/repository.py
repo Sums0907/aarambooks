@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from typing import Dict, Any, Optional, List
 import logging
 import pymongo
@@ -47,6 +47,12 @@ class CustomerEngagementRepository:
         await events.create_index("occurred_at")
         await events.create_index("engagement_id")
         await events.create_index("provider_session_id")
+
+        # Outbound Queue Indexes
+        outbound = db.outbound_writeback_queue
+        await outbound.create_index("result_id", unique=True)
+        await outbound.create_index([("status", pymongo.ASCENDING), ("next_attempt_at", pymongo.ASCENDING)])
+        await outbound.create_index([("status", pymongo.ASCENDING), ("claimed_at", pymongo.ASCENDING)])
 
     async def create_engagement(self, record: CustomerEngagementRecord) -> CustomerEngagementRecord:
         db = await self._get_db()
@@ -279,3 +285,122 @@ class CustomerEngagementRepository:
             },
         )
         return res.modified_count > 0
+
+    async def enqueue_intelligence_writeback(self, payload: Dict[str, Any], engagement_id: str) -> bool:
+        """
+        Idempotently enqueues a pending writeback payload to ShopDeck.
+        If result_id is already enqueued, ignores (via DuplicateKeyError or similar).
+
+        All datetimes are stored as naive UTC to match what MongoDB returns on reads.
+        Raises on non-DuplicateKey Mongo failures so callers can propagate the error.
+        """
+        db = await self._get_db()
+        now = datetime.utcnow()
+        doc = {
+            "result_id": payload["result_id"],
+            "engagement_id": engagement_id,
+            "payload": payload,
+            "status": "PENDING",
+            "attempt_count": 0,
+            "next_attempt_at": now,
+            "claimed_at": None,
+            "claim_token": None,
+            "last_error": None,
+            "created_at": now,
+            "updated_at": now,
+        }
+        try:
+            await db.outbound_writeback_queue.insert_one(doc)
+            return True
+        except DuplicateKeyError:
+            # Duplicate result_id — already enqueued. Idempotent success.
+            return False
+
+    async def claim_pending_writeback(self, claim_token: str, lease_seconds: int = 300) -> Optional[Dict[str, Any]]:
+        """
+        Atomically claims one pending or stale-processing writeback.
+
+        The findOneAndUpdate is the single operation that transitions
+        PENDING → PROCESSING. Two concurrent callers cannot both win because
+        MongoDB's document-level locking ensures only one update_one applies
+        the $set for any given document.
+        """
+        db = await self._get_db()
+        now = datetime.utcnow()
+        # Lease expiry threshold: records claimed before this time are stale.
+        # Use timedelta arithmetic on naive UTC datetime to avoid timezone issues
+        # with timestamp() on non-UTC machines.
+        lease_cutoff = now - timedelta(seconds=lease_seconds)
+        query = {
+            "$or": [
+                {
+                    "status": "PENDING",
+                    "next_attempt_at": {"$lte": now},
+                },
+                {
+                    "status": "PROCESSING",
+                    "claimed_at": {"$lte": lease_cutoff},
+                },
+            ]
+        }
+        update = {
+            "$set": {
+                "status": "PROCESSING",
+                "claimed_at": now,
+                "claim_token": claim_token,
+                "updated_at": now,
+            }
+        }
+        return await db.outbound_writeback_queue.find_one_and_update(
+            query,
+            update,
+            sort=[("next_attempt_at", pymongo.ASCENDING)],
+            return_document=pymongo.ReturnDocument.AFTER,
+        )
+
+
+    async def mark_writeback_success(self, result_id: str, claim_token: str) -> bool:
+        db = await self._get_db()
+        res = await db.outbound_writeback_queue.update_one(
+            {"result_id": result_id, "claim_token": claim_token},
+            {"$set": {"status": "DELIVERED", "updated_at": datetime.utcnow()}}
+        )
+        return res.modified_count > 0
+
+    async def mark_writeback_transient_retry(
+        self, result_id: str, claim_token: str, error_msg: str, next_attempt_at: datetime
+    ) -> bool:
+        db = await self._get_db()
+        # next_attempt_at may arrive tz-aware; strip tzinfo for consistency with MongoDB.
+        if next_attempt_at.tzinfo is not None:
+            next_attempt_at = next_attempt_at.replace(tzinfo=None)
+        res = await db.outbound_writeback_queue.update_one(
+            {"result_id": result_id, "claim_token": claim_token},
+            {
+                "$set": {
+                    "status": "PENDING",
+                    "last_error": error_msg,
+                    "next_attempt_at": next_attempt_at,
+                    "claim_token": None,
+                    "claimed_at": None,
+                    "updated_at": datetime.utcnow(),
+                },
+                "$inc": {"attempt_count": 1},
+            }
+        )
+        return res.modified_count > 0
+
+    async def mark_writeback_dead_letter(self, result_id: str, claim_token: str, error_msg: str) -> bool:
+        db = await self._get_db()
+        res = await db.outbound_writeback_queue.update_one(
+            {"result_id": result_id, "claim_token": claim_token},
+            {
+                "$set": {
+                    "status": "DEAD_LETTER",
+                    "last_error": error_msg,
+                    "updated_at": datetime.utcnow(),
+                }
+            }
+        )
+        return res.modified_count > 0
+

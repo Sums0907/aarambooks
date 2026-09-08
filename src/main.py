@@ -52,19 +52,33 @@ async def lifespan(app: FastAPI):
 
     logging.info("Starting up RabbitMQ connection...")
     # await gateway.connect()
-    
+
+    # Ensure all MongoDB indexes exist through the production path.
+    # create_index is idempotent — safe to call on every boot.
+    try:
+        await engagement_repo.setup_indexes()
+        logging.info("MongoDB indexes verified/created.")
+    except Exception as e:
+        logging.error("Failed to initialize MongoDB indexes (non-fatal): %s", e)
+
     # Start the NDR Queue Consumer
     ndr_poller.start()
     logging.info("Started NDR Queue Poller")
 
+    # Start the Outbound Writeback Worker (separate from ndr_queue_poller)
+    outbound_worker.start()
+    logging.info("Started Outbound Writeback Worker")
+
     yield
 
     # Shutdown
+    logger.info("Shutting down Outbound Writeback Worker...")
+    await outbound_worker.stop()
     logger.info("Shutting down NDR Queue Poller...")
     await ndr_poller.stop()
     logger.info("Shutting down RabbitMQ connection...")
     await gateway.close()
-    
+
     # Cleanup
     await MongoDBManager.disconnect()
 
@@ -269,6 +283,9 @@ comm_engine = CommunicationEngine(repository=comm_repo, reply_parser=reply_parse
 
 from src.workers.ndr_queue_poller import NDRQueuePoller
 ndr_poller = NDRQueuePoller(shopdeck_adapter=shopdeck_cem, ccc_builder=ccc_builder, comm_engine=comm_engine, orchestrator=ndr_orch, claimer_id=f"sa:{settings.brain_client_id}")
+
+from src.workers.outbound_writeback_worker import OutboundWritebackWorker
+outbound_worker = OutboundWritebackWorker(repo=engagement_repo, shopdeck_cem=shopdeck_cem)
 receiver = InboundReceiver(
     query_orchestrator=cq_orch, 
     ndr_orchestrator=ndr_orch,

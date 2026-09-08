@@ -303,8 +303,14 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
     async def submit_intelligence(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         url = urljoin(self.base_url, "/api/v1/ndr/intelligence_results")
         resp = await self._authed_request("POST", url, json=payload)
-        print(resp.text); resp.raise_for_status()
+        if resp.status_code >= 400:
+            import logging as _log
+            _log.getLogger(__name__).debug(
+                "submit_intelligence non-2xx response body: status=%d", resp.status_code
+            )
+        resp.raise_for_status()
         return resp.json()
+
 
 
 class ShopdeckQueueEvidenceMapper:

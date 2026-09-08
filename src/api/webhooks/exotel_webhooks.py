@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Dict, Any, Optional, Tuple
+import asyncio
 import hmac
 import logging
 import uuid
@@ -523,11 +524,15 @@ async def handle_transcript(
                         matched_reattempt_date = None
                         if intent == "RESCHEDULE":
                             from src.intelligence_domains.ndr.reply_parser import extract_matched_reattempt_date
-                            ccc_snapshot = (engagement or {}).get("ccc_snapshot", {}) or {}
+                            # offered_reattempt_date_1/2 live on CustomerConversationProjection,
+                            # which is what the poller now stores as call_context - not on
+                            # ccc_snapshot (the raw CCC, which never had these fields, so this
+                            # lookup previously always returned None regardless of what the
+                            # customer said).
                             matched_reattempt_date = extract_matched_reattempt_date(
                                 raw_transcript,
-                                ccc_snapshot.get("offered_reattempt_date_1"),
-                                ccc_snapshot.get("offered_reattempt_date_2"),
+                                call_context_for_lookup.get("offered_reattempt_date_1"),
+                                call_context_for_lookup.get("offered_reattempt_date_2"),
                             )
                         await repo.record_pending_ndr_outcome(engagement_id, {
                             "queue_item_id": queue_item_id,
@@ -595,12 +600,19 @@ async def handle_insights(
 
 async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngagementRepository) -> None:
     """
-    The one and only place ShopDeck's NDR intelligence_results endpoint gets called.
+    The one and only place NDR intelligence outcomes are enqueued for ShopDeck delivery.
 
-    Reads whatever record_pending_ndr_outcome last wrote for this engagement (i.e. the
-    LATEST decisive transcript turn, not the first - see handle_transcript) and submits it,
-    guarded by the same one-per-engagement claim used previously so a redelivered
-    session-end webhook can't double-submit.
+    Durability invariant (standalone Mongo — no transactions available):
+      CAS claim is atomic. enqueue is idempotent (unique result_id index).
+
+      If enqueue fails with a non-DuplicateKey error after CAS succeeds:
+        → this function re-raises the exception
+        → handle_session_end MUST propagate it (non-200 to Exotel → Exotel retries)
+        → on retry, won_claim=False (CAS already stamped) but we still attempt enqueue
+        → idempotent DuplicateKeyError is swallowed → outcome is durably recorded
+
+      This guarantees: permanently lost outcome only if enqueue fails on EVERY webhook
+      delivery, which is extremely unlikely against a local MongoDB.
     """
     from src.intelligence_domains.ndr.reply_parser import to_shopdeck_vocabulary
 
@@ -608,7 +620,7 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
     pending = (engagement or {}).get("metadata", {}).get("pending_ndr_outcome")
     if not pending:
         logger.info(
-            "No decisive NDR outcome was ever recorded for engagement %s; nothing to submit.",
+            "No decisive NDR outcome recorded for engagement %s — nothing to submit.",
             engagement_id,
         )
         return
@@ -622,12 +634,15 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
 
     won_claim = await repo.claim_intelligence_writeback(engagement_id, result_id)
     if not won_claim:
+        # Duplicate webhook: CAS already stamped in a prior delivery.
+        # Do NOT return — fall through and re-attempt enqueue. The unique result_id
+        # index makes this a safe no-op if the outbox record already exists, and
+        # succeeds if the prior delivery won the CAS but failed before enqueue.
         logger.info(
-            "NDR intelligence writeback already claimed for engagement %s; skipping "
-            "(this session-end webhook was likely redelivered).",
-            engagement_id,
+            "NDR writeback CAS already claimed: engagement_id=%s result_id=%s "
+            "(duplicate webhook) — attempting idempotent re-enqueue.",
+            engagement_id, result_id,
         )
-        return
 
     action_parameters = {}
     matched_reattempt_date = pending.get("matched_reattempt_date")
@@ -649,25 +664,19 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
         "action_parameters": action_parameters,
     }
 
-    # ShopDeck writes authenticate via the Aaram Identity M2M service-token flow
-    # (ShopdeckCemAdapter._get_auth_header -> api-identity.aarambooks.cloud), not a static
-    # bearer token - submit_intelligence() already implements this correctly.
-    from src.main import shopdeck_cem
-
-    try:
-        await shopdeck_cem.submit_intelligence(intelligence_payload)
+    # enqueue_intelligence_writeback raises on non-DuplicateKey Mongo failures.
+    # Callers must NOT swallow that exception — let it propagate so Exotel retries.
+    # Delivery to ShopDeck is handled asynchronously by OutboundWritebackWorker.
+    enqueued = await repo.enqueue_intelligence_writeback(intelligence_payload, engagement_id)
+    if enqueued:
         logger.info(
-            "NDR intelligence writeback ok for engagement %s: state=%s action=%s",
-            engagement_id, conversation_state, recommended_action,
+            "NDR writeback enqueued: engagement_id=%s result_id=%s state=%s action=%s",
+            engagement_id, result_id, conversation_state, recommended_action,
         )
-    except Exception as writeback_err:
-        # Already won the local claim - do not free it back up, that would reopen the exact
-        # race the claim exists to close. Surface loudly: this outcome did not reach
-        # ShopDeck and needs manual attention, not a second automatic attempt.
-        logger.error(
-            "NDR intelligence writeback failed for engagement %s after winning the local "
-            "claim - outcome NOT recorded in ShopDeck, manual review needed: %s payload=%s",
-            engagement_id, writeback_err, intelligence_payload,
+    else:
+        logger.info(
+            "NDR writeback already enqueued (idempotent): engagement_id=%s result_id=%s",
+            engagement_id, result_id,
         )
 
 
@@ -703,7 +712,16 @@ async def handle_session_end(
         try:
             await _submit_pending_ndr_outcome(engagement_id, repo)
         except Exception as e:
-            logger.exception("Submitting pending NDR outcome raised for engagement %s: %s", engagement_id, e)
+            # An enqueue failure after winning the CAS means the outcome is NOT yet
+            # durably recorded. Re-raise so FastAPI returns 500 to Exotel, which will
+            # redeliver session-end. The duplicate-webhook path in
+            # _submit_pending_ndr_outcome handles idempotent re-enqueue on retry.
+            logger.exception(
+                "NDR writeback enqueue failed for engagement %s — returning 500 so Exotel retries: %s",
+                engagement_id, e,
+            )
+            raise
+
 
     req_id = payload.get("request_id") or "test_req_123"
     return {
