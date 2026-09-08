@@ -428,6 +428,16 @@ async def process_ndr_proxy_unit(pool: asyncpg.Pool, client: ShopDeckMCPClient):
                         except Exception as e:
                             logger.warning(f"Brain NDR webhook failed (non-fatal): {e}")
 
+                    # ---------------------------------------------------------
+                    # BUGFIX: Ensure customer_info is also backfilled for these AWBs!
+                    # ---------------------------------------------------------
+                    ci_query = f"SELECT * FROM customer_info WHERE awb_no IN ({in_clause})"
+                    ci_res = client.query_data(ci_query, "customer_info", start_date=proxy_start, end_date=upper_bound.isoformat().replace('+00:00', 'Z'))
+                    ci_rows = ci_res.get("rows", []) if isinstance(ci_res, dict) else []
+                    if ci_rows:
+                        await upsert_records(conn, "customer_info", ci_rows)
+
+
             # Advance explicit NDR proxy checkpoints independently
             await set_checkpoint(conn, "ndr_proxy_order_line_items", upper_bound)
             await set_checkpoint(conn, "ndr_proxy_ndr_action_log", upper_bound)
