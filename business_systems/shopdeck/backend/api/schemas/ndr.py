@@ -34,6 +34,7 @@ class NDRShipmentContext(BaseModel):
     customer_id: str = Field(..., description="Customer unique identifier")
     customer_name: Optional[str] = Field(None, description="Recipient customer name")
     customer_number: Optional[str] = Field(None, description="Customer phone number from customer_info — authoritative contact for outreach")
+    drop_pincode: Optional[str] = Field(None, description="Delivery destination pincode from customer_info — authoritative for the same-pincode address-change rule. The parcel has already reached this pincode's courier distribution point; any customer-stated address change must match this pincode exactly or it cannot be actioned.")
     payment_mode: str = Field(..., description="Payment mode (cod, prepaid)")
     pickup_time: Optional[datetime] = Field(None, description="Time the parcel was picked up from warehouse")
     latest_ndr_time: Optional[datetime] = Field(None, description="Timestamp of the most recent delivery failure scan")

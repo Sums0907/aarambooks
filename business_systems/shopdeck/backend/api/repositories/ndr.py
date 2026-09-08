@@ -21,11 +21,11 @@ class NDRRepository:
         """Fetch the current summary state of a shipment experiencing an NDR."""
         query = """
             SELECT DISTINCT ON (snr.awb_no)
-                snr.awb_no, snr.order_status, snr.courier_partner, snr.customer_id, snr.customer_name, 
-                snr.payment_mode, snr.pickup_time, snr.latest_ndr_time, snr.latest_ndr_reason, 
-                snr.latest_ofd_time, snr.delivery_time, snr.ndr_count, snr.ofd_count, 
+                snr.awb_no, snr.order_status, snr.courier_partner, snr.customer_id, snr.customer_name,
+                snr.payment_mode, snr.pickup_time, snr.latest_ndr_time, snr.latest_ndr_reason,
+                snr.latest_ofd_time, snr.delivery_time, snr.ndr_count, snr.ofd_count,
                 snr.seller_actions, snr.ndr_status,
-                ci.customer_number
+                ci.customer_number, ci.drop_pincode
             FROM shipment_ndr_reports snr
             LEFT JOIN customer_info ci ON ci.awb_no = snr.awb_no
             WHERE snr.awb_no = $1

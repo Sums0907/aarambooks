@@ -117,6 +117,10 @@ async def update_queue_status(
 
         # Build extra_fields for engagement/call updates
         extra: Dict[str, Any] = {}
+        if request.status == "intelligence_no_action":
+            extra["last_failure_class"] = request.failure_class or "intelligence_no_action"
+            extra["last_failure_reason"] = request.failure_reason or "No action recommended by NDR intelligence"
+
         if request.status == "call_dispatched" and request.call_sid:
             # Update engagement with call_sid
             if request.engagement_id:

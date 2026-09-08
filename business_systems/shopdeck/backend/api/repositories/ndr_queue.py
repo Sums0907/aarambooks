@@ -12,6 +12,7 @@ VALID_STATUSES = frozenset({
     "eligible", "claimed", "engagement_registered", "call_dispatched",
     "call_completed", "intelligence_pending", "intelligence_received",
     "action_ready", "failed_retryable", "permanently_failed",
+    "intelligence_no_action",
 })
 
 BUSINESS_FAILURE_CLASSES = frozenset({
@@ -191,6 +192,16 @@ class NDRQueueRepository:
         "intelligence_pending":  ["call_completed"],
         # intelligence_received and action_ready are set ONLY by ShopDeck internally
         "failed_retryable":      [
+            "claimed", "engagement_registered", "call_dispatched",
+            "call_completed", "intelligence_pending"
+        ],
+        # Terminal, non-retry disposition: Brain's intelligence layer determined this
+        # item needs no further calling (already resolved, policy-blocked, insufficient
+        # evidence, or an intelligence-pipeline failure - the specific reason is recorded
+        # in last_failure_class/last_failure_reason, not encoded in this status itself).
+        # Deliberately NOT reachable from claim_next_eligible()'s claimable set, so it is
+        # never silently retried the way failed_retryable would be.
+        "intelligence_no_action": [
             "claimed", "engagement_registered", "call_dispatched",
             "call_completed", "intelligence_pending"
         ],
