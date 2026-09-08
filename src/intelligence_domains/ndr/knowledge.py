@@ -192,6 +192,7 @@ class NDRStrategyEngine:
                 action_type="courier_dispute",
                 action_category=ActionCategory.SUGGESTED_RESOLUTION,
                 parameters={"awb_no": context.awb_no, "dispute_reason": "UNVISITED_DOORSTEP_SKIP"},
+                execution_intent=ExecutionIntent(intent_type="CUSTOMER_OUTREACH", channel=ExecutionChannel.VOICE),
                 justification="Recommending carrier dispute and priority reattempt.",
                 customer_message="We noticed an issue with your delivery attempt. Could you confirm whether someone was available at the address?",
                 requires_human_approval=False
@@ -213,6 +214,7 @@ class NDRStrategyEngine:
                 action_type="address_enrichment_request",
                 action_category=ActionCategory.AUTOMATED_RESPONSE,
                 parameters={"awb_no": context.awb_no, "enrichment_type": "LANDMARK_REQUIRED"},
+                execution_intent=ExecutionIntent(intent_type="CUSTOMER_OUTREACH", channel=ExecutionChannel.VOICE),
                 justification="Requesting customer landmark to ensure successful doorstep routing.",
                 customer_message="Your courier could not locate your address. Please provide a nearby landmark.",
                 requires_human_approval=False
@@ -234,6 +236,7 @@ class NDRStrategyEngine:
                 action_type="confirm_intent_to_receive",
                 action_category=ActionCategory.RECOMMENDATION,
                 parameters={"awb_no": context.awb_no},
+                execution_intent=ExecutionIntent(intent_type="CUSTOMER_OUTREACH", channel=ExecutionChannel.VOICE),
                 justification="Asking the customer to confirm their intent to receive the order.",
                 customer_message="We noticed your order delivery was not completed. Would you still like us to deliver this order?",
                 requires_human_approval=False
