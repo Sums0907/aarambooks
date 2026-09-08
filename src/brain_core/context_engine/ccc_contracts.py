@@ -83,3 +83,17 @@ class CustomerConversationProjection(BaseModel):
     domain_constraints: List[str]
     core_safety_constraints: List[str]
     allowed_actions: List[str]
+
+    # Mission, flattened to scalars on purpose.
+    # The Exotel session_constants payload is a flat string->string map and str()s whatever it
+    # is handed, so a nested dict here would reach the LLM as a Python-repr blob. Every field
+    # below must also be added to the allow-list loop in src/api/webhooks/exotel_webhooks.py
+    # or it will silently never reach the call.
+    mission_conversation_mission: Optional[str] = None
+    mission_why_this_call: Optional[str] = None
+    mission_primary_objective: Optional[str] = None
+    mission_success_condition: Optional[str] = None
+    mission_initial_state: Optional[str] = None
+    mission_allowed_next_states: Optional[str] = None
+    mission_conversation_priority: Optional[str] = None
+    mission_return_to_mission: Optional[str] = None

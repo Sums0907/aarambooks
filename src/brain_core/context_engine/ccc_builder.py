@@ -169,6 +169,8 @@ class CustomerConversationContextBuilder:
             "Never claim an action has been completed (e.g. rescheduled, cancelled) without explicit execution confirmation from the authorized system."
         ]
 
+        mission = ccc.directive.mission
+
         return CustomerConversationProjection(
             customer_name=ccc.customer_profile.name,
             customer_phone=ccc.customer_profile.phone,
@@ -198,5 +200,15 @@ class CustomerConversationContextBuilder:
             context_summary=ccc.directive.context_summary,
             domain_constraints=ccc.directive.constraints,
             core_safety_constraints=CORE_SAFETY_POLICY,
-            allowed_actions=ccc.directive.allowed_actions
+            # Single authority: the mission's list wins when a mission is attached, so only
+            # one allowed-actions list ever reaches the conversational layer.
+            allowed_actions=ccc.directive.effective_allowed_actions,
+            mission_conversation_mission=mission.conversation_mission if mission else None,
+            mission_why_this_call=mission.why_this_call if mission else None,
+            mission_primary_objective=mission.primary_objective if mission else None,
+            mission_success_condition=mission.success_condition if mission else None,
+            mission_initial_state=mission.initial_state if mission else None,
+            mission_allowed_next_states=", ".join(mission.allowed_next_states) if mission else None,
+            mission_conversation_priority=mission.conversation_priority if mission else None,
+            mission_return_to_mission=mission.return_to_mission if mission else None,
         )
