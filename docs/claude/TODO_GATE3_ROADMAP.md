@@ -25,27 +25,61 @@ ones are untracked, all sitting only in the working tree.
 
 ---
 
-## Phase 1 — fix what's confirmed broken in the console prompt itself
+## Phase 1 — fix what's confirmed broken in the console prompt itself — DONE 2026-09-08
 
 These are grounded in the actual pasted console text, not guesses. All console-side; nothing
 here is a code change in this repo.
 
-- [ ] **Remove every "Sunehri" reference from the console prompt**, replacing with "Priya"
+- [x] **Remove every "Sunehri" reference from the console prompt**, replacing with "Priya"
       consistently - including the literal suggested opening line
       ("नमस्ते, मैं सुनेहरी..." → "...मैं प्रिया..."). Confirmed root cause of the
       self-identification mismatch: the model is handed a line containing "Sunehri" as
-      example text to actually say.
-- [ ] **Sync the "STRICT INSTRUCTIONS" framing into the console prompt.** Confirmed missing:
-      the deployed text has no section telling the model that dynamically-injected
+      example text to actually say. DONE: the full corrected `bot_persona.txt` (no Sunehri
+      anywhere) was pasted into the console's Identity block, replacing whatever was there
+      before, and Save was clicked.
+- [x] **Sync the "STRICT INSTRUCTIONS" framing into the console prompt.** Confirmed missing:
+      the deployed text had no section telling the model that dynamically-injected
       `instruction_*` fields (like `instruction_lookup_rule`, `instruction_no_stalling`) are
-      binding rules. `docs/voicebot/bot_persona.txt` already has this section (added by the
-      crashed Gemini session, still uncommitted in this repo - commit it in Phase 0 first,
-      then copy it into the console).
-- [ ] **Confirm what LLM/ASR the console bot is actually configured to run.** This has been
-      an open question since the first physical call. It determines whether
-      `tests/test_ndr_behavioral_scenarios.py` (currently testing `local-qwen`) is testing
-      anything relevant to what a real customer hears. If it's a different model, treat that
-      test's 12/13 result as answering a different question than it looks like it answers.
+      binding rules. DONE: carried in automatically by the same full-file Identity paste
+      above, since `bot_persona.txt` contains this section (committed to this repo in
+      `65ee876`).
+- [x] **Fixed the separate "Greeting Message" field** (found during this phase, not on the
+      original list): it held a static, English, pushy line
+      ("Would you like to confirm receipt or cancel your order?") that skipped straight to a
+      binary decision with no consent step and no Hindi language-choice ask - exactly the
+      anti-pattern the whole redesign targets. Replaced with the Hindi language-choice
+      opening from `bot_persona.txt:125`. Open question for Phase 6: real Call 2 evidence
+      suggests this field (and even the webhook's own dynamic `greeting_message.text`) may
+      not be what's literally spoken - the model may generate its own opening from Identity
+      regardless. Verify on the next real call which source the actual opening line matches.
+- [x] **Confirm what LLM/ASR the console bot is actually configured to run.** CONFIRMED
+      2026-09-08 via Configuration tab screenshot: LLM is `Gemma4-Gateway-Exotel` (Google's
+      Gemma family, gatewayed by Exotel - NOT `local-qwen`, which is what
+      `tests/test_ndr_behavioral_scenarios.py` actually tests against). STT is
+      `Smallest AI · Pulse` (config preset `Exotel's Smallest`). Consequence: the behavioral
+      harness's 12/13 result answers a question about a different model than the one talking
+      to real customers - it needs to be re-run against the real model (if the console
+      supports pointing an offline harness at it) or explicitly retired as non-evidence.
+      Working hypothesis, not yet proven: Gemma is a smaller open-weight model, plausibly
+      weaker than a frontier model at obeying the long, dense STRICT INSTRUCTIONS block under
+      real conversational pressure - a real, testable explanation for the pushy/narrating
+      behavior seen on both live calls, independent of whatever the prompt text says.
+- [x] **Checked the Configuration tab's "Specialization Prompts."** Both are generic Exotel
+      stock templates, not yet customized for Aaram Homes/Priya - unclear whether `0/1` means
+      inactive or "unconfigured default is live"; check for an enable/disable toggle before
+      relying on either.
+      - `NumberCapturing`: TTS **output formatting only** (how to speak phone numbers, IDs,
+        currency amounts aloud digit-by-digit vs. naturally). Does NOT extract dates/numbers
+        from customer speech - Phase 2's date-extraction gap is still completely unbuilt,
+        on both the Exotel side and in `reply_parser.py`. Unrelated to the Call 1 fabricated
+        COD amount (₹2500 vs real ₹799) - that was hallucinated data, which this module
+        cannot fix since it only formats numbers already known to be correct.
+      - `LanguageSwitching`: conflicts with `bot_persona.txt` on one point - its example
+        ("Sure, I will continue in English now") is exactly the announce-the-switch phrasing
+        `bot_persona.txt` explicitly bans ("Do NOT say: 'I'll continue in Hindi.' Simply
+        continue naturally."). If this module is actually live, either disable it (Identity
+        already covers language switching more precisely for this use case) or rewrite its
+        confirmation example to match the "switch silently" rule.
 
 ---
 
@@ -147,6 +181,41 @@ here is a code change in this repo.
       (and its duplicate under `docs/09-decisions/`) to reflect reality - and only if every
       box in Phase 6 and this phase is genuinely true. That document has already recommended
       "YES" once while its own listed prerequisite was unmet; don't repeat that.
+
+---
+
+## Architecture decision, 2026-09-08 — Brain must never hold ShopDeck's Postgres credential
+
+Stated by the user as the governing principle: **AaramIdentity decides whether Brain may call
+ShopDeck BS; ShopDeck BS decides what that API call can do and uses its own database credential
+to reach PostgreSQL. Brain should never need ShopDeck's PostgreSQL user.** Any Brain-side code
+connecting directly to `shopdeck_bs_prod` with the `postgres` superuser credential (found in
+`business_systems/shopdeck/.env`) violates this - it bypasses AaramIdentity's authorization and
+ShopDeck BS's own API-level permission checks (`SHOPDECK_VIEW`/`SHOPDECK_EDIT` in
+`business_systems/shopdeck/backend/api/auth.py`) entirely, going straight to the database engine.
+
+- [x] **Ten dead, unreferenced root-level debug scripts removed** (`test_e2e_cert2.py`,
+      `query_real_awb.py`, `test_db.py`, `db_audit.py`, `db_cert.py`, `dump_transcript.py`,
+      `check_ndrs.py`, `test_e2e_cert.py`, `copy_db.py`, `query_real_awb2.py`) - all connected
+      directly to ShopDeck's Postgres with the superuser credential, none referenced by any
+      other code, served no ongoing purpose.
+- [x] **Explicit, deliberate exception, by user decision:** the four certification scripts in
+      `scripts/` (`certify_gate2.py`, `certify_gate3_writeback.py`, `inspect_debris.py`,
+      `teardown_test_debris.py`) keep their direct Postgres connections as-is, untouched. These
+      are pre-deployment verification/ops tooling, not production runtime code - they seed and
+      inspect synthetic test data that ShopDeck's business API was never designed to expose
+      (there is no "create a fake test order" endpoint, nor should there be one in production).
+      User's explicit call: this is a narrow, named, visible exception to the principle above,
+      not a silent one - do not extend this pattern to any new script without the same
+      deliberate sign-off, and do not treat this note as license to add more direct-DB scripts.
+- [ ] **Still open:** any future need for ShopDeck-owned data that Brain's production code
+      (not test tooling) requires - e.g. the courier/attempt/RTO timing data from
+      `ndr_action_log` that motivated this whole investigation - must be served by a real
+      ShopDeck BS API endpoint (using ShopDeck's own internal DB credential internally, gated
+      by AaramIdentity like every other cross-service call), never by handing Brain a database
+      credential of any kind, scoped or not. The one-off RTO-timing analysis itself should be
+      run by whoever operates ShopDeck's own environment directly, with only the resulting
+      numbers - not database access - handed back to Brain/the user.
 
 ---
 
