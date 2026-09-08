@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from src.brain_core.action_engine.contracts import ActionRequest, ConversationalDirective
 from src.brain_core.context_engine.ccc_contracts import (
@@ -11,6 +12,31 @@ from src.brain_core.context_engine.ccc_contracts import (
 from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessRealityStatus
 from src.shared.rabta_interfaces import ContextExecutionAdapter
 from types import SimpleNamespace
+
+
+def _summarize_action_history(action_history: Optional[list]) -> Optional[str]:
+    """
+    Renders ShopDeck's action_history (calls, SMS, WhatsApp attempts and their responses -
+    see NDRActionHistory in business_systems/shopdeck's ndr schema) into a short, flat
+    summary line so Priya knows what outreach has already happened and how the customer
+    responded, instead of starting the conversation with no memory of it. Kept short and
+    factual - never invents a response that isn't in the data.
+    """
+    if not action_history:
+        return "No prior outreach recorded for this order."
+    lines = []
+    for entry in action_history:
+        action_type = entry.get("action_type", "unknown_action")
+        response_status = entry.get("response_status")
+        part = f"{action_type} -> {response_status}" if response_status else f"{action_type} -> no response recorded"
+        message_text = entry.get("message_text")
+        if message_text:
+            part += f" (message: \"{message_text}\")"
+        if entry.get("is_priority_escalate"):
+            part += " [escalated]"
+        lines.append(part)
+    return "; ".join(lines)
+
 
 class CustomerConversationContextBuilder:
     """
@@ -69,7 +95,9 @@ class CustomerConversationContextBuilder:
             collectable_amount=float(evidence.get("cod_amount") or 0.0),
             payment_mode=evidence.get("payment_mode", "UNKNOWN"),
             courier_partner=evidence.get("courier_partner"),
-            past_delivery_attempts=evidence.get("ndr_count")
+            past_delivery_attempts=evidence.get("ndr_count"),
+            destination_pincode=evidence.get("drop_pincode"),
+            prior_communication_summary=_summarize_action_history(evidence.get("action_history")),
         )
         
         # 3. Hydrate Product Context
@@ -90,7 +118,9 @@ class CustomerConversationContextBuilder:
                 actual_item_price=actual_item_price,
                 order_quantity=order_quantity,
                 courier_partner=order_ctx.courier_partner,
-                past_delivery_attempts=order_ctx.past_delivery_attempts
+                past_delivery_attempts=order_ctx.past_delivery_attempts,
+                destination_pincode=order_ctx.destination_pincode,
+                prior_communication_summary=order_ctx.prior_communication_summary,
             )
             
             product_description = None
@@ -171,6 +201,32 @@ class CustomerConversationContextBuilder:
 
         mission = ccc.directive.mission
 
+        # Reschedule window is policy, not code - read from NDR-domain config, keyed by
+        # attempt number, rather than hardcoding day counts here. A 0-day window (e.g. the
+        # 3rd attempt) means no reattempt date is offered at all.
+        from src.intelligence_domains.ndr.config import ndr_settings
+        attempt_count = ccc.order_facts.past_delivery_attempts or 1
+        window_days = ndr_settings.reschedule_window_days.get(str(attempt_count), 2)
+        offered_date_1 = (datetime.now() + timedelta(days=1)).strftime("%A (%d-%m-%Y)") if window_days >= 1 else None
+        offered_date_2 = (datetime.now() + timedelta(days=2)).strftime("%A (%d-%m-%Y)") if window_days >= 2 else None
+
+        # By user decision: from the 2nd failed attempt onward, recording why prior
+        # deliveries failed (in the customer's own words) becomes a primary objective, not
+        # an optional aside. Never set on the 1st attempt (nothing prior to review), and
+        # moot on the 3rd+ since no call is dispatched for those per the risk engine's
+        # policy_allows_autonomous_action check.
+        diagnostic_priority_instruction = None
+        if (ccc.order_facts.past_delivery_attempts or 0) >= 2:
+            diagnostic_priority_instruction = (
+                "This is not the first delivery attempt. Before discussing anything else, "
+                "ask the customer directly why the earlier delivery attempt(s) did not "
+                "succeed, in their own words, and make sure that reason is clearly stated "
+                "in the conversation - this is a primary objective of this call, not a "
+                "secondary detail. prior_communication_summary shows what was already "
+                "attempted/recorded; use it to ask a specific, informed question rather "
+                "than a generic one."
+            )
+
         return CustomerConversationProjection(
             customer_name=ccc.customer_profile.name,
             customer_phone=ccc.customer_profile.phone,
@@ -181,6 +237,11 @@ class CustomerConversationContextBuilder:
             order_quantity=ccc.order_facts.order_quantity,
             courier_partner=ccc.order_facts.courier_partner,
             past_delivery_attempts=ccc.order_facts.past_delivery_attempts,
+            destination_pincode=ccc.order_facts.destination_pincode,
+            prior_communication_summary=ccc.order_facts.prior_communication_summary,
+            offered_reattempt_date_1=offered_date_1,
+            offered_reattempt_date_2=offered_date_2,
+            diagnostic_priority_instruction=diagnostic_priority_instruction,
             product_name=ccc.product_context.product_name,
             product_description=ccc.product_context.product_description,
             product_code=ccc.product_context.product_code,

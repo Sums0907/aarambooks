@@ -16,6 +16,14 @@ class OrderContext(BaseModel):
     order_quantity: Optional[int] = None
     courier_partner: Optional[str] = None
     past_delivery_attempts: Optional[int] = None
+    # Delivery destination pincode - the parcel has already reached this pincode's courier
+    # distribution point. Any customer-requested address change is only actionable if it
+    # stays within this exact pincode.
+    destination_pincode: Optional[str] = None
+    # Human-readable summary of prior outreach (calls, SMS, WhatsApp) from ShopDeck's
+    # action_history, so Priya knows what's already been tried and how the customer
+    # responded (or didn't), rather than starting the conversation with no memory of it.
+    prior_communication_summary: Optional[str] = None
 
 class ProductContext(BaseModel):
     model_config = ConfigDict(frozen=True, extra='forbid')
@@ -61,7 +69,17 @@ class CustomerConversationProjection(BaseModel):
     order_quantity: Optional[int] = None
     courier_partner: Optional[str] = None
     past_delivery_attempts: Optional[int] = None
-    
+    destination_pincode: Optional[str] = None
+    prior_communication_summary: Optional[str] = None
+    offered_reattempt_date_1: Optional[str] = None
+    offered_reattempt_date_2: Optional[str] = None
+    # Set only from the 2nd failed attempt onward (never on the 1st - there is nothing
+    # prior to review yet, and the 3rd+ attempt never dispatches a call at all per policy).
+    # By user decision: from the 2nd attempt, recording WHY prior deliveries failed, in the
+    # customer's own words, becomes a primary objective for intelligence purposes - not an
+    # optional aside to the reschedule ask.
+    diagnostic_priority_instruction: Optional[str] = None
+
     product_name: Optional[str] = None
     product_description: Optional[str] = None
     product_code: Optional[str] = None

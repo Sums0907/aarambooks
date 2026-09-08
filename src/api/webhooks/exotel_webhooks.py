@@ -225,6 +225,13 @@ def build_session_constants(
         "size", "color", "material", "features", "return_exchange_condition", "attr_style",
         "attr_pattern", "attr_package_contents", "mrp",
         "catalog_selling_price", "actual_item_price", "collectable_amount", "order_quantity",
+        # NDR-specific context. courier_partner is deliberately NOT in this list - Priya
+        # must never name the courier (see bot_persona.txt's NO COURIER OR LOGISTICS
+        # LEAKAGE rule) - so it is intentionally withheld even though it is available on
+        # the projection for any future internal-only use.
+        "past_delivery_attempts", "destination_pincode", "prior_communication_summary",
+        "offered_reattempt_date_1", "offered_reattempt_date_2",
+        "diagnostic_priority_instruction",
         # Conversation mission (see src/intelligence_domains/ndr/mission_factory.py)
         "mission_conversation_mission", "mission_why_this_call", "mission_primary_objective",
         "mission_success_condition", "mission_initial_state", "mission_allowed_next_states",
@@ -246,6 +253,9 @@ def build_session_constants(
     session_constants["instruction_mission_retention"] = "You called for the reason in mission_why_this_call. Answering the customer's question NEVER changes that reason. After you answer, acknowledge their question and return to the delivery topic in the same turn."
     session_constants["instruction_no_filler_loop"] = "Never ask a generic 'is there anything else I can help you with'. If the delivery matter is unresolved, return to it. If it is resolved, close the call politely."
     session_constants["instruction_not_pushy"] = "Do not ask for a delivery date until the customer has responded to the reason for the call and you understand their constraints. Never repeat a request the customer has already declined. The customer may decline entirely, and that is an acceptable outcome."
+    session_constants["instruction_reattempt_dates"] = "If offered_reattempt_date_1 and offered_reattempt_date_2 are both present, they are the ONLY two dates you may offer for redelivery - this matches ShopDeck's real operational policy. Never propose, calculate, or accept any other date. If the customer asks for a different date, explain that only these two dates can be offered. If neither date is present in this context, no reschedule date can be offered at all for this call - do not invent one."
+    session_constants["instruction_pincode_lock"] = "The parcel has already reached the courier's distribution point for destination_pincode. If the customer requests an address change, you may only accept it if they confirm the new address is within the SAME pincode. If they state a different pincode, do not accept or confirm the change - explain that the courier cannot redeliver outside the current pincode for this attempt."
+    session_constants["instruction_prior_communication"] = "prior_communication_summary lists prior outreach attempts (calls, SMS, WhatsApp) and how the customer responded, if any. Use it to avoid repeating a question already answered, and to avoid asking the customer to repeat information they already gave in an earlier attempt."
     return session_constants
 
 
@@ -510,12 +520,22 @@ async def handle_transcript(
                             engagement_id, queue_item_id, awb_no,
                         )
                     else:
+                        matched_reattempt_date = None
+                        if intent == "RESCHEDULE":
+                            from src.intelligence_domains.ndr.reply_parser import extract_matched_reattempt_date
+                            ccc_snapshot = (engagement or {}).get("ccc_snapshot", {}) or {}
+                            matched_reattempt_date = extract_matched_reattempt_date(
+                                raw_transcript,
+                                ccc_snapshot.get("offered_reattempt_date_1"),
+                                ccc_snapshot.get("offered_reattempt_date_2"),
+                            )
                         await repo.record_pending_ndr_outcome(engagement_id, {
                             "queue_item_id": queue_item_id,
                             "awb_no": awb_no,
                             "intent": intent,
                             "conversation_state": conversation_state,
                             "raw_transcript": raw_transcript,
+                            "matched_reattempt_date": matched_reattempt_date,
                         })
                         logger.info(
                             "Recorded pending NDR outcome for engagement %s: state=%s "
@@ -609,6 +629,11 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
         )
         return
 
+    action_parameters = {}
+    matched_reattempt_date = pending.get("matched_reattempt_date")
+    if matched_reattempt_date:
+        action_parameters["reschedule_date"] = matched_reattempt_date
+
     intelligence_payload = {
         "result_id": result_id,
         "queue_item_id": pending["queue_item_id"],
@@ -621,6 +646,7 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
         "provenance": "brain.ndr.transcript_heuristic",
         "reasoning": f"Heuristic classification of final transcript turn: {intent}",
         "submitted_by": "brain_core_rabta",
+        "action_parameters": action_parameters,
     }
 
     # ShopDeck writes authenticate via the Aaram Identity M2M service-token flow
