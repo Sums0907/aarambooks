@@ -72,7 +72,23 @@ To ensure the system remains resilient under highly concurrent, distributed load
 *   **Problem:** `asyncpg` combined with Python dictionaries natively produces `asyncpg.exceptions.DataError` or `schema mismatches` when inserting into `JSONB` columns natively depending on the pool encoding config.
 *   **Solution:** All JSON inserts inside the repository are safely passed through `json.dumps()` explicitly. On the read path (e.g., in `get_action_ready`), stringified JSON fetched from the DB is safely parsed via `json.loads()` before being injected into the Pydantic response models.
 
-## 4. Final Deployment Topology
+## 4. Aaram Brain Evolution Integration (Outbound Queues & Concurrent Polling)
+
+To support the Aaram Brain's transition from synchronous webhooks to a high-throughput, fault-tolerant asynchronous Outbound Writeback Queue, the ShopDeck boundary was overhauled to guarantee mathematical safety under process-local bounded concurrency.
+
+### 4.1 Concurrent Dispatch Orchestration
+*   **The Problem:** The Brain's `NDRQueuePoller` was upgraded to use an `asyncio.Semaphore` to process up to 5 concurrent NDR claims simultaneously.
+*   **The ShopDeck Guarantee:** ShopDeck mathematically guarantees safe concurrent leasing without race conditions. The `claim_next_eligible` query leverages `FOR UPDATE OF q SKIP LOCKED` within an `async with conn.transaction()` block. If 5 concurrent POST requests hit the `/claim` endpoint in the exact same millisecond, PostgreSQL locks the top eligible row for the first request and forces the other 4 connections to gracefully skip the locked row and claim the subsequent items.
+
+### 4.2 Outbound Writeback Idempotency (Zero Data Loss)
+*   **The Problem:** The Brain now persists intelligence payloads to a local MongoDB `Outbox` and uses an asynchronous `OutboundWritebackWorker` to guarantee delivery to ShopDeck. This worker may retry payloads multiple times during network failures.
+*   **The ShopDeck Guarantee:** The `/intelligence_results` endpoint uses the Brain-assigned `result_id` as a strict idempotency key. The `persist_intelligence_atomic` repository method checks for duplicate `result_id`s. If found, it validates that all immutable fields match exactly. Instead of throwing a 409 Conflict, it safely swallows the duplicate and returns `{"status": "duplicate"}`, which the router translates into an HTTP 200 OK. This gracefully acknowledges the Brain's retry and allows the Outbox to mark the payload as delivered.
+
+### 4.3 PBAC M2M Authentication Boundary
+*   **The Problem:** External Brain nodes require mathematically verifiable authorization to mutate ShopDeck state.
+*   **The ShopDeck Guarantee:** All integration endpoints (`/claim`, `/{queue_item_id}/status`, and `/intelligence_results`) are heavily fortified behind `get_current_user` and `get_current_user_edit` dependencies. The identity of the Brain is verified via RS256 JWT tokens. Furthermore, the `claimer_id` extracted from the token's `sub` claim is strictly validated against `row["claimed_by"]` during any state transition, ensuring a malicious or misconfigured node cannot hijack another node's leased queue item.
+
+## 5. Final Deployment Topology
 
 The final deployment ensures all communication runs through proper service channels. 
 *   The `docker-compose.prod.yml` securely injects the `IDENTITY_API_URL`.
