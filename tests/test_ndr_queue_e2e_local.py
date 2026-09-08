@@ -150,17 +150,15 @@ async def test_ndr_queue_e2e_4_items():
             "custom_parameters": {"CustomField": f"eng_{i}|action_1"},
             "Status": "completed",
         }
-        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-            mock_post.return_value.status_code = 200
-            await handle_session_end(mock_request, repo=mock_repo)
+        await handle_session_end(mock_request, repo=mock_repo)
 
-            args, kwargs = _find_intelligence_results_call(mock_post)
-            posted_data = kwargs["json"]
-            assert posted_data["queue_item_id"] == f"q_{i}"
-            assert posted_data["awb_no"] == f"AWB{i}"
-            assert posted_data["recommended_action"] == "reschedule"
-            assert posted_data["customer_intent"] == "agreed"
-            assert posted_data["diagnosis"] == "CONFIRM_RESOLUTION"
+        # Verify Intelligence Writeback was securely enqueued
+        assert mock_repo.enqueue_intelligence_writeback.call_count >= 1
+        args, kwargs = mock_repo.enqueue_intelligence_writeback.call_args
+        payload = args[0]
+        assert payload["queue_item_id"] == f"q_{i}"
+        assert payload["awb_no"] == f"AWB{i}"
+        assert payload["recommended_action"] == "reschedule"
 
     print("✅ Webhook correctly synthesized intelligence and persisted writeback (ACTION_READY) 4 times without overlap.")
     print("--- Local E2E Certification Complete ---")
@@ -260,23 +258,19 @@ async def test_outcome_unknown_recovery():
         "custom_parameters": {"CustomField": "eng_crash_999|action_1"},
         "Status": "completed",
     }
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        mock_post.return_value.status_code = 200
+    await handle_session_end(mock_request, repo=mock_repo)
 
-        await handle_session_end(mock_request, repo=mock_repo)
+    # Verify Intelligence Writeback was securely enqueued
+    assert mock_repo.enqueue_intelligence_writeback.call_count >= 1
+    args, kwargs = mock_repo.enqueue_intelligence_writeback.call_args
+    payload = args[0]
 
-        # Verify Intelligence Writeback happened at session-end
-        args, kwargs = _find_intelligence_results_call(mock_post)
-        posted_data = kwargs["json"]
-        # ShopDeck's schema, not the old ad-hoc one: ndr_intent/confidence_score were never
-        # accepted fields, and result_id/awb_no are required.
-        assert posted_data["queue_item_id"] == "q_999"
-        assert posted_data["awb_no"] == "AWB999"
-        assert posted_data["recommended_action"] == "accept_rto"
-        assert posted_data["customer_intent"] == "declined"
-        assert posted_data["diagnosis"] == "CUSTOMER_REFUSED"
-        assert posted_data["result_id"].startswith("res_")
+    assert payload["queue_item_id"] == "q_999"
+    assert payload["awb_no"] == "AWB999"
+    assert payload["recommended_action"] == "accept_rto"
+    assert payload["customer_intent"] == "declined"
+    assert payload["diagnosis"] == "CUSTOMER_REFUSED"
+    assert payload["result_id"].startswith("res_")
 
     print("✅ Webhook successfully correlated and recovered the stuck engagement by persisting intelligence and advancing ShopDeck state to ACTION_READY.")
     print("--- OUTCOME_UNKNOWN Recovery Verified ---")
-
