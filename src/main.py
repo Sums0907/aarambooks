@@ -268,7 +268,7 @@ reply_parser = CustomerReplyParser(gateway=gateway)
 comm_engine = CommunicationEngine(repository=comm_repo, reply_parser=reply_parser, executor=executor, ccc_builder=ccc_builder)
 
 from src.workers.ndr_queue_poller import NDRQueuePoller
-ndr_poller = NDRQueuePoller(shopdeck_adapter=shopdeck_cem, ccc_builder=ccc_builder, comm_engine=comm_engine, claimer_id=f"sa:{settings.brain_client_id}")
+ndr_poller = NDRQueuePoller(shopdeck_adapter=shopdeck_cem, ccc_builder=ccc_builder, comm_engine=comm_engine, orchestrator=ndr_orch, claimer_id=f"sa:{settings.brain_client_id}")
 receiver = InboundReceiver(
     query_orchestrator=cq_orch, 
     ndr_orchestrator=ndr_orch,

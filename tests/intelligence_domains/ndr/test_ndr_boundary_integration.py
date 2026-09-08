@@ -180,7 +180,8 @@ async def test_end_to_end_boundary(azm_provider):
         memory=mock_memory
     )
 
-    decision, action, customer_message = await orchestrator.orchestrate_resolution(evidence_pkg)
+    decision = await orchestrator.orchestrate_resolution(evidence_pkg)
+    action = decision.action_request
 
     # 4. Assertions on NDR result
     assert decision.recommended_alternative_id == StrategyPatternType.AUTONOMOUS_RESCHEDULE.value

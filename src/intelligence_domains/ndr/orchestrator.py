@@ -33,7 +33,7 @@ from src.brain_core.gateway.interfaces import (
 )
 from src.brain_core.knowledge.interfaces import KnowledgeProvider, KnowledgeQuery
 from src.brain_core.memory.interfaces import MemoryProvider, MemoryQuery, MemoryEntry
-from src.brain_core.action_engine.contracts import ActionRequest, ActionCategory
+from src.brain_core.action_engine.contracts import ActionRequest, ActionCategory, ConversationMissionContract, ConversationalDirective
 from src.brain_core.decision.interfaces import DecisionRecommendation, DecisionAlternative
 
 from src.intelligence_domains.ndr.models import (
@@ -47,7 +47,9 @@ from src.intelligence_domains.ndr.models import (
     DownstreamOutcomeSignal,
     OutcomeEvaluation,
     LearningEvidence,
-    CaseLifecycleState
+    CaseLifecycleState,
+    DispatchDecision,
+    DispatchDisposition
 )
 from src.intelligence_domains.ndr.knowledge import (
     NDRDiagnosticEngine,
@@ -185,7 +187,7 @@ class NDRIntelligenceOrchestrator:
     async def orchestrate_resolution(
         self,
         trigger_evidence: EvidencePackage
-    ) -> Tuple[DecisionRecommendation, Optional[ActionRequest], Optional[str]]:
+    ) -> DispatchDecision:
 
         # ── Step 0 & 1: Extract Semantic NDR Context Across All Evidence ───────
         # Aggregate semantic evidence across all items sequentially.
@@ -194,20 +196,20 @@ class NDRIntelligenceOrchestrator:
             # Overwrite earlier evidence with later evidence (assuming chronological order)
             if item.data_payload:
                 payload.update(item.data_payload)
-        
+
         # Determine Canonical Shipment Identity
         awb_no = payload.get("ndr.entity.awb") or "UNKNOWN_AWB"
 
         if awb_no == "UNKNOWN_AWB":
             logger.warning("NDR event received with no canonical AWB identity. Skipping.")
-            return self._noop_decision("No AWB provided"), None, None
-            
+            return self._noop_decision("No AWB provided")
+
         ndr_status = (payload.get("ndr.vocabulary.ndr_status") or payload.get("shopdeck.metric.ndr_status") or "unknown").lower().strip()
         order_status = (payload.get("shopdeck.metric.order_status") or "unknown").lower().strip()
 
         if ndr_status in _CLOSED_NDR_STATUSES or order_status in _CLOSED_NDR_STATUSES:
             logger.info(f"[NDR-ID] AWB {awb_no}: Skipping — NDR is already closed (ndr_status={ndr_status}, order_status={order_status})")
-            return self._noop_decision(f"NDR already closed: {ndr_status or order_status}"), None, None
+            return self._noop_decision(f"NDR already closed: {ndr_status or order_status}")
 
         courier_partner = payload.get("ndr.entity.courier_partner", "Unknown")
         attempt_count = int(payload.get("shopdeck.metric.ndr_count") or 1)
@@ -227,7 +229,8 @@ class NDRIntelligenceOrchestrator:
             payment_mode=payment_mode,
             order_value=order_value,
             attempt_count=attempt_count,
-            latest_ndr_reason=latest_reason
+            latest_ndr_reason=latest_reason,
+            destination_pincode=payload.get("ndr.entity.destination_pincode"),
         )
 
         logger.info(
@@ -235,51 +238,52 @@ class NDRIntelligenceOrchestrator:
             f"attempts={attempt_count}, payment={payment_mode}, courier={courier_partner}"
         )
 
-        # ── Step 4: Failure Diagnosis ─────────────────────────────────────────
-        diagnosis = NDRDiagnosticEngine.diagnose_failure(latest_reason, courier_partner, attempt_count)
-        logger.info(f"[NDR-ID] AWB {awb_no}: Diagnosed as {diagnosis.category.value} (confidence={diagnosis.confidence})")
+        # ── Steps 4-7: Diagnosis, customer state, risk, strategy ──────────────
+        # Wrapped so any knowledge-engine failure produces an explicit
+        # INTELLIGENCE_FAILURE disposition the poller can act on, instead of an
+        # uncaught exception that the poller's outer handler would otherwise
+        # silently relabel as a generic dispatch failure.
+        try:
+            diagnosis = NDRDiagnosticEngine.diagnose_failure(latest_reason, courier_partner, attempt_count)
+            logger.info(f"[NDR-ID] AWB {awb_no}: Diagnosed as {diagnosis.category.value} (confidence={diagnosis.confidence})")
 
-        # ── Step 5: Parse customer state / sentiment if available ─────────────
-        customer_state = CustomerState(
-            intent=payload.get("customer.state.intent", "PENDING_CONTACT"),
-            sentiment=payload.get("customer.state.sentiment", "NEUTRAL"),
-            preferred_reattempt_date=payload.get("customer.attribute.preferred_date")
-        )
+            customer_state = CustomerState(
+                intent=payload.get("customer.state.intent", "PENDING_CONTACT"),
+                sentiment=payload.get("customer.state.sentiment", "NEUTRAL"),
+                preferred_reattempt_date=payload.get("customer.attribute.preferred_date")
+            )
 
-        # ── Step 6: Priority & Risk Evaluation ───────────────────────────────
-        risk = NDRPriorityRiskEngine.evaluate_priority_and_risk(context, diagnosis, customer_state)
+            risk = NDRPriorityRiskEngine.evaluate_priority_and_risk(context, diagnosis, customer_state)
 
-        # ── Step 7: Recovery Strategy Determination ───────────────────────────
-        strategy, recommendation = NDRStrategyEngine.determine_strategy(context, diagnosis, risk, customer_state)
-        logger.info(f"[NDR-ID] AWB {awb_no}: Strategy={strategy.strategy_name} | Action={recommendation.action_type}")
+            strategy, recommendation = NDRStrategyEngine.determine_strategy(context, diagnosis, risk, customer_state)
+            logger.info(f"[NDR-ID] AWB {awb_no}: Strategy={strategy.strategy_name} | Action={recommendation.action_type}")
+        except Exception as intel_err:
+            logger.error(f"[NDR-ID] AWB {awb_no}: Intelligence pipeline failed: {intel_err}")
+            return self._noop_decision(
+                f"Intelligence pipeline failed: {intel_err}",
+                disposition_code=DispatchDisposition.INTELLIGENCE_FAILURE,
+            )
 
         # ── Step 8: Formulate Governed Decision Recommendation ────────────────
-        decision = DecisionRecommendation(
-            recommended_alternative_id=strategy.strategy_type.value,
-            alternatives_considered=[
-                DecisionAlternative(
-                    id=strategy.strategy_type.value,
-                    description=strategy.strategy_name,
-                    confidence=strategy.confidence,
-                    reasoning=strategy.rationale,
-                    expected_outcomes=["delivery_recovery", "rto_avoidance"]
-                )
-            ],
-            justification=(
-                f"[{strategy.strategy_name}] {strategy.rationale} "
-                f"(Operational Risk: {risk.operational_risk_score}, "
-                f"Commercial Priority: {risk.commercial_priority_score})"
-            )
-        )
+        should_dispatch = False
+        disposition_code = DispatchDisposition.ENGAGE
+        
+        if not risk.policy_allows_autonomous_action:
+            disposition_code = DispatchDisposition.POLICY_PROHIBITED
+        elif strategy.strategy_type.value == "NO_ACTION":
+            disposition_code = DispatchDisposition.ALREADY_RESOLVED
+        else:
+            should_dispatch = True
 
-        # ── Step 9: Formulate Governed Action Request ─────────────────────────
-        from src.brain_core.action_engine.contracts import ConversationalDirective
+        # Build Mission Contract using the helper
+        mission = self._build_mission_contract(strategy, latest_reason, attempt_count)
         
         directive = ConversationalDirective(
             objective=strategy.target_objective,
             context_summary=strategy.rationale,
             allowed_actions=[recommendation.action_type],
-            constraints=["Do not explicitly name the courier partner in conversation", "Acknowledge the customer's intent clearly"]
+            constraints=["Do not explicitly name the courier partner in conversation", "Acknowledge the customer's intent clearly"],
+            mission=mission
         )
 
         action = ActionRequest(
@@ -289,6 +293,16 @@ class NDRIntelligenceOrchestrator:
             parameters=recommendation.parameters,
             execution_intent=recommendation.execution_intent,
             directive=directive
+        )
+        
+        decision = DispatchDecision(
+            should_dispatch=should_dispatch,
+            disposition_code=disposition_code,
+            action_request=action if should_dispatch else None,
+            diagnosis=diagnosis,
+            risk=risk,
+            strategy=strategy,
+            evidence_reference={"package_id": trigger_evidence.package_id}
         )
 
         # ── Step 10: Persist Case Evidence to Domain Memory ──────────────────
@@ -312,14 +326,22 @@ class NDRIntelligenceOrchestrator:
             session_id=session_id
         )
 
-        return decision, action, recommendation.customer_message
+        return decision
 
-    def _noop_decision(self, reason: str) -> DecisionRecommendation:
-        """Returns a no-op decision for closed/ineligible NDRs."""
-        return DecisionRecommendation(
-            recommended_alternative_id="NO_ACTION",
-            alternatives_considered=[],
-            justification=reason
+    def _noop_decision(
+        self,
+        reason: str,
+        disposition_code: DispatchDisposition = DispatchDisposition.ALREADY_RESOLVED,
+    ) -> DispatchDecision:
+        """Returns a no-op decision for closed/ineligible NDRs, or an explicit failure disposition."""
+        return DispatchDecision(
+            should_dispatch=False,
+            disposition_code=disposition_code,
+            action_request=None,
+            diagnosis=None,
+            risk=None,
+            strategy=None,
+            evidence_reference=None
         )
 
     # =========================================================================
@@ -359,3 +381,43 @@ class NDRIntelligenceOrchestrator:
         )
 
         return outcome, evidence
+
+    @classmethod
+    def _build_mission_contract(cls, strategy, latest_reason: str, attempt_count: int) -> ConversationMissionContract:
+        return ConversationMissionContract(
+            conversation_mission="NDR_RECOVERY",
+            why_this_call=f"A delivery attempt for this order failed. Reason recorded by the courier: {latest_reason}. This order has had {attempt_count} failed delivery attempts.",
+            primary_objective=strategy.target_objective,
+            success_condition=(
+                "The customer has stated a delivery preference (a workable delivery arrangement, "
+                "or an explicit refusal) and it has been captured. Merely answering the customer's "
+                "questions is NOT success."
+            ),
+            initial_state="INTRODUCE_REASON",
+            allowed_actions=[
+                "explain_why_this_call",
+                "answer_question_from_authoritative_context_only",
+                "state_fact_unavailable_when_absent",
+                "capture_customer_delivery_preference",
+                "capture_refusal_reason",
+                "acknowledge_and_return_to_delivery_topic",
+                "close_call_politely",
+                "capture_alternate_phone_number",
+                "confirm_or_update_address_within_same_pincode_only",
+            ],
+            allowed_next_states=[
+                "CUSTOMER_RESPONSE",
+                "ANSWER_CUSTOMER_QUESTION",
+                "RETURN_TO_NDR",
+                "CONFIRM_RESOLUTION",
+                "CUSTOMER_UNAVAILABLE",
+                "CUSTOMER_REFUSED",
+                "UNCLEAR",
+                "COMPLETED",
+            ],
+            conversation_priority=(
+                "The customer's immediate question always takes priority in the moment. The NDR "
+                "recovery objective acts as the pull of gravity to return to once the question is answered."
+            ),
+            return_to_mission="RETURN_TO_NDR"
+        )

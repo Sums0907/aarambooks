@@ -109,7 +109,8 @@ async def test_ndr_orchestrate_resolution_vertical_slice(mock_gateway, mock_know
         ]
     )
 
-    decision, action, customer_message = await orchestrator.orchestrate_resolution(evidence_pkg)
+    decision = await orchestrator.orchestrate_resolution(evidence_pkg)
+    action = decision.action_request
 
     # 1. Recovery Strategy Selected as first-class concept
     assert decision.recommended_alternative_id == StrategyPatternType.AUTONOMOUS_RESCHEDULE.value

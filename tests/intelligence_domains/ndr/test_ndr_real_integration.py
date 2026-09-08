@@ -129,7 +129,10 @@ async def test_real_event_path_and_governance(mock_gateway, mock_memory):
     # so policy override should enforce escalation or limit automatic action.
     assert evaluation.commercial_priority_score >= 0.8
     assert evaluation.policy_allows_autonomous_action is False
-    assert "Max 3 autonomous reattempt policy reached" in evaluation.policy_constraint_notes
+    # Wording updated: the 3rd+ attempt simply means no NDR call is placed (no escalation
+    # path was ever actually built), not the old, inaccurate "requires human supervisor
+    # review" framing.
+    assert "no NDR recovery call is placed" in evaluation.policy_constraint_notes
 
     # 3. Strategy
     strategy, rec = NDRStrategyEngine.determine_strategy(context, diagnosis, evaluation)

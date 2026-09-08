@@ -1,8 +1,56 @@
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Dict, Any, List, Optional
 from datetime import datetime, UTC
-from pydantic import BaseModel, Field
-from src.brain_core.action_engine.contracts import ActionCategory
+from pydantic import BaseModel, Field, model_validator
+from src.brain_core.action_engine.contracts import ActionCategory, ActionRequest
+
+class DispatchDisposition(StrEnum):
+    ENGAGE = "ENGAGE"
+    ALREADY_RESOLVED = "ALREADY_RESOLVED"
+    POLICY_PROHIBITED = "POLICY_PROHIBITED"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+    INTELLIGENCE_FAILURE = "INTELLIGENCE_FAILURE"
+
+class DispatchDecision(BaseModel):
+    should_dispatch: bool
+    disposition_code: DispatchDisposition
+    action_request: Optional[ActionRequest] = None
+    diagnosis: Optional['FailureDiagnosis'] = None
+    risk: Optional['PriorityAndRiskEvaluation'] = None
+    strategy: Optional['RecoveryStrategy'] = None
+    evidence_reference: Optional[Dict[str, Any]] = None
+
+    @model_validator(mode="after")
+    def _dispatch_flag_matches_action(self) -> "DispatchDecision":
+        if self.should_dispatch and self.action_request is None:
+            raise ValueError("should_dispatch=True requires a non-null action_request")
+        if not self.should_dispatch and self.action_request is not None:
+            raise ValueError("action_request must be None when should_dispatch is False")
+        if self.should_dispatch and self.disposition_code != DispatchDisposition.ENGAGE:
+            raise ValueError(
+                f"should_dispatch=True requires disposition_code=ENGAGE, got {self.disposition_code}"
+            )
+        return self
+
+NDR_MISSION = "NDR_RECOVERY"
+
+class NDRConversationState(StrEnum):
+    # Reverted to the original, tested nine-state vocabulary. A prior edit renamed these
+    # (CONVERSING/ANSWERING_QUESTION/RESOLVING) citing a "strictly authorized vocabulary"
+    # that was never substantiated with any source, and directly contradicted this file's
+    # own governing test (tests/test_ndr_mission_contracts.py:
+    # test_all_nine_spec_states_exist_with_exact_names, docstring: "The approved V1 spec
+    # states"). Do not rename these again without a citable source reviewed alongside the
+    # change - this vocabulary is load-bearing for the mission contract and session_constants.
+    INTRODUCE_REASON = "INTRODUCE_REASON"
+    CUSTOMER_RESPONSE = "CUSTOMER_RESPONSE"
+    ANSWER_CUSTOMER_QUESTION = "ANSWER_CUSTOMER_QUESTION"
+    RETURN_TO_NDR = "RETURN_TO_NDR"
+    CONFIRM_RESOLUTION = "CONFIRM_RESOLUTION"
+    CUSTOMER_UNAVAILABLE = "CUSTOMER_UNAVAILABLE"
+    CUSTOMER_REFUSED = "CUSTOMER_REFUSED"
+    UNCLEAR = "UNCLEAR"
+    COMPLETED = "COMPLETED"
 
 class FailureCategory(str, Enum):
     CUSTOMER_UNAVAILABLE = "CUSTOMER_UNAVAILABLE"

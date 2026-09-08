@@ -11,6 +11,13 @@ the call because the webhook allow-list was not updated.
 No LLM is involved. Everything here is reproducible and safe to gate on.
 """
 
+import sys
+from unittest.mock import MagicMock
+sys.modules['motor'] = MagicMock()
+sys.modules['motor.motor_asyncio'] = MagicMock()
+sys.modules['pymongo'] = MagicMock()
+sys.modules['pymongo.errors'] = MagicMock()
+
 import pytest
 
 from src.brain_core.action_engine.contracts import (
@@ -24,11 +31,11 @@ from src.brain_core.context_engine.ccc_contracts import (
     OrderContext,
     ProductContext,
 )
-from src.intelligence_domains.ndr.mission_factory import (
+from src.intelligence_domains.ndr.models import (
     NDR_MISSION,
     NDRConversationState,
-    build_ndr_mission,
 )
+from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
 from src.intelligence_domains.ndr.reply_parser import (
     classify_reply_heuristic,
     to_shopdeck_vocabulary,
@@ -45,6 +52,27 @@ QUEUE_ITEM = {
     "ndr_attempt_seq": 2,
     "payment_mode": "cod",
 }
+
+from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckQueueEvidenceMapper
+
+def build_ndr_mission(queue_item: dict) -> ConversationMissionContract:
+    # Uses the real mapper
+    evidence = ShopdeckQueueEvidenceMapper.map_to_evidence(queue_item, {})
+    payload = evidence.evidence_items[0].data_payload
+    
+    raw_count = payload.get("shopdeck.queue.ndr_attempt_seq_at_enroll", 1)
+    reason = payload.get("shopdeck.event.delivery_exception.reason")
+    if not reason:
+        reason = "the delivery attempt did not succeed (the exact reason is unavailable)"
+        
+    class DummyStrategy:
+        target_objective = "Capture preferred delivery date"
+        
+    return NDRIntelligenceOrchestrator._build_mission_contract(
+        strategy=DummyStrategy(),
+        latest_reason=reason,
+        attempt_count=int(raw_count)
+    )
 
 
 def _ccc(mission: ConversationMissionContract) -> CustomerConversationContext:

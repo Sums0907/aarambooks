@@ -45,10 +45,25 @@ async def test_ndr_queue_e2e_4_items():
     # derivation falls through to its random fallback, and the assertion below fails.
     mock_comm.executor.dispatch_provider_call.return_value = {"provider_interaction_id": "mock_call_123"}
 
+    from src.intelligence_domains.ndr.models import DispatchDecision, DispatchDisposition
+    from src.brain_core.action_engine.contracts import ActionRequest, ActionCategory, ConversationalDirective, ConversationMissionContract
+    mock_orchestrator = AsyncMock()
+    mock_action = ActionRequest(
+        action_request_id="act_123",
+        category=ActionCategory.AUTOMATED_RESPONSE,
+        reasoning="",
+        parameters={"customer_phone": "123"},
+        directive=ConversationalDirective(objective="mock", context_summary="mock", allowed_actions=[], constraints=[], mission=ConversationMissionContract(conversation_mission="NDR_RECOVERY", why_this_call="", primary_objective="", success_condition="", initial_state="", allowed_actions=[], allowed_next_states=[], conversation_priority="", return_to_mission=""))
+    )
+    mock_orchestrator.orchestrate_resolution.return_value = DispatchDecision(
+        should_dispatch=True, disposition_code=DispatchDisposition.ENGAGE, action_request=mock_action
+    )
+
     poller = NDRQueuePoller(
         shopdeck_adapter=mock_adapter,
         ccc_builder=mock_ccc,
         comm_engine=mock_comm,
+        orchestrator=mock_orchestrator,
         poll_interval_seconds=1
     )
 
@@ -175,10 +190,13 @@ async def test_dispatch_then_crash_protection():
         "current_engagement": None
     }
     
+    mock_orchestrator = AsyncMock()
+    
     poller = NDRQueuePoller(
         shopdeck_adapter=mock_adapter,
         ccc_builder=AsyncMock(),
         comm_engine=AsyncMock(),
+        orchestrator=mock_orchestrator,
         poll_interval_seconds=1
     )
     

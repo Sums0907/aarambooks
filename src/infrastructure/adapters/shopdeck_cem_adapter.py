@@ -305,3 +305,82 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
         resp = await self._authed_request("POST", url, json=payload)
         print(resp.text); resp.raise_for_status()
         return resp.json()
+
+
+class ShopdeckQueueEvidenceMapper:
+    """
+    Maps ShopDeck BS's real NDRShipmentContext schema (see
+    business_systems/shopdeck/backend/api/schemas/ndr.py) into the EvidencePackage the
+    NDR orchestrator consumes. Every mapping below was checked against that schema
+    directly - it has no field literally named "status" (only the separate order_status
+    and ndr_status), and no "customer.attribute.phone" (only customer_number). Both were
+    silently returning None in production before this fix.
+    """
+
+    @staticmethod
+    def map_to_evidence(queue_item: dict, full_evidence: dict) -> 'EvidencePackage':
+        from src.shared.cognitive_planning_contracts import EvidencePackage, EvidenceItem, ProvenanceMetadata
+
+        payload = {}
+        # Combine queue item facts and full evidence facts
+        payload["ndr.entity.awb"] = queue_item.get("awb_no")
+        payload["shopdeck.event.delivery_exception.reason"] = queue_item.get("ndr_reason_at_enroll")
+
+        # ndr_attempt_seq is the enrollment-time snapshot ShopDeck froze into ndr_queue
+        # (see enroll_eligible_ndrs() in ndr_queue_repository.py: both ndr_attempt_seq and
+        # ndr_count_at_enroll are populated from the SAME snr.ndr_count value at insert
+        # time - they are synonyms, not two different concepts). Preserved here as a
+        # separate audit-trail field. It is NOT used as the live attempt count below,
+        # since it can go stale if another delivery attempt happens while this item sits
+        # in the queue; shopdeck.metric.ndr_count (from the live evidence fetch) is used
+        # for that instead. Not proven identical in every case - kept distinct on purpose.
+        if queue_item.get("ndr_attempt_seq") is not None:
+            payload["shopdeck.queue.ndr_attempt_seq_at_enroll"] = queue_item.get("ndr_attempt_seq")
+
+        if full_evidence:
+            payload["ndr.vocabulary.ndr_status"] = full_evidence.get("ndr_status")
+            payload["shopdeck.metric.order_status"] = full_evidence.get("order_status")
+            payload["ndr.entity.courier_partner"] = full_evidence.get("courier_partner")
+            payload["shopdeck.metric.ndr_count"] = full_evidence.get("ndr_count")
+            payload["shopdeck.entity.payment.mode"] = full_evidence.get("payment_mode")
+            # Collectable amount stays collectable - never substituted for gross order value.
+            payload["shopdeck.entity.order.collectable_amount"] = full_evidence.get("cod_amount")
+            # Real gross order value: sum of line-item selling_price * quantity, when items
+            # are present. Falls back to None (never to cod_amount, which is 0 for prepaid
+            # orders and would misrepresent a real order as worthless).
+            items = full_evidence.get("items") or []
+            if items:
+                gross_value = sum(
+                    float(it.get("selling_price") or 0.0) * int(it.get("quantity") or 0)
+                    for it in items
+                )
+                payload["shopdeck.entity.order.gross_value"] = gross_value
+            payload["customer.attribute.phone"] = full_evidence.get("customer_number")
+            payload["ndr.entity.customer"] = full_evidence.get("customer_name")
+            payload["ndr.entity.customer_id"] = full_evidence.get("customer_id")
+            payload["ndr.entity.order_id"] = full_evidence.get("order_id")
+            # Delivery destination pincode - the parcel has already reached this pincode's
+            # courier distribution point, so any customer-stated address change is only
+            # actionable if it stays within this exact pincode. See
+            # NDRShipmentContext.drop_pincode in business_systems/shopdeck's ndr schema.
+            payload["ndr.entity.destination_pincode"] = full_evidence.get("drop_pincode")
+
+            if "allowable_reattempt_dates" in full_evidence:
+                payload["shopdeck.policy.allowable_reattempt_dates"] = full_evidence["allowable_reattempt_dates"]
+
+        from datetime import datetime, UTC
+        import uuid
+        return EvidencePackage(
+            package_id=f"pkg_{uuid.uuid4().hex[:8]}",
+            plan_id="plan_ndr",
+            sufficiency_assessment="Sufficient evidence acquired from Shopdeck BS",
+            evidence_items=[
+                EvidenceItem(
+                    item_id=str(uuid.uuid4()),
+                    semantic_identity="shopdeck_bs_ndr",
+                    data_payload=payload,
+                    provenance=ProvenanceMetadata(source_system="urn:aarambooks:shopdeck:bs", retrieval_timestamp=datetime.now(UTC))
+                )
+            ]
+        )
+

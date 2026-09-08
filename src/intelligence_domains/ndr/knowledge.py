@@ -128,7 +128,7 @@ class NDRPriorityRiskEngine:
         policy_notes = None
         if safe_attempt_count >= 3:
             policy_allows_autonomous = False
-            policy_notes = "Max 3 autonomous reattempt policy reached. Requires human supervisor review."
+            policy_notes = "3rd+ NDR attempt: no NDR recovery call is placed for this attempt, per policy."
 
         return PriorityAndRiskEvaluation(
             operational_risk_score=round(operational_risk, 2),
@@ -193,7 +193,7 @@ class NDRStrategyEngine:
                 action_category=ActionCategory.SUGGESTED_RESOLUTION,
                 parameters={"awb_no": context.awb_no, "dispute_reason": "UNVISITED_DOORSTEP_SKIP"},
                 justification="Recommending carrier dispute and priority reattempt.",
-                customer_message="We noticed an issue with your delivery attempt. We are coordinating with courier management to force a reattempt.",
+                customer_message="We noticed an issue with your delivery attempt. Could you confirm whether someone was available at the address?",
                 requires_human_approval=False
             )
             return strategy, recommendation
@@ -244,7 +244,7 @@ class NDRStrategyEngine:
         strategy = RecoveryStrategy(
             strategy_type=StrategyPatternType.AUTONOMOUS_RESCHEDULE,
             strategy_name="Autonomous Rescheduling",
-            target_objective="Capture firm customer reattempt date and schedule with courier.",
+            target_objective="Capture the customer's firm delivery preference for a human/ShopDeck BS to act on. Brain does not schedule with the courier directly.",
             parameters={"awb_no": context.awb_no, "attempt_count": context.attempt_count if context.attempt_count is not None else "UNKNOWN"},
             confidence=0.90,
             rationale="Customer temporarily unavailable; scheduled reattempt is optimal."
@@ -257,7 +257,7 @@ class NDRStrategyEngine:
             customer_message = "We noticed you were unavailable. When would you like us to reattempt delivery?"
         else:
             justification = f"Recommending reattempt on {target_date} based on customer availability."
-            customer_message = f"We noticed you were unavailable. We have requested delivery reattempt for {target_date}."
+            customer_message = f"We noticed you were unavailable. We'll note {target_date} as your preferred reattempt date."
             
         recommendation = InterventionRecommendation(
             recommendation_id=rec_id,

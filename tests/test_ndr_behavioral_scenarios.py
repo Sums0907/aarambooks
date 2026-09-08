@@ -42,7 +42,8 @@ from src.brain_core.context_engine.ccc_contracts import (
 )
 from src.brain_core.gateway.interfaces import GatewayGenerationRequest, GatewayMessage
 from src.infrastructure.adapters.litellm_gateway import LiteLLMGatewayAdapter
-from src.intelligence_domains.ndr.mission_factory import build_ndr_mission
+from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
+from src.brain_core.action_engine.contracts import ConversationMissionContract
 
 PERSONA_PATH = os.path.join(
     os.path.dirname(__file__), "..", "docs", "voicebot", "bot_persona.txt"
@@ -68,7 +69,12 @@ def _session_constants() -> dict:
     but courier_partner, size, and delivery time are deliberately left absent so scenarios
     D/E/F can check Priya admits they're unavailable rather than inventing them.
     """
-    mission = build_ndr_mission(QUEUE_ITEM)
+    class DummyStrategy:
+        target_objective = "Capture preferred delivery date"
+        
+    raw_count = QUEUE_ITEM.get("ndr_attempt_seq", 1)
+    reason = QUEUE_ITEM.get("ndr_reason_at_enroll")
+    mission = NDRIntelligenceOrchestrator._build_mission_contract(DummyStrategy(), reason, int(raw_count))
     directive = ConversationalDirective(
         objective=mission.primary_objective,
         context_summary=mission.why_this_call,

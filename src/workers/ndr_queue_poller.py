@@ -3,10 +3,10 @@ import logging
 import uuid
 from typing import Optional
 
-from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter
+from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter, ShopdeckQueueEvidenceMapper
 from src.brain_core.context_engine.ccc_builder import CustomerConversationContextBuilder
 from src.intelligence_domains.ndr.communication_engine import CommunicationEngine
-
+from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
 class NDRQueuePoller:
     """
     Brain Queue Consumer.
@@ -17,6 +17,7 @@ class NDRQueuePoller:
         shopdeck_adapter: ShopdeckCemAdapter,
         ccc_builder: CustomerConversationContextBuilder,
         comm_engine: CommunicationEngine,
+        orchestrator: NDRIntelligenceOrchestrator,
         claimer_id: str = "brain_core_rabta",
         poll_interval_seconds: int = 15,
         lease_seconds: int = 300,
@@ -24,6 +25,7 @@ class NDRQueuePoller:
         self.shopdeck_adapter = shopdeck_adapter
         self.ccc_builder = ccc_builder
         self.comm_engine = comm_engine
+        self.orchestrator = orchestrator
         self.claimer_id = claimer_id
         self.poll_interval_seconds = poll_interval_seconds
         self.lease_seconds = lease_seconds
@@ -85,64 +87,53 @@ class NDRQueuePoller:
                 NAMESPACE_NDR = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
                 engagement_id = f"eng_{uuid.uuid5(NAMESPACE_NDR, queue_item_id).hex}"
 
-            # 3. Hydrate authoritative context
+            # 3. Hydrate authoritative context & Consult Intelligence
             try:
-                from src.shared.conversational_contracts import ConversationalIntent
-                from src.intelligence_domains.ndr.mission_factory import build_ndr_mission
+                from src.shared.requirement_classification_contracts import ClassifiedRequirement
+                from src.shared.conversational_contracts import ConversationalUnderstanding, SemanticEntityReference
+                from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessRealityStatus
 
-                # Mission is derived from the claimed queue item, NOT from CCC hydration.
-                # It is an INPUT to ccc_builder.build() (the directive is a required argument),
-                # so it must exist before the CCC does. Sourcing it from hydrated evidence such
-                # as ndr_count would be circular.
-                mission = build_ndr_mission(item)
-                
-                class DummyUnderstanding:
-                    def __init__(self):
-                        self.intent = ConversationalIntent.SEARCH
-                        self.parameters = []
-                        self.entities = type("DummyEntity", (), {"inferred_type": "ndr.entity.awb", "original_expression": awb_no})()
-                        self.entities = [self.entities]
-                        self.original_query = f"Execute NDR for {awb_no}"
-                
-                class DummyClassified:
-                    def __init__(self, u):
-                        self.understanding = u
-                        
-                class DummyAction:
-                    def __init__(self, qid, mission):
-                        self.classified_requirement = DummyClassified(DummyUnderstanding())
-                        # customer_phone starts unset. It is NOT dead: exotel_adapter.dispatch_call
-                        # reads action_request.parameters["customer_phone"] as the literal "From"
-                        # number on the real outbound call (src/infrastructure/adapters/
-                        # customer_engagement/exotel_adapter.py:37). It is filled in below, after
-                        # ccc_builder.build() hydrates the authoritative phone from ShopDeck, and
-                        # dispatch is refused if hydration could not produce one.
-                        self.parameters = {"awb_no": awb_no}
-                        # Use deterministic action_request_id so idempotency matches on retry
-                        NAMESPACE_NDR = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-                        self.action_request_id = f"act_{uuid.uuid5(NAMESPACE_NDR, qid).hex}"
-                        from src.brain_core.action_engine.contracts import ConversationalDirective
-                        self.directive = ConversationalDirective(
-                            objective=mission.primary_objective,
-                            context_summary=mission.why_this_call,
-                            allowed_actions=mission.allowed_actions,
-                            constraints=[
-                                "Never state a fact that is not present in the authoritative context.",
-                                "Never pressure the customer into a delivery date.",
-                                "Never abandon the delivery topic, and never ask a generic 'anything else?'.",
-                            ],
-                            mission=mission,
+                # Fetch full evidence
+                req = AbstractEvidenceRequest(
+                    classified_requirement=ClassifiedRequirement(
+                        understanding=ConversationalUnderstanding(
+                            original_query=f"Internal NDR Queue Fetch for AWB {awb_no}",
+                            parameters=[],
+                            entities=[SemanticEntityReference(inferred_type="ndr.entity.awb", original_expression=awb_no)]
                         )
-                        from src.brain_core.action_engine.contracts import ExecutionIntent, ExecutionChannel
-                        self.execution_intent = ExecutionIntent(intent_type="ndr_outbound", channel=ExecutionChannel.VOICE)
-                        
-                action = DummyAction(queue_item_id, mission)
+                    )
+                )
+                evidence_res = await self.shopdeck_adapter.execute_evidence_request(req)
+                full_evidence = evidence_res.evidence_data if evidence_res.status == BusinessRealityStatus.EVIDENCE_AVAILABLE else {}
+
+                # Map to EvidencePackage
+                trigger_evidence = ShopdeckQueueEvidenceMapper.map_to_evidence(item, full_evidence)
+
+                # Invoke true Intelligence Orchestrator
+                decision = await self.orchestrator.orchestrate_resolution(trigger_evidence)
+
+                # Process Disposition (ShopDeck BS owns business state transition).
+                # "intelligence_no_action" is a real, ShopDeck-authorized terminal status
+                # (see ALLOWED_TRANSITIONS in business_systems/shopdeck's ndr_queue
+                # repository) - "resolved" and "failed_terminal" were never valid
+                # transitions there, so every one of these dispositions previously fell
+                # through to a ValueError and got silently re-mapped to failed_retryable
+                # by the outer exception handler below, re-queuing already-resolved and
+                # policy-blocked items for retry. This sends the real disposition instead.
+                if not decision.should_dispatch:
+                    logging.info(f"NDR Orchestrator decided NO_ACTION for {awb_no} (Disposition: {decision.disposition_code})")
+                    await self.shopdeck_adapter.update_queue_status(
+                        queue_item_id=queue_item_id,
+                        status="intelligence_no_action",
+                        engagement_id=engagement_id,
+                        failure_class=str(decision.disposition_code),
+                        failure_reason=f"NDR intelligence disposition: {decision.disposition_code}",
+                    )
+                    return True
+
+                action = decision.action_request
                 ccc = await self.ccc_builder.build(action)
 
-                # Authoritative phone, from ShopDeck via CCC hydration - never a placeholder.
-                # ccc_builder.build() already raises if ShopDeck provided no phone at all, so
-                # this is a belt-and-suspenders check against a future hydration change that
-                # makes the field optional without the caller (here) noticing.
                 if not ccc.customer_profile.phone:
                     raise ValueError(f"No authoritative customer phone hydrated for AWB {awb_no}; refusing to dispatch.")
                 action.parameters["customer_phone"] = ccc.customer_profile.phone

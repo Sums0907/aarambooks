@@ -80,7 +80,10 @@ def test_commercial_priority_does_not_bypass_policy():
     assert risk.commercial_priority_score == 0.95
     # Max attempt policy strictly blocks autonomous action despite high commercial priority
     assert risk.policy_allows_autonomous_action is False
-    assert "Max 3 autonomous reattempt policy reached" in risk.policy_constraint_notes
+    # Wording updated: the 3rd+ attempt simply means no NDR call is placed (no escalation
+    # path was ever actually built), not the old, inaccurate "requires human supervisor
+    # review" framing.
+    assert "no NDR recovery call is placed" in risk.policy_constraint_notes
 
     strategy, recommendation = NDRStrategyEngine.determine_strategy(context, diagnosis, risk)
     # Must escalate to human concierge rather than autonomous reattempt
