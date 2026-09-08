@@ -1,0 +1,171 @@
+# TODO — road to Physical Gate 3
+
+Author: Claude
+Date: 2026-09-08
+Purpose: one consolidated, sequenced list of everything still open across today's session.
+Ordered so each phase is a real prerequisite for the next one, not just a priority ranking.
+Nothing here should be treated as done until the specific verification step next to it has
+actually been run - that's been the pattern of every real bug found today.
+
+---
+
+## Phase 0 — stop the bleeding: get today's work into git
+
+Nothing from today is committed. `git log` still shows the last real commit as "Add
+certification script," from before this session. Nineteen files are modified and a dozen new
+ones are untracked, all sitting only in the working tree.
+
+- [ ] Review `git status` and stage today's real changes (exclude scratch scripts like
+      `dump_transcript.py` / `format_transcript.py` / `parse_transcript.py` if they're just
+      throwaway debugging tools, not something to keep long-term).
+- [ ] Commit with a message that captures the actual scope (mission contract, writeback
+      redesign, last-turn-wins, debris cleanup, greeting fixes).
+- [ ] Do this **now**, before anything below - a crash, a bad edit, or a lost session
+      shouldn't be able to erase a full day of verified work again.
+
+---
+
+## Phase 1 — fix what's confirmed broken in the console prompt itself
+
+These are grounded in the actual pasted console text, not guesses. All console-side; nothing
+here is a code change in this repo.
+
+- [ ] **Remove every "Sunehri" reference from the console prompt**, replacing with "Priya"
+      consistently - including the literal suggested opening line
+      ("नमस्ते, मैं सुनेहरी..." → "...मैं प्रिया..."). Confirmed root cause of the
+      self-identification mismatch: the model is handed a line containing "Sunehri" as
+      example text to actually say.
+- [ ] **Sync the "STRICT INSTRUCTIONS" framing into the console prompt.** Confirmed missing:
+      the deployed text has no section telling the model that dynamically-injected
+      `instruction_*` fields (like `instruction_lookup_rule`, `instruction_no_stalling`) are
+      binding rules. `docs/voicebot/bot_persona.txt` already has this section (added by the
+      crashed Gemini session, still uncommitted in this repo - commit it in Phase 0 first,
+      then copy it into the console).
+- [ ] **Confirm what LLM/ASR the console bot is actually configured to run.** This has been
+      an open question since the first physical call. It determines whether
+      `tests/test_ndr_behavioral_scenarios.py` (currently testing `local-qwen`) is testing
+      anything relevant to what a real customer hears. If it's a different model, treat that
+      test's 12/13 result as answering a different question than it looks like it answers.
+
+---
+
+## Phase 2 — decide the open design questions before building around them
+
+- [ ] **Decide the "only tomorrow" delivery-option question.** Confirmed: the console
+      prompt's tomorrow-only rule is *conditional* ("if the current context says only
+      tomorrow is allowed..."), not a hardcoded default - and nothing this repo currently
+      sends in `session_constants` supplies any explicit delivery-option data at all. Two
+      real options, pick one deliberately:
+      (a) build real delivery-window data into `session_constants` (needs Phase 3's
+      `ndr_context` investigation first), or
+      (b) explicitly decide tomorrow-only is an accepted, deliberate V1 constraint and send
+      it as one on purpose, rather than letting the model default into it silently.
+- [ ] **Decide the date-extraction question** (the "day after tomorrow" / "10th September"
+      gap). Nothing in `reply_parser.py`'s classifier extracts a specific date beyond generic
+      "tomorrow" pattern matching - confirmed by replaying a real call where the customer
+      asked for a different date and the system had no way to represent that. Either build
+      real date extraction, or explicitly accept "any non-tomorrow date collapses to
+      UNCLEAR or a generic RESCHEDULE" as a stated V1 limitation. Don't leave this as an
+      accidental gap - make it a decision either way.
+
+---
+
+## Phase 3 — one concrete investigation, cheap to do, informs Phase 2
+
+- [ ] **Check whether ShopDeck's `ndr_context` (returned in `NDRClaimResponse.ndr_context`
+      at claim time) ever reaches `session_constants`.** Current belief: it does not - only
+      the CCC projection (`call_context`) feeds `build_session_constants()`, and
+      `ndr_context` is a separate, richer object from the claim response that appears to be
+      fetched and then dropped. If it contains real delivery-window/date data, wiring it in
+      may directly resolve Phase 2's "only tomorrow" question with real data instead of a
+      guess either way.
+
+---
+
+## Phase 4 — build whatever Phase 2 decided needs building
+
+- [ ] If Phase 2 chose to build real delivery-option data: wire it from `ndr_context`
+      (Phase 3) or wherever it actually lives, into `session_constants`, with a test proving
+      it reaches the payload (same pattern as the existing mission-field allow-list test in
+      `tests/test_ndr_mission_contracts.py`).
+- [ ] If Phase 2 chose to build real date extraction: extend `reply_parser.py`'s classifier
+      (or replace the heuristic with the existing but currently-unused LLM-based
+      `CustomerReplyParser` / `ParsedOutcome.reschedule_date`) and wire the extracted date
+      into the `pending_ndr_outcome` recorded by `handle_transcript` and the payload
+      submitted by `_submit_pending_ndr_outcome`.
+- [ ] Re-run the full test suite after either change; confirm back at the established
+      18-failed/404-passed baseline (unrelated pre-existing failures only).
+
+---
+
+## Phase 5 — isolate testing from production before the next real call
+
+- [ ] Stand up a separate `Bot_Staging` in the Exotel console, on its own flow, with the
+      corrected persona (Phase 1) applied there first.
+- [ ] Add an explicit switch in code for which flow a test call targets - e.g. a
+      `EXOTEL_VOICEBOT_FLOW_URL_STAGING` env var and a `--staging` flag on
+      `scripts/run_one_real_call.py` - so "which bot does this call" is a reviewable
+      argument, not a fact someone has to remember correctly under time pressure.
+- [ ] Do not point any test call at the production flow again until Phase 6 passes.
+
+---
+
+## Phase 6 — the actual empirical gate (nothing above substitutes for this)
+
+- [ ] Re-verify the shared `ndr_queue` has zero real eligible items before seeding anything
+      (same check used both times today - takes 30 seconds, has caught nothing wrong yet,
+      keep doing it anyway).
+- [ ] Seed one test item, place one real call against `Bot_Staging` specifically.
+- [ ] Pull the transcript and check, explicitly, against this checklist - not vibes:
+      - [ ] Opens correctly (states the reason or the console's own short-opening design,
+            whichever was decided; asks consent, not a date, if using our greeting design -
+            or confirm the console's "ask language first" design is the accepted one instead)
+      - [ ] No self-identification as anything but Priya
+      - [ ] No "checking / let me see / one moment" narration
+      - [ ] No repeated reschedule push after answering an unrelated question (the exact
+            worked example already in the console prompt - test whether it's actually obeyed
+            now, since it wasn't in either call today despite being explicitly written down)
+      - [ ] No fabricated facts (amount, color, etc.) - matches real seeded data exactly
+      - [ ] `ndr_queue.queue_status` reaches `action_ready` and `ndr_intelligence_results`
+            has the correct, final (last-turn-wins) row after the call ends
+- [ ] If any box fails, that's real signal about whether the console-side fix actually
+      worked, or whether Phase 1's harder problem (instruction-adherence under a long dense
+      prompt, independent of what the text says) is the real limiter. Don't re-run the same
+      test hoping for a different result without changing something first.
+
+---
+
+## Phase 7 — promotion, and one more check specifically on production
+
+- [ ] Only after Phase 6 passes cleanly: promote `Bot_Staging` to `Bot_Production` (or
+      repoint the real flow), per whatever the console's versioning/traffic-percentage
+      mechanism requires.
+- [ ] Place **one more** real call against the production configuration specifically.
+      Promotion itself can shift traffic percentages or publish state - don't assume staging
+      passing means production is identical without checking once, directly.
+- [ ] Only now, refresh `docs/03-intelligence-domains/ndr-intelligence/GATE3-PASS-MASTER.md`
+      (and its duplicate under `docs/09-decisions/`) to reflect reality - and only if every
+      box in Phase 6 and this phase is genuinely true. That document has already recommended
+      "YES" once while its own listed prerequisite was unmet; don't repeat that.
+
+---
+
+## Independent / lower-urgency, can happen anytime in parallel
+
+- [ ] **Knowledge Base upload** for Aaram Homes tier-3 FAQ/policy content in the Exotel
+      console (return policy, exchange policy, general company questions) - `bot_persona.txt`
+      already defines this as a fallback tier, but nothing's been uploaded, which is a
+      plausible reason "return policy" questions got vague answers on real calls.
+- [ ] **Debris-prefix hygiene**: `teardown_test_debris.py` matches a hardcoded list of AWB
+      prefixes (`AWBCERT`, `TEST_AWB_`, `AWBGATE3`, now also `AWBSELFCALL`). Every new
+      certification script that invents its own prefix becomes invisible debris until someone
+      remembers to add it to that list. Worth a single shared constant
+      (e.g. `TEST_AWB_PREFIX = "ZTEST_"`) that every future test/certification script is
+      required to use, instead of continuing to grow this list by hand.
+- [ ] **Remove `DummyAction`/`DummyUnderstanding` scaffolding** still embedded inline in
+      `src/workers/ndr_queue_poller.py`'s production dispatch path - flagged as debt earlier
+      in the session, never actually removed. Not urgent, but it's test scaffolding sitting
+      in a real code path.
+- [ ] **Remove `settings.shopdeck_token`** from `src/shared/config.py` - dead config, never
+      actually used anywhere since the writeback was fixed to use the real M2M auth flow
+      instead.
