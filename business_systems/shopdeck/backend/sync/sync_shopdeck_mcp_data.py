@@ -11,6 +11,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -502,8 +503,8 @@ async def run_orchestrator():
     # 4. NDR Queue Enrollment (ShopDeck BS responsibility — runs after each NDR sync)
     try:
         from api.repositories.ndr_queue import NDRQueueRepository
-        max_claim_attempts = int(_os.environ.get("SHOPDECK_QUEUE_MAX_CLAIM_ATTEMPTS", 5))
-        max_retries = int(_os.environ.get("SHOPDECK_QUEUE_MAX_RETRIES", 2))
+        max_claim_attempts = int(os.environ.get("SHOPDECK_QUEUE_MAX_CLAIM_ATTEMPTS", 5))
+        max_retries = int(os.environ.get("SHOPDECK_QUEUE_MAX_RETRIES", 2))
         queue_repo = NDRQueueRepository(pool)
         enrolled = await queue_repo.enroll_eligible_ndrs(max_claim_attempts, max_retries)
         terminated = await queue_repo.mark_terminal_ndrs()
