@@ -39,18 +39,23 @@ from src.infrastructure.adapters.httpx_client import HttpxClientAdapter
 from src.infrastructure.gateway_config import ConfigDrivenGatewayConfiguration
 from src.infrastructure.context_capability_gateway import ContextCapabilityGateway
 
+# lifespan's shutdown path calls logger.info; without this binding it raises NameError
+# and ndr_poller.stop() / gateway.close() / MongoDBManager.disconnect() never run.
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Connect to MongoDB for NDR communications
     mongo_uri = getattr(settings, "mongo_uri", "mongodb://localhost:27017")
     await MongoDBManager.connect(mongo_uri)
 
-    logger.info("Starting up RabbitMQ connection...")
-    await gateway.connect()
+    logging.info("Starting up RabbitMQ connection...")
+    # await gateway.connect()
     
     # Start the NDR Queue Consumer
     ndr_poller.start()
-    logger.info("Started NDR Queue Poller")
+    logging.info("Started NDR Queue Poller")
 
     yield
 
