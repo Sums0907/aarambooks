@@ -63,6 +63,32 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
             return {"Authorization": f"Bearer {token}"}
         return {}
 
+    async def _authed_request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        """
+        Sends one HTTP request with the cached M2M bearer token, refreshing it once on a 401.
+
+        The M2M token cache (_cached_token, module-level) never expires proactively - only
+        execute_evidence_request (the read path) previously handled a stale token, by clearing
+        the cache and retrying. claim_ndr_work, register_engagement, update_queue_status, and
+        submit_intelligence - the entire write surface - had no such handling: in a long-running
+        process, a token that goes stale mid-session would fail every subsequent write with an
+        unhandled 401 until the process restarted. Centralizing the retry here means every
+        caller gets it, including future ones, without re-deriving this logic per method.
+        """
+        global _cached_token
+        headers = kwargs.pop("headers", {}) or {}
+        # Dispatch via the method-named call (client.post/.patch/.get), not client.request(...) -
+        # existing tests patch httpx.AsyncClient.post/.patch directly (a common, simple mock
+        # style already used throughout this codebase's test suite), and that patch does not
+        # intercept client.request() even for the same HTTP verb.
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            call = getattr(client, method.lower())
+            resp = await call(url, headers={**headers, **(await self._get_auth_header())}, **kwargs)
+            if resp.status_code == 401:
+                _cached_token = None
+                resp = await call(url, headers={**headers, **(await self._get_auth_header())}, **kwargs)
+            return resp
+
     async def invoke_capability(self, capability_urn: str, requirement: Any, authorization_context: str) -> Any:
         from src.shared.context_contracts.provider import ContextRetrievalStatus, ContextCapabilityResult
         from src.shared.evidence_request_contracts import AbstractEvidenceRequest
@@ -244,46 +270,38 @@ class ShopdeckCemAdapter(ContextExecutionAdapter):
     # ---------------------------------------------------------
     async def claim_ndr_work(self, claimer_id: str, lease_seconds: int = 300) -> Optional[Dict[str, Any]]:
         url = urljoin(self.base_url, "/api/v1/ndr/queue/claim")
-        headers = await self._get_auth_header()
         payload = {"claimer_id": claimer_id, "lease_seconds": lease_seconds}
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(url, headers=headers, json=payload)
-            if resp.status_code == 200:
-                return resp.json()
-            elif resp.status_code == 204:
-                return None
-            else:
-                print(resp.text); resp.raise_for_status()
+        resp = await self._authed_request("POST", url, json=payload)
+        if resp.status_code == 200:
+            return resp.json()
+        elif resp.status_code == 204:
+            return None
+        else:
+            print(resp.text); resp.raise_for_status()
 
     async def register_engagement(self, queue_item_id: str, engagement_id: str, idempotency_key: str) -> Dict[str, Any]:
         url = urljoin(self.base_url, "/api/v1/ndr/engagements")
-        headers = await self._get_auth_header()
         payload = {
             "queue_item_id": queue_item_id,
             "engagement_id": engagement_id,
             "idempotency_key": idempotency_key
         }
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(url, headers=headers, json=payload)
-            print(resp.text); resp.raise_for_status()
-            return resp.json()
+        resp = await self._authed_request("POST", url, json=payload)
+        print(resp.text); resp.raise_for_status()
+        return resp.json()
 
     async def update_queue_status(self, queue_item_id: str, status: str, engagement_id: Optional[str] = None, **extra) -> Dict[str, Any]:
         url = urljoin(self.base_url, f"/api/v1/ndr/queue/{queue_item_id}/status")
-        headers = await self._get_auth_header()
         payload = {"status": status}
         if engagement_id:
             payload["engagement_id"] = engagement_id
         payload.update(extra)
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.patch(url, headers=headers, json=payload)
-            print(resp.text); resp.raise_for_status()
-            return resp.json()
+        resp = await self._authed_request("PATCH", url, json=payload)
+        print(resp.text); resp.raise_for_status()
+        return resp.json()
 
     async def submit_intelligence(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         url = urljoin(self.base_url, "/api/v1/ndr/intelligence_results")
-        headers = await self._get_auth_header()
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(url, headers=headers, json=payload)
-            print(resp.text); resp.raise_for_status()
-            return resp.json()
+        resp = await self._authed_request("POST", url, json=payload)
+        print(resp.text); resp.raise_for_status()
+        return resp.json()

@@ -225,3 +225,57 @@ class CustomerEngagementRepository:
             {"$set": {"normalization_status": status, "updated_at": datetime.now(UTC)}}
         )
         return res.modified_count > 0
+
+    async def record_pending_ndr_outcome(self, engagement_id: str, data: Dict[str, Any]) -> bool:
+        """
+        Overwrites the "current best" NDR outcome for this engagement with every decisive
+        transcript turn - unconditionally, so it always reflects the LATEST decisive turn, not
+        the first. Deliberate design choice: a customer can change their mind mid-call (e.g.
+        first ask for a date the bot can't offer, then settle for the one it can), and the
+        outcome ShopDeck should see is what they ended on, not what they said first.
+
+        This does NOT talk to ShopDeck - it only updates local bookkeeping. The actual
+        one-time submission happens at session-end (see claim_intelligence_writeback below),
+        reading back whatever this last wrote. Ambiguous (UNCLEAR) turns must never call this -
+        callers should skip it so an ambiguous turn doesn't overwrite a real prior answer.
+        """
+        db = await self._get_db()
+        res = await db.customer_engagements.update_one(
+            {"engagement_id": engagement_id},
+            {"$set": {"metadata.pending_ndr_outcome": data, "updated_at": datetime.now(UTC)}},
+        )
+        return res.modified_count > 0
+
+    async def claim_intelligence_writeback(self, engagement_id: str, result_id: str) -> bool:
+        """
+        Atomic compare-and-swap claiming the right to submit an NDR intelligence result for
+        this engagement, exactly once.
+
+        ShopDeck's persist_intelligence_atomic (business_systems/shopdeck/backend/api/
+        repositories/ndr_queue.py) permits only ONE intelligence_results row per
+        engagement_id, ever - a second distinct submission raises engagement_already_has_result.
+        Exotel's transcript webhook fires once per conversational turn, so without this guard
+        the Brain would attempt a submission on every turn: an early ambiguous turn (UNCLEAR)
+        would claim the one allowed slot, and a customer's real, later, decisive answer would
+        be silently dropped when ShopDeck rejects it.
+
+        Returns True only for the caller that wins the race (the one allowed to actually POST
+        to ShopDeck); False means another turn already claimed it and this caller must not
+        submit. The filter matches only documents with no metadata.intelligence_result_id yet,
+        so under concurrent transcript events at most one update_one call can succeed.
+        """
+        db = await self._get_db()
+        res = await db.customer_engagements.update_one(
+            {
+                "engagement_id": engagement_id,
+                "metadata.intelligence_result_id": {"$exists": False},
+            },
+            {
+                "$set": {
+                    "metadata.intelligence_result_id": result_id,
+                    "metadata.intelligence_submitted_at": datetime.now(UTC),
+                    "updated_at": datetime.now(UTC),
+                }
+            },
+        )
+        return res.modified_count > 0
