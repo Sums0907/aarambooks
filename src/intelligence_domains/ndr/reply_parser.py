@@ -61,3 +61,94 @@ class CustomerReplyParser:
                 intent="UNCLEAR",
                 action_to_take="Human review required: LLM parsing failed."
             )
+
+
+# ---------------------------------------------------------------------------
+# Deterministic heuristic fallback
+# ---------------------------------------------------------------------------
+# CustomerReplyParser above is the intended path, but it needs a ModelGateway and is not
+# available inside the Exotel transcript webhook. The heuristic below is the synchronous
+# fallback used there.
+#
+# It matches on WORD BOUNDARIES. The previous inline implementation in the webhook used
+# plain substring matching, so "no" matched "know", "now", "north" and "nothing" - every
+# customer who said "now" was classified as RTO_CONFIRMED and had their order cancelled.
+# On Hindi/English mixed transcripts that fires constantly. Do not reintroduce `in` here.
+
+import re as _re
+
+from src.intelligence_domains.ndr.mission_factory import NDRConversationState
+
+# Ordered most-specific first: a refusal beats a date mention, because "no, not tomorrow"
+# is a refusal, not a reschedule.
+_REFUSAL_PATTERNS = [
+    r"\bcancel\b", r"\bcancelled\b", r"\brefuse[d]?\b", r"\breturn it\b",
+    r"\bdon'?t want\b", r"\bdo not want\b", r"\bnot interested\b",
+    r"\bनहीं चाहिए\b", r"\bकैंसिल\b", r"\bवापस\b",
+]
+_UNAVAILABLE_PATTERNS = [
+    r"\bbusy\b", r"\bcall (me )?later\b", r"\bcall back\b", r"\bnot available\b",
+    r"\bout of town\b", r"\btravell?ing\b",
+    r"\bबाद में\b", r"\bव्यस्त\b",
+]
+_RESCHEDULE_PATTERNS = [
+    r"\btomorrow\b", r"\bschedule\b", r"\breschedule\b", r"\bdeliver\b",
+    r"\bmonday\b", r"\btuesday\b", r"\bwednesday\b", r"\bthursday\b",
+    r"\bfriday\b", r"\bsaturday\b", r"\bsunday\b",
+    r"\bकल\b", r"\bभेज\b", r"\bडिलीवरी\b",
+]
+
+
+_NEGATION_PATTERNS = [
+    r"\bnot\b", r"\bcan'?t\b", r"\bcannot\b", r"\bwon'?t\b", r"\bunable\b",
+    r"\bno\b", r"\bनहीं\b", r"\bना\b",
+]
+
+
+def _matches_any(text: str, patterns: list[str]) -> bool:
+    return any(_re.search(p, text, _re.IGNORECASE | _re.UNICODE) for p in patterns)
+
+
+def classify_reply_heuristic(raw_transcript: str) -> tuple[str, str]:
+    """
+    Classifies a raw transcript into (intent, conversation_state) without an LLM.
+
+    Returns intent from: RESCHEDULE | RTO_CONFIRMED | CUSTOMER_UNAVAILABLE | UNCLEAR
+    and the NDR conversation state that intent implies.
+
+    This is intentionally conservative: anything it cannot confidently place becomes
+    UNCLEAR, which routes to human review rather than mutating the order.
+    """
+    text = (raw_transcript or "").strip()
+    if not text:
+        return "UNCLEAR", NDRConversationState.UNCLEAR.value
+
+    if _matches_any(text, _REFUSAL_PATTERNS):
+        return "RTO_CONFIRMED", NDRConversationState.CUSTOMER_REFUSED.value
+    if _matches_any(text, _UNAVAILABLE_PATTERNS):
+        return "CUSTOMER_UNAVAILABLE", NDRConversationState.CUSTOMER_UNAVAILABLE.value
+    if _matches_any(text, _RESCHEDULE_PATTERNS):
+        # A scheduling word next to a negation is a CONSTRAINT, not an agreement:
+        # "no, not tomorrow" and "I can't take it Monday" must never be recorded as
+        # customer_intent=agreed. Route them to human review instead.
+        if _matches_any(text, _NEGATION_PATTERNS):
+            return "UNCLEAR", NDRConversationState.CUSTOMER_RESPONSE.value
+        return "RESCHEDULE", NDRConversationState.CONFIRM_RESOLUTION.value
+    return "UNCLEAR", NDRConversationState.UNCLEAR.value
+
+
+# ShopDeck's NDRIntelligenceRequest constrains these vocabularies
+# (business_systems/shopdeck/backend/api/schemas/ndr_queue.py):
+#   recommended_action: reschedule|accept_rto|escalate|no_action
+#   customer_intent:    agreed|declined|unreachable|unclear
+_SHOPDECK_MAPPING = {
+    "RESCHEDULE":           ("reschedule",  "agreed"),
+    "RTO_CONFIRMED":        ("accept_rto",  "declined"),
+    "CUSTOMER_UNAVAILABLE": ("escalate",    "unreachable"),
+    "UNCLEAR":              ("escalate",    "unclear"),
+}
+
+
+def to_shopdeck_vocabulary(intent: str) -> tuple[str, str]:
+    """Maps an internal intent to ShopDeck's (recommended_action, customer_intent) pair."""
+    return _SHOPDECK_MAPPING.get(intent, ("escalate", "unclear"))
