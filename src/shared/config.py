@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     exotel_account_sid: str = ""
     exotel_caller_id: str = ""
     exotel_voicebot_flow_url: str = ""
+    # A separate bot's flow URL, created and named independently in the Exotel console
+    # (e.g. "Priya_Staging") - Exotel itself has no formal staging/production distinction,
+    # so this side of the split lives entirely in Brain's own config. Empty until that
+    # second bot is actually created.
+    exotel_voicebot_flow_url_staging: str = ""
     exotel_webhook_base_url: str = ""
     aaram_exotel_webhook_secret: str = "default_unsafe_secret_replace_in_prod"
     test_phone_override: str = ""

@@ -132,15 +132,26 @@ here is a code change in this repo.
 
 ---
 
-## Phase 5 — isolate testing from production before the next real call
+## Phase 5 — isolate testing from production before the next real call - DECIDED 2026-09-08
 
-- [ ] Stand up a separate `Bot_Staging` in the Exotel console, on its own flow, with the
-      corrected persona (Phase 1) applied there first.
-- [ ] Add an explicit switch in code for which flow a test call targets - e.g. a
-      `EXOTEL_VOICEBOT_FLOW_URL_STAGING` env var and a `--staging` flag on
-      `scripts/run_one_real_call.py` - so "which bot does this call" is a reviewable
-      argument, not a fact someone has to remember correctly under time pressure.
-- [ ] Do not point any test call at the production flow again until Phase 6 passes.
+- [x] **Decided against a separate `Bot_Staging` bot, by explicit user choice.** Exotel has no
+      formal staging/production distinction of its own, so a second bot would need every
+      future console edit (persona, instructions, etc.) applied twice to stay in sync -
+      exactly the same failure mode already found once this session (the console's persona
+      silently drifting out of sync with `docs/voicebot/bot_persona.txt`). Rather than
+      recreate that risk deliberately, testing continues against the single existing
+      production bot, protected by the same manual protocol already used for both physical
+      test calls today: verify the shared queue has zero real eligible items, confirm the
+      test phone number explicitly, confirm the server is running fresh code before
+      dispatching.
+- [x] **Built the switch mechanism anyway, left dormant.** `exotel_voicebot_flow_url_staging`
+      (`src/shared/config.py`), `ExotelVoiceBotAdapter(use_staging=...)`
+      (`exotel_adapter.py` - raises immediately if staging is requested but not configured,
+      never silently falls back to production), and `--staging` on
+      `scripts/run_one_real_call.py`. Defaults to empty/unused - available without rework if
+      a *temporary* staging bot is ever wanted for one specific risky change.
+- [ ] Every real test call still goes through the manual safety protocol above - this has not
+      changed and does not get relaxed just because bot-level isolation was declined.
 
 ---
 

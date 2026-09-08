@@ -11,14 +11,26 @@ class ExotelVoiceBotAdapter:
     Physical execution adapter for Exotel Native VoiceBot.
     Implements POST /v1/accounts/{accountsid}/calls/connect to trigger outbound flow.
     """
-    def __init__(self):
+    def __init__(self, use_staging: bool = False):
         self.api_key = settings.exotel_api_key
         self.api_token = settings.exotel_api_token
         self.subdomain = settings.exotel_subdomain
         self.account_sid = settings.exotel_account_sid
         self.caller_id = settings.exotel_caller_id
-        self.flow_url = settings.exotel_voicebot_flow_url
-        
+
+        # Which bot's flow a call targets is an explicit constructor argument, not ambient
+        # global config - so "which bot does this call" is a reviewable argument at the
+        # call site, not a fact someone has to remember correctly under time pressure (Gate
+        # 3 roadmap Phase 5). Exotel has no formal staging/production distinction of its own;
+        # this split lives entirely in which of these two settings gets read.
+        self.use_staging = use_staging
+        self.flow_url = settings.exotel_voicebot_flow_url_staging if use_staging else settings.exotel_voicebot_flow_url
+        if use_staging and not self.flow_url:
+            raise ValueError(
+                "use_staging=True but exotel_voicebot_flow_url_staging is not configured. "
+                "Refusing to silently fall back to the production flow."
+            )
+
         self.base_url = f"https://{self.subdomain}/v1/Accounts/{self.account_sid}"
 
     async def dispatch_call(self, action_request: ActionRequest, engagement_id: str) -> Dict[str, Any]:
