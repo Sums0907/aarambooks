@@ -303,7 +303,6 @@ class NDRQueueRepository:
                     new_status = "permanently_failed"
                     terminal_sql_part = ", terminal_at = NOW()"
                 else:
-                    new_status = "failed_retryable" if new_status != "permanently_failed" else "permanently_failed"
                     new_status = "failed_retryable"
                     terminal_sql_part = ""
 
