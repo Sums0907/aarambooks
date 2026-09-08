@@ -77,7 +77,7 @@ class CustomerReplyParser:
 
 import re as _re
 
-from src.intelligence_domains.ndr.mission_factory import NDRConversationState
+from src.intelligence_domains.ndr.models import NDRConversationState
 
 # Ordered most-specific first: a refusal beats a date mention, because "no, not tomorrow"
 # is a refusal, not a reschedule.
@@ -152,3 +152,76 @@ _SHOPDECK_MAPPING = {
 def to_shopdeck_vocabulary(intent: str) -> tuple[str, str]:
     """Maps an internal intent to ShopDeck's (recommended_action, customer_intent) pair."""
     return _SHOPDECK_MAPPING.get(intent, ("escalate", "unclear"))
+
+
+# ---------------------------------------------------------------------------
+# Matching a RESCHEDULE reply against the two specific dates actually offered
+# ---------------------------------------------------------------------------
+# Priya only ever offers exactly two real dates (offered_reattempt_date_1/_2 -
+# ccc_builder.py, confirmed directly against ShopDeck's own NDR console). A generic
+# RESCHEDULE classification from classify_reply_heuristic() is not enough for the
+# writeback to be useful to ShopDeck's ops team - they need to know WHICH of the two
+# dates was actually agreed to. Kept as a separate, additive function (not folded into
+# classify_reply_heuristic's return signature) so existing 2-tuple callers/tests are
+# unaffected.
+
+_WEEKDAY_RE = _re.compile(r"^([A-Za-z]+)")
+
+
+def _weekday_of(offered_date: Optional[str]) -> Optional[str]:
+    """Extracts 'Wednesday' from 'Wednesday (09-09-2026)'."""
+    if not offered_date:
+        return None
+    m = _WEEKDAY_RE.match(offered_date.strip())
+    return m.group(1) if m else None
+
+
+def extract_matched_reattempt_date(
+    raw_transcript: str,
+    offered_date_1: Optional[str],
+    offered_date_2: Optional[str],
+) -> Optional[str]:
+    """
+    Returns whichever of offered_date_1 / offered_date_2 the transcript actually names, or
+    None if neither is identifiable. Deliberately does not guess: a RESCHEDULE-classified
+    reply that doesn't name either specific date returns None, since the whole point of the
+    two-fixed-dates design is to know exactly which day was agreed to, not just that the
+    customer said yes to something.
+
+    date_1 is always "tomorrow" (today+1) and date_2 is always "day after tomorrow"
+    (today+2) under the current NDR reschedule-window config (see
+    src/intelligence_domains/ndr/config.py), so generic tomorrow/day-after-tomorrow
+    phrasing (English and Hindi) is matched in addition to the literal weekday name.
+    """
+    text = (raw_transcript or "").strip()
+    if not text:
+        return None
+
+    weekday_1 = _weekday_of(offered_date_1)
+    weekday_2 = _weekday_of(offered_date_2)
+
+    # Both Devanagari and romanized Hinglish forms are matched - real transcripts (STT
+    # output especially) render Hindi in either script depending on the engine, and
+    # romanized "kal"/"parso" are extremely common in real Hinglish speech. Devanagari
+    # terms use plain substring matching, not \b-bounded regex: Python's \b is unreliable
+    # at the edge of Devanagari combining marks (e.g. the anusvara in "परसों"), which
+    # silently made \bपरसों\b never match at all. Safe here since these are distinctive
+    # multi-syllable words, unlike the short-ASCII-word collision risk (e.g. "no" inside
+    # "know") that word-boundary matching elsewhere in this file specifically guards against.
+    matches_1 = (weekday_1 and _re.search(rf"\b{_re.escape(weekday_1)}\b", text, _re.IGNORECASE)) or \
+        _re.search(r"\btomorrow\b|\bkal\b", text, _re.IGNORECASE) or "कल" in text
+    matches_2 = (weekday_2 and _re.search(rf"\b{_re.escape(weekday_2)}\b", text, _re.IGNORECASE)) or \
+        _re.search(r"\bday after tomorrow\b|\bparso\b", text, _re.IGNORECASE) or "परसों" in text
+
+    # If both patterns fire (e.g. the customer said "tomorrow" but the weekday name for
+    # date_2 happens to also appear as an unrelated word), prefer an explicit weekday-name
+    # match over the generic tomorrow/day-after-tomorrow phrasing, since it's less ambiguous.
+    if weekday_2 and _re.search(rf"\b{_re.escape(weekday_2)}\b", text, _re.IGNORECASE):
+        return offered_date_2
+    if weekday_1 and _re.search(rf"\b{_re.escape(weekday_1)}\b", text, _re.IGNORECASE):
+        return offered_date_1
+    if matches_2:
+        return offered_date_2
+    if matches_1:
+        return offered_date_1
+    return None
