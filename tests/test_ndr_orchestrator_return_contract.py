@@ -12,12 +12,7 @@ Only the memory provider is stubbed, since orchestrate_resolution's control flow
 touches the gateway or knowledge providers - stubbing memory does not hide the bug this
 file exists to catch.
 """
-import sys
-from unittest.mock import AsyncMock, MagicMock
-sys.modules['motor'] = MagicMock()
-sys.modules['motor.motor_asyncio'] = MagicMock()
-sys.modules['pymongo'] = MagicMock()
-sys.modules['pymongo.errors'] = MagicMock()
+from unittest.mock import AsyncMock
 
 import uuid
 from datetime import datetime, UTC

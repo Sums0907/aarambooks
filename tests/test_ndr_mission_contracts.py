@@ -11,13 +11,6 @@ the call because the webhook allow-list was not updated.
 No LLM is involved. Everything here is reproducible and safe to gate on.
 """
 
-import sys
-from unittest.mock import MagicMock
-sys.modules['motor'] = MagicMock()
-sys.modules['motor.motor_asyncio'] = MagicMock()
-sys.modules['pymongo'] = MagicMock()
-sys.modules['pymongo.errors'] = MagicMock()
-
 import pytest
 
 from src.brain_core.action_engine.contracts import (

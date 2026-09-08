@@ -10,12 +10,7 @@ evidence provider shaped exactly like ShopDeck's real NDRShipmentContext JSON re
 way into build_session_constants()'s output - the same two-ended pattern
 test_ndr_mission_contracts.py already uses for the mission fields, applied to this new data.
 """
-import sys
-from unittest.mock import AsyncMock, MagicMock
-sys.modules['motor'] = MagicMock()
-sys.modules['motor.motor_asyncio'] = MagicMock()
-sys.modules['pymongo'] = MagicMock()
-sys.modules['pymongo.errors'] = MagicMock()
+from unittest.mock import AsyncMock
 
 import re
 from datetime import datetime, timedelta

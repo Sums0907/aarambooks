@@ -5,12 +5,7 @@ against ShopDeck's own NDR console), and for that matched date reaching ShopDeck
 NDRIntelligenceRequest.action_parameters (the only field on that schema meant for this -
 see business_systems/shopdeck/backend/api/schemas/ndr_queue.py).
 """
-import sys
-from unittest.mock import AsyncMock, MagicMock
-sys.modules['motor'] = MagicMock()
-sys.modules['motor.motor_asyncio'] = MagicMock()
-sys.modules['pymongo'] = MagicMock()
-sys.modules['pymongo.errors'] = MagicMock()
+from unittest.mock import AsyncMock
 
 import pytest
 

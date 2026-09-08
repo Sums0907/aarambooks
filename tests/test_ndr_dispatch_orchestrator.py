@@ -1,9 +1,4 @@
-import sys
 from unittest.mock import MagicMock
-sys.modules['motor'] = MagicMock()
-sys.modules['motor.motor_asyncio'] = MagicMock()
-sys.modules['pymongo'] = MagicMock()
-sys.modules['pymongo.errors'] = MagicMock()
 
 import pytest
 import asyncio
