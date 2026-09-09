@@ -1,0 +1,28 @@
+model_list:
+  # dev's litellm_config.yaml routes local-qwen -> ollama/qwen2.5-coder:7b at
+  # host.docker.internal:11434, which only resolves to a real Ollama instance because that's
+  # the developer's own Mac. On a VPS there is no Ollama listening there by default, so every
+  # conversational stage that routed through "local-qwen" (intent routing, planning, entity
+  # resolution, response synthesis - the models actually driving Priya's live NDR calls, per
+  # src/shared/config.py's stage_r_*_model settings) would fail outright in production unless
+  # this is addressed.
+  #
+  # This file keeps every stage-routing NAME identical (stage_r_*_model settings in
+  # src/shared/config.py still say "local-qwen" and need no code change) but points
+  # "local-qwen" at Gemini instead of a VPS-side Ollama, so production has a working default
+  # on day one. This is a real behavior change - Gemini differs from qwen2.5-coder in cost,
+  # latency, and conversational tone - not merely an infrastructure swap, and needs an
+  # explicit decision before go-live: either confirm this Gemini default is acceptable for the
+  # live conversational stages, or stand up Ollama on the VPS (with real capacity planning for
+  # phone-call-latency inference) and point this back at it instead.
+  - model_name: "local-qwen"
+    litellm_params:
+      model: "gemini/gemini-2.0-flash"
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: "gemini-3.6-flash"
+    litellm_params:
+      model: "gemini/gemini-2.0-flash"
+      api_key: os.environ/GEMINI_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

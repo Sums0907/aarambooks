@@ -1,0 +1,95 @@
+version: "3.8"
+
+# Production compose for AaramBooks Brain. Unlike docker-compose.yml (dev: --reload,
+# live-mounted ./src, host.docker.internal Ollama), every service here is self-contained
+# inside this stack - no dependency on the developer machine.
+#
+# Brain's two background workers (NDRQueuePoller, OutboundWritebackWorker) run as asyncio
+# tasks inside the FastAPI process's own event loop (see src/main.py's lifespan) - they are
+# not separate containers, and never will be as long as that stays true.
+
+services:
+  aarambooks-brain-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: aarambooks-brain-api
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-postgres}:${DB_PASSWORD:?DB_PASSWORD required}@aarambooks-brain-db:5432/${DB_NAME:-aarambooks_brain_core_prod}
+      - MONGO_URI=mongodb://aarambooks-brain-mongo:27017
+      - LITELLM_BASE_URL=http://litellm:4000
+    ports:
+      - "8000:8000"
+    depends_on:
+      aarambooks-brain-db:
+        condition: service_healthy
+      aarambooks-brain-mongo:
+        condition: service_healthy
+      litellm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - brain-network
+
+  aarambooks-brain-db:
+    image: pgvector/pgvector:pg16
+    container_name: aarambooks-brain-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-aarambooks_brain_core_prod}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+    volumes:
+      - brain-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-aarambooks_brain_core_prod}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - brain-network
+
+  aarambooks-brain-mongo:
+    image: mongo:7
+    container_name: aarambooks-brain-mongo
+    volumes:
+      - brain-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - brain-network
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-brain-prod
+    command: --config /app/config.yaml --port 4000
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:?LITELLM_MASTER_KEY required}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:?GEMINI_API_KEY required}
+    volumes:
+      - ./litellm_config.prod.yaml:/app/config.yaml
+    restart: unless-stopped
+    networks:
+      - brain-network
+
+networks:
+  brain-network:
+    driver: bridge
+
+volumes:
+  brain-postgres-data:
+  brain-mongo-data:

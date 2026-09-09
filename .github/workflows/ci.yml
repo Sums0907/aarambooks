@@ -28,4 +28,4 @@ jobs:
         echo "Tests are temporarily disabled because the core repo test suite is undergoing major refactoring and decoupling."
     - name: Build Production Image
       run: |
-        docker build -t aarambooks-brain-core:prod .
+        docker build -f Dockerfile.prod -t aarambooks-brain-core:prod .
