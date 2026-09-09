@@ -40,14 +40,43 @@ def test_greeting_never_asks_for_a_date_even_when_a_date_is_constrained():
     assert "reschedule" not in greeting.lower()
     assert greeting.rstrip().endswith("क्या अभी बात करना सुविधाजनक है?")
 
-def test_greeting_uses_product_name():
+def test_greeting_uses_product_category():
+    # A. Known category: product_category="Bedsheet" -> greeting uses Bedsheet
     engagement = {
         "call_context": {
             "customer_name": "Sumati",
             "product_name": "Pure Mulmul Kids Dohar",
+            "product_category": "Dohar",
             "domain_constraints": []
         }
     }
     greeting = generate_dynamic_greeting(engagement)
-    
-    assert "Pure Mulmul Kids Dohar" in greeting
+    assert "Dohar" in greeting
+    assert "Pure Mulmul Kids Dohar" not in greeting
+
+def test_greeting_unknown_category_fallback():
+    # B & C. None/missing -> generic "order"
+    engagement = {
+        "call_context": {
+            "customer_name": "Sumati",
+            "product_name": "Pure Mulmul Kids Dohar",
+            "product_category": None,
+            "domain_constraints": []
+        }
+    }
+    greeting = generate_dynamic_greeting(engagement)
+    assert "Pure Mulmul Kids Dohar" not in greeting
+    assert "order" in greeting
+
+def test_greeting_multi_word_category():
+    # G. Multi-word category: e.g. "Comforter Set"
+    engagement = {
+        "call_context": {
+            "customer_name": "Sumati",
+            "product_name": "Some weird name",
+            "product_category": "Comforter Set",
+            "domain_constraints": []
+        }
+    }
+    greeting = generate_dynamic_greeting(engagement)
+    assert "Comforter Set" in greeting

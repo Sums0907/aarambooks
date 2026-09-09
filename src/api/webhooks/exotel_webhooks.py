@@ -172,7 +172,7 @@ def generate_dynamic_greeting(engagement: Dict[str, Any]) -> str:
     """
     call_context = engagement.get("call_context", {}) or {}
     customer_name = call_context.get("customer_name")
-    product_name = call_context.get("product_name")
+    product_category = call_context.get("product_category")
 
     salutation = f"नमस्ते {customer_name} जी," if customer_name else "नमस्ते,"
     intro = f"{salutation} मैं प्रिया, Aaram Homes से बोल रही हूँ।"
@@ -183,8 +183,8 @@ def generate_dynamic_greeting(engagement: Dict[str, Any]) -> str:
     if "failed delivery attempts due to" in why_failed:
         why_failed = why_failed.split("failed delivery attempts due to")[-1].strip()
 
-    if product_name:
-        reason = f"आपने जो {product_name} order किया था, उसकी delivery कल नहीं हो पाई क्योंकि {why_failed}।"
+    if product_category:
+        reason = f"आपने जो {product_category} order किया था, उसकी delivery कल नहीं हो पाई क्योंकि {why_failed}।"
     else:
         reason = f"आपने जो order किया था, उसकी delivery कल नहीं हो पाई क्योंकि {why_failed}।"
 
@@ -220,17 +220,13 @@ def build_session_constants(
     # but not listed here silently never reaches the call - the projection tests still pass
     # while Priya receives nothing. Keep it in sync with ccc_contracts.py.
     for key in [
-        "customer_name", "product_name", "product_description",
+        "customer_name", "product_category", "category_confidence", "product_name", "product_description",
         "payment_mode", "objective", "context_summary",
         "domain_constraints", "core_safety_constraints", "allowed_actions",
         "size", "color", "material", "features", "return_exchange_condition", "attr_style",
         "attr_pattern", "attr_package_contents", "mrp",
-        "catalog_selling_price", "actual_item_price", "collectable_amount", "order_quantity",
-        # NDR-specific context. courier_partner is deliberately NOT in this list - Priya
-        # must never name the courier (see bot_persona.txt's NO COURIER OR LOGISTICS
-        # LEAKAGE rule) - so it is intentionally withheld even though it is available on
-        # the projection for any future internal-only use.
-        "past_delivery_attempts", "destination_pincode", "prior_communication_summary",
+        "catalog_selling_price", "actual_item_price", "collectable_amount", "order_quantity", "order_date",
+        "courier_partner", "past_delivery_attempts", "destination_pincode", "prior_communication_summary",
         "offered_reattempt_date_1", "offered_reattempt_date_2",
         "diagnostic_priority_instruction",
         # Conversation mission (see src/intelligence_domains/ndr/mission_factory.py)
@@ -245,7 +241,7 @@ def build_session_constants(
                 session_constants[key] = str(call_context[key])
 
     session_constants["instruction_commercial_authority"] = "actual_item_price is the customer's actual transaction price. NEVER quote catalog_selling_price as the customer's transaction price."
-    session_constants["instruction_collectable"] = "collectable_amount is the amount to collect on delivery where applicable."
+    session_constants["instruction_payment"] = "If payment_mode is prepaid or collectable_amount is 0, the order is already paid and the customer does not need to pay anything on delivery. If payment_mode is cod, they must pay the exact collectable_amount to the delivery executive."
     session_constants["instruction_discounts"] = "NEVER invent discounts or coupons. If they are not in the context, say they are unavailable."
     session_constants["instruction_missing_facts"] = "If any product attribute (size, color, material, policy) is missing, explicitly say it is unavailable. Never infer or guess."
     session_constants["instruction_ndr"] = "Follow the exact context summary and objective. Do not deviate. Never claim an execution (like rescheduling) has already occurred."
@@ -254,7 +250,7 @@ def build_session_constants(
     session_constants["instruction_mission_retention"] = "You called for the reason in mission_why_this_call. Answering the customer's question NEVER changes that reason. After you answer, acknowledge their question and return to the delivery topic in the same turn."
     session_constants["instruction_no_filler_loop"] = "Never ask a generic 'is there anything else I can help you with'. If the delivery matter is unresolved, return to it. If it is resolved, close the call politely."
     session_constants["instruction_not_pushy"] = "Do not ask for a delivery date until the customer has responded to the reason for the call and you understand their constraints. Never repeat a request the customer has already declined. The customer may decline entirely, and that is an acceptable outcome."
-    session_constants["instruction_reattempt_dates"] = "If offered_reattempt_date_1 and offered_reattempt_date_2 are both present, they are the ONLY two dates you may offer for redelivery - this matches ShopDeck's real operational policy. Never propose, calculate, or accept any other date. If the customer asks for a different date, explain that only these two dates can be offered. If neither date is present in this context, no reschedule date can be offered at all for this call - do not invent one."
+    session_constants["instruction_reattempt_dates"] = "You may ONLY offer the exact dates provided in offered_reattempt_date_1 and offered_reattempt_date_2 for redelivery. If the customer asks when they can reschedule, explicitly read both of these options to them. Never propose, calculate, or accept any other date. If neither date is present, no reschedule is allowed."
     session_constants["instruction_pincode_lock"] = "The parcel has already reached the courier's distribution point for destination_pincode. If the customer requests an address change, you may only accept it if they confirm the new address is within the SAME pincode. If they state a different pincode, do not accept or confirm the change - explain that the courier cannot redeliver outside the current pincode for this attempt."
     session_constants["instruction_prior_communication"] = "prior_communication_summary lists prior outreach attempts (calls, SMS, WhatsApp) and how the customer responded, if any. Use it to avoid repeating a question already answered, and to avoid asking the customer to repeat information they already gave in an earlier attempt."
     return session_constants

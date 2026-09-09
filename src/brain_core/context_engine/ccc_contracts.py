@@ -14,6 +14,7 @@ class OrderContext(BaseModel):
     payment_mode: str
     actual_item_price: Optional[float] = None
     order_quantity: Optional[int] = None
+    order_date: Optional[str] = None
     courier_partner: Optional[str] = None
     past_delivery_attempts: Optional[int] = None
     # Delivery destination pincode - the parcel has already reached this pincode's courier
@@ -43,6 +44,8 @@ class ProductContext(BaseModel):
     attr_pattern: Optional[str] = None
     attr_package_contents: Optional[str] = None
     rich_attributes_available: bool = False
+    product_category: Optional[str] = None
+    category_confidence: Optional[str] = None
 
 class CustomerConversationContext(BaseModel):
     """Immutable call-scoped authoritative snapshot."""
@@ -67,6 +70,7 @@ class CustomerConversationProjection(BaseModel):
     payment_mode: str
     actual_item_price: Optional[float] = None
     order_quantity: Optional[int] = None
+    order_date: Optional[str] = None
     courier_partner: Optional[str] = None
     past_delivery_attempts: Optional[int] = None
     destination_pincode: Optional[str] = None
@@ -95,6 +99,8 @@ class CustomerConversationProjection(BaseModel):
     attr_style: Optional[str] = None
     attr_pattern: Optional[str] = None
     attr_package_contents: Optional[str] = None
+    product_category: Optional[str] = None
+    category_confidence: Optional[str] = None
     
     objective: str
     context_summary: str

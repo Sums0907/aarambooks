@@ -94,6 +94,7 @@ class CustomerConversationContextBuilder:
             awb_no=awb_no,
             collectable_amount=float(evidence.get("cod_amount") or 0.0),
             payment_mode=evidence.get("payment_mode", "UNKNOWN"),
+            order_date=evidence.get("order_date") or evidence.get("created_at"),
             courier_partner=evidence.get("courier_partner"),
             past_delivery_attempts=evidence.get("ndr_count"),
             destination_pincode=evidence.get("drop_pincode"),
@@ -108,7 +109,17 @@ class CustomerConversationContextBuilder:
             
             # Extract actual order commercial truth from ShopDeck item
             actual_item_price = float(first_item.get("selling_price", 0.0))
-            order_quantity = first_item.get("quantity")
+            order_quantity = sum(int(it.get("quantity", 1)) for it in items)
+            
+            # Format clubbed orders
+            final_product_name = first_item.get("product_name")
+            if len(items) > 1:
+                item_strs = []
+                for it in items:
+                    qty = it.get("quantity", 1)
+                    name = it.get("product_name", "Item")
+                    item_strs.append(f"{qty}x {name}")
+                final_product_name = ", ".join(item_strs)
             
             # Reconstruct OrderContext with item details
             order_ctx = OrderContext(
@@ -117,11 +128,19 @@ class CustomerConversationContextBuilder:
                 payment_mode=order_ctx.payment_mode,
                 actual_item_price=actual_item_price,
                 order_quantity=order_quantity,
+                order_date=order_ctx.order_date,
                 courier_partner=order_ctx.courier_partner,
                 past_delivery_attempts=order_ctx.past_delivery_attempts,
                 destination_pincode=order_ctx.destination_pincode,
                 prior_communication_summary=order_ctx.prior_communication_summary,
             )
+            
+            # Category Intelligence
+            category_intel = evidence.get("category_intelligence", {})
+            product_category = category_intel.get("product_category")
+            category_confidence = category_intel.get("classification_confidence")
+            if product_category and product_category.upper() == "UNKNOWN":
+                product_category = None
             
             product_description = None
             rich_attributes_available = False
@@ -159,7 +178,7 @@ class CustomerConversationContextBuilder:
             product_ctx = ProductContext(
                 sku_id=sku_id,
                 product_code=first_item.get("product_code"),
-                product_name=first_item.get("product_name"),
+                product_name=final_product_name,
                 product_description=product_description,
                 catalog_selling_price=float(inv_data.get("selling_price")) if (rich_attributes_available and inv_data.get("selling_price") is not None) else None,
                 mrp=inv_data.get("mrp") if (rich_attributes_available and inv_data) else None,
@@ -172,10 +191,12 @@ class CustomerConversationContextBuilder:
                 attr_style=inv_data.get("attr_style") if (rich_attributes_available and inv_data) else None,
                 attr_pattern=inv_data.get("attr_pattern") if (rich_attributes_available and inv_data) else None,
                 attr_package_contents=inv_data.get("attr_package_contents") if (rich_attributes_available and inv_data) else None,
-                rich_attributes_available=rich_attributes_available
+                rich_attributes_available=rich_attributes_available,
+                product_category=product_category,
+                category_confidence=category_confidence
             )
         else:
-            product_ctx = ProductContext(rich_attributes_available=False)
+            product_ctx = ProductContext(rich_attributes_available=False, product_category=None, category_confidence=None)
             
         return CustomerConversationContext(
             ccc_id=f"ccc_{uuid.uuid4().hex[:8]}",
@@ -235,6 +256,7 @@ class CustomerConversationContextBuilder:
             payment_mode=ccc.order_facts.payment_mode,
             actual_item_price=ccc.order_facts.actual_item_price,
             order_quantity=ccc.order_facts.order_quantity,
+            order_date=ccc.order_facts.order_date,
             courier_partner=ccc.order_facts.courier_partner,
             past_delivery_attempts=ccc.order_facts.past_delivery_attempts,
             destination_pincode=ccc.order_facts.destination_pincode,
@@ -242,6 +264,8 @@ class CustomerConversationContextBuilder:
             offered_reattempt_date_1=offered_date_1,
             offered_reattempt_date_2=offered_date_2,
             diagnostic_priority_instruction=diagnostic_priority_instruction,
+            product_category=ccc.product_context.product_category,
+            category_confidence=ccc.product_context.category_confidence,
             product_name=ccc.product_context.product_name,
             product_description=ccc.product_context.product_description,
             product_code=ccc.product_context.product_code,
