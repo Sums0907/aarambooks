@@ -1,8 +1,10 @@
+import os
 import pytest
 import pytest_asyncio
 import asyncio
 from uuid import uuid4
 import asyncpg
+import httpx
 import json
 
 from src.intelligence_domains.catalog_intelligence.orchestrator import CatalogIntelligenceOrchestrator
@@ -11,9 +13,9 @@ from src.shared.rabta_interfaces import IntelligenceDomainProvider, ContextExecu
 from src.shared.evidence_request_contracts import AbstractEvidenceRequest, BusinessEvidenceResponse, BusinessRealityStatus
 from src.shared.requirement_classification_contracts import ClassifiedRequirement, ConversationalUnderstanding
 from src.shared.conversational_contracts import (
-    ConversationalIntent, 
-    NormalizedParameter, 
-    ParameterDataType, 
+    ConversationalIntent,
+    NormalizedParameter,
+    ParameterDataType,
     SemanticEntityReference,
     ConversationalResponseType
 )
@@ -21,108 +23,48 @@ from src.shared.config import settings
 from src.brain_core.decision.decision_engine import DecisionEngine
 from src.brain_core.orchestration.rabta_orchestrator import RabtaOrchestrator
 
-from business_systems.catalog.service import CatalogService
-from business_systems.catalog.models import SaveProductFamilyPayload, SaveProductInput, SaveSkuInput
+# CATALOG_INTERNAL_TOKEN must be set BEFORE business_systems.catalog.api is imported below -
+# that module reads it into a module-level constant at import time, so setting it any later
+# leaves the service permanently seeing an empty token and 500ing "not configured on server"
+# on every authenticated request regardless of what the client sends.
+CATALOG_TEST_TOKEN = "test_integration_token"
+os.environ["CATALOG_INTERNAL_TOKEN"] = CATALOG_TEST_TOKEN
+
+# Catalog is reached only over HTTP now (CatalogCemAdapter no longer imports Catalog's
+# Python code) - these two imports are test-only, to exercise the real Catalog FastAPI app
+# and its real CATALOG_DATABASE_URL in-process via httpx.ASGITransport, the same way
+# business_systems/catalog/tests/conftest.py already tests it standalone. This file
+# previously ran destructive DROP TABLE/CREATE TABLE DDL for a hand-rolled, incomplete
+# catalog schema directly against settings.database_url (Brain's own database) - that is
+# exactly how Catalog's tables ended up living inside Brain's database instead of
+# CATALOG_DATABASE_URL to begin with, and is replaced here with the real schema.sql applied
+# to the real, separate Catalog database.
+from business_systems.catalog.api import app as catalog_app
+from business_systems.catalog.config import CATALOG_DATABASE_URL
+
+_SCHEMA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "business_systems", "catalog", "schema.sql"))
 
 @pytest_asyncio.fixture
 async def db_pool():
-    url = settings.database_url.replace("postgresql+asyncpg", "postgresql")
-    pool = await asyncpg.create_pool(url, min_size=1, max_size=5)
-    
-    # Initialize some data for tests
-    async with pool.acquire() as conn:
-        await conn.execute("""
-        DROP VIEW IF EXISTS vw_catalog_products;
-        DROP TABLE IF EXISTS catalog_skus CASCADE;
-        DROP TABLE IF EXISTS catalog_products CASCADE;
-        DROP TABLE IF EXISTS catalog_product_code_reservations CASCADE;
-        DROP TABLE IF EXISTS catalog_sku_id_reservations CASCADE;
-        DROP TABLE IF EXISTS catalog_price_history CASCADE;
-        DROP TABLE IF EXISTS catalog_idempotency_records CASCADE;
+    pool = await asyncpg.create_pool(CATALOG_DATABASE_URL, min_size=1, max_size=5)
 
-        CREATE TABLE catalog_products (
-            internal_id UUID PRIMARY KEY,
-            product_code VARCHAR(255),
-            name VARCHAR(255),
-            description TEXT,
-            product_type VARCHAR(50),
-            brand VARCHAR(50),
-            hsn_code VARCHAR(50),
-            gst_percentage DECIMAL,
-            fabric_type VARCHAR(50),
-            care_instructions TEXT,
-            set_composition VARCHAR(255),
-            product_media_urls JSONB,
-            size_chart_url VARCHAR(255),
-            video_urls JSONB,
-            collection_tags TEXT[],
-            lifecycle_state VARCHAR(50)
-        );
-        CREATE TABLE catalog_skus (
-            internal_id UUID PRIMARY KEY,
-            product_internal_id UUID,
-            sku_id VARCHAR(255) UNIQUE,
-            colour VARCHAR(50),
-            size VARCHAR(50),
-            size_type VARCHAR(50),
-            pack_configuration VARCHAR(50),
-            mrp DECIMAL,
-            selling_price DECIMAL,
-            cost_price DECIMAL,
-            packaging_length_cm DECIMAL,
-            packaging_breadth_cm DECIMAL,
-            packaging_height_cm DECIMAL,
-            packaging_weight_kg DECIMAL,
-            sku_media_urls JSONB
-        );
-        CREATE TABLE catalog_product_code_reservations (
-            reservation_id UUID PRIMARY KEY,
-            product_code VARCHAR(255) UNIQUE,
-            product_internal_id UUID,
-            reserved_by VARCHAR(50),
-            reserved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status VARCHAR(50) DEFAULT 'ACTIVE'
-        );
-        CREATE TABLE catalog_sku_id_reservations (
-            reservation_id UUID PRIMARY KEY,
-            sku_id VARCHAR(255) UNIQUE,
-            sku_internal_id UUID,
-            reserved_by VARCHAR(50),
-            reserved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE catalog_price_history (
-            history_id SERIAL PRIMARY KEY,
-            sku_internal_id UUID,
-            previous_mrp DECIMAL,
-            new_mrp DECIMAL,
-            previous_selling_price DECIMAL,
-            new_selling_price DECIMAL,
-            previous_cost_price DECIMAL,
-            new_cost_price DECIMAL,
-            changed_by VARCHAR(50),
-            changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE catalog_idempotency_records (
-            idempotency_key VARCHAR(255) PRIMARY KEY,
-            operation VARCHAR(50),
-            request_hash VARCHAR(64),
-            response_payload JSONB,
-            created_at TIMESTAMP,
-            expires_at TIMESTAMP
-        );
-        DROP VIEW IF EXISTS vw_catalog_products;
-        CREATE VIEW vw_catalog_products AS 
-        SELECT internal_id as product_internal_id, name as product_name, product_code 
-        FROM catalog_products;
-        """)
+    with open(_SCHEMA_PATH, "r", encoding="utf-8") as f:
+        schema_sql = f.read()
+
+    async with pool.acquire() as conn:
+        await conn.execute(schema_sql)
         # Clear out existing for isolated testing
-        await conn.execute("DELETE FROM catalog_skus;")
-        await conn.execute("DELETE FROM catalog_products;")
-        await conn.execute("DELETE FROM catalog_product_code_reservations;")
-        await conn.execute("DELETE FROM catalog_sku_id_reservations;")
-        await conn.execute("DELETE FROM catalog_price_history;")
-        await conn.execute("DELETE FROM catalog_idempotency_records;")
-        
+        await conn.execute("""
+            TRUNCATE TABLE
+                catalog_skus,
+                catalog_products,
+                catalog_product_code_reservations,
+                catalog_sku_id_reservations,
+                catalog_price_history,
+                catalog_idempotency_records
+            CASCADE;
+        """)
+
         # Insert a dummy product for discovery
         product_id = uuid4()
         await conn.execute(
@@ -150,7 +92,7 @@ async def db_pool():
                 internal_id, product_internal_id, sku_id, colour, size, size_type, 
                 mrp, selling_price, cost_price, packaging_length_cm, packaging_breadth_cm, packaging_height_cm, packaging_weight_kg
             ) VALUES (
-                $1, $2, 'BEDBL', 'BL', 'S', 'US', 1000.0, 900.0, 500.0, 10, 10, 10, 1
+                $1, $2, 'BEDBL', 'BL', 'S', 'size', 1000.0, 900.0, 500.0, 10, 10, 10, 1
             );
             """,
             sku_id, collision_product_id
@@ -166,10 +108,15 @@ def orchestrator():
 
 @pytest_asyncio.fixture
 async def cem(db_pool):
-    adapter = CatalogCemAdapter(database_url=settings.database_url)
-    adapter._pool = db_pool
-    adapter._service = CatalogService(db_pool)
-    return adapter
+    # db_pool is depended on purely for ordering: it must seed the database before the
+    # Catalog app's own pool (started here) reads from it. ASGITransport runs the real
+    # FastAPI app in-process against the real CATALOG_DATABASE_URL, with no separate server.
+    await catalog_app.router.startup()
+    transport = httpx.ASGITransport(app=catalog_app)
+    adapter = CatalogCemAdapter(base_url="http://catalog-test", internal_token=CATALOG_TEST_TOKEN, transport=transport)
+    yield adapter
+    await adapter._ensure_client().aclose()
+    await catalog_app.router.shutdown()
 
 @pytest.mark.asyncio
 async def test_discovery_with_one_distinct_match(cem):
@@ -267,7 +214,7 @@ async def test_exhaustion_scenario(cem, db_pool):
                     internal_id, product_internal_id, sku_id, colour, size, size_type, 
                     mrp, selling_price, cost_price, packaging_length_cm, packaging_breadth_cm, packaging_height_cm, packaging_weight_kg
                 ) VALUES (
-                    $1, $2, $3, 'BL', 'S', 'US', 1000.0, 900.0, 500.0, 10, 10, 10, 1
+                    $1, $2, $3, 'BL', 'S', 'size', 1000.0, 900.0, 500.0, 10, 10, 10, 1
                 );
                 """,
                 uuid4(), collision_product_id, sku

@@ -47,8 +47,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Connect to MongoDB for NDR communications
-    mongo_uri = getattr(settings, "mongo_uri", "mongodb://localhost:27017")
-    await MongoDBManager.connect(mongo_uri)
+    await MongoDBManager.connect(settings.mongo_uri)
 
     logging.info("Starting up RabbitMQ connection...")
     # await gateway.connect()
@@ -205,7 +204,7 @@ inventory_cem = InventoryCemAdapter(
     capabilities=inventory_knowledge.get_certified_capabilities()
 )
 
-catalog_cem = CatalogCemAdapter(database_url=settings.database_url)
+catalog_cem = CatalogCemAdapter(base_url=settings.catalog_url, internal_token=settings.catalog_internal_token)
 shopdeck_cem = ShopdeckCemAdapter(
     base_url=getattr(settings, "shopdeck_url", "http://localhost:8002"),
     identity_url=settings.identity_url,
@@ -313,32 +312,38 @@ app.include_router(ndr_event_router)
 app.include_router(openai_router)
 app.include_router(exotel_router)
 
-from fastapi.responses import FileResponse
 from fastapi import HTTPException
-import asyncpg
+from fastapi.responses import Response
+import httpx
 import uuid
 
 @app.get("/api/v1/catalog/artifacts/{artifact_id}/download")
 async def download_catalog_artifact(artifact_id: str):
-    from business_systems.catalog.service import CatalogService
-    
+    # Proxies Catalog's own /internal/artifacts/{id} endpoint - Catalog is reached only over
+    # HTTP now (business_systems/catalog/api.py), so Brain can no longer read the artifact
+    # file directly off shared disk; it streams the bytes through instead.
     try:
-        parsed_id = uuid.UUID(artifact_id)
+        uuid.UUID(artifact_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid artifact_id format")
-        
-    url = settings.database_url.replace("postgresql+asyncpg", "postgresql")
-    pool = await asyncpg.create_pool(url, min_size=1, max_size=2)
-    try:
-        service = CatalogService(pool)
-        file_path = await service.get_publication_artifact_path(parsed_id)
-        if not file_path:
-            raise HTTPException(status_code=404, detail="Artifact not found or not committed")
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="Artifact file missing from disk")
-        return FileResponse(file_path, filename=os.path.basename(file_path))
-    finally:
-        await pool.close()
+
+    async with httpx.AsyncClient(base_url=settings.catalog_url, timeout=30.0) as client:
+        resp = await client.get(
+            f"/internal/artifacts/{artifact_id}",
+            headers={"Authorization": f"Bearer {settings.catalog_internal_token}"},
+        )
+    if resp.status_code == 404:
+        raise HTTPException(status_code=404, detail=resp.json().get("detail", "Artifact not found"))
+    resp.raise_for_status()
+
+    forwarded_headers = {}
+    if "content-disposition" in resp.headers:
+        forwarded_headers["content-disposition"] = resp.headers["content-disposition"]
+    return Response(
+        content=resp.content,
+        media_type=resp.headers.get("content-type", "application/octet-stream"),
+        headers=forwarded_headers,
+    )
 
 @app.get("/health")
 async def health_check():

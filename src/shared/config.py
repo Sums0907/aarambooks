@@ -4,6 +4,12 @@ class Settings(BaseSettings):
     port: int = 8000
     environment: str = "development"
     database_url: str
+    # main.py's lifespan reads this via getattr(settings, "mongo_uri", ...) - without a
+    # declared field here, pydantic-settings has nothing to populate from MONGO_URI, so that
+    # getattr always silently fell through to its localhost default regardless of what was
+    # set in the environment. Any deployment where Mongo isn't reachable at localhost:27017
+    # from Brain's own process (e.g. a separate container) needs this actually wired.
+    mongo_uri: str = "mongodb://localhost:27017"
     litellm_base_url: str = "http://localhost:4000"
     litellm_model: str = "gemini/gemini-1.5-pro-latest"
     litellm_api_key: str = "sk-1234"
@@ -27,6 +33,11 @@ class Settings(BaseSettings):
     inventory_url: str = "https://api-inventory.aarambooks.cloud"
     shopdeck_url: str = "https://api-shopdeck.aarambooks.cloud"
     packing_url: str = "https://api-packing.aarambooks.cloud"
+    # Catalog BS - reached only over HTTP as of the catalog_cem_adapter.py HTTP-boundary
+    # rewrite. Localhost default matches local dev (business_systems/catalog/api.py running
+    # standalone); production must point at wherever Catalog is actually deployed.
+    catalog_url: str = "http://localhost:8300"
+    catalog_internal_token: str = ""
     shiprocket_token: str = ""
     shopdeck_token: str = ""
     shopdeck_ndr_transport: str = "api"

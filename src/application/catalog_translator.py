@@ -1,6 +1,6 @@
 import uuid
 from typing import Dict, Any, List, Optional
-from business_systems.catalog.models import SaveProductFamilyPayload, SaveProductInput, SaveSkuInput
+from src.application.catalog_contracts import SaveProductFamilyPayload, SaveProductInput, SaveSkuInput
 from src.intelligence_domains.catalog_intelligence.models import ProposedCatalogAction, CatalogIntent, FieldProvenance
 from src.shared.evidence_request_contracts import BusinessStateVerificationRequest
 from src.shared.rabta_interfaces import ContextExecutionAdapter

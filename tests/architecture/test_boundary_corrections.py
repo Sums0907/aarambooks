@@ -1,15 +1,35 @@
+import os
+
+# Must be set before business_systems.catalog.api is imported (module-level constant read at
+# import time) - see tests/intelligence_domains/catalog_intelligence/test_catalog_integration.py
+# for the same note.
+os.environ.setdefault("CATALOG_INTERNAL_TOKEN", "test_boundary_token")
+
 import pytest
-import asyncio
+import pytest_asyncio
+import httpx
 from uuid import uuid4
 from src.shared.conversational_contracts import MultimodalQuery
 from src.shared.rabta_interfaces import ContextExecutionAdapter
 from src.shared.evidence_request_contracts import BusinessStateVerificationRequest, BusinessRealityStatus
 from src.infrastructure.adapters.catalog_cem_adapter import CatalogCemAdapter
+from business_systems.catalog.api import app as catalog_app
 
-@pytest.fixture
-def test_db_url():
-    from src.shared.config import settings
-    return settings.database_url
+@pytest_asyncio.fixture
+async def cem():
+    # Real Catalog FastAPI app in-process against its real CATALOG_DATABASE_URL - the old
+    # version of this test mocked asyncpg.create_pool directly inside the adapter, which no
+    # longer exists now that Catalog is reached only over HTTP (see catalog_cem_adapter.py).
+    await catalog_app.router.startup()
+    transport = httpx.ASGITransport(app=catalog_app)
+    adapter = CatalogCemAdapter(
+        base_url="http://catalog-test",
+        internal_token=os.environ["CATALOG_INTERNAL_TOKEN"],
+        transport=transport,
+    )
+    yield adapter
+    await adapter._ensure_client().aclose()
+    await catalog_app.router.shutdown()
 
 @pytest.mark.asyncio
 async def test_multimodal_query_backward_compatibility():
@@ -32,36 +52,17 @@ async def test_id_cannot_access_catalog_db_directly():
     # 3. ID cannot access Catalog DB directly.
     pass
 
-from unittest.mock import AsyncMock, patch, MagicMock
-
 @pytest.mark.asyncio
-async def test_typed_current_state_verification(test_db_url):
-    cem = CatalogCemAdapter(test_db_url)
-    
+async def test_typed_current_state_verification(cem):
     req = BusinessStateVerificationRequest(
         domain_urn="urn:aarambooks:cem:catalog",
         verification_target="product_code",
-        context_payload={"product_code": "NONEXISTENT"}
+        context_payload={"product_code": "NONEXISTENT-BOUNDARY-TEST"}
     )
-    
-    with patch('src.infrastructure.adapters.catalog_cem_adapter.asyncpg.create_pool', new_callable=AsyncMock) as mock_pool:
-        # Create a mock connection that has an async fetchval
-        mock_conn = AsyncMock()
-        mock_conn.fetchval.return_value = False
-        
-        # Create a mock context manager for acquire()
-        mock_acquire_cm = AsyncMock()
-        mock_acquire_cm.__aenter__.return_value = mock_conn
-        
-        # Make the pool's acquire() return the context manager
-        mock_pool_instance = MagicMock()
-        mock_pool_instance.acquire.return_value = mock_acquire_cm
-        mock_pool.return_value = mock_pool_instance
-        
-        resp = await cem.verify_business_state(req)
-        assert resp.is_verified is True
-        assert resp.evidence_data.get("exists") is False
-    
+    resp = await cem.verify_business_state(req)
+    assert resp.is_verified is True
+    assert resp.evidence_data.get("exists") is False
+
     req_bad = BusinessStateVerificationRequest(
         domain_urn="urn:aarambooks:cem:catalog",
         verification_target="arbitrary_sql",
