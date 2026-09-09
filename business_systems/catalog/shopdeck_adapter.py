@@ -15,8 +15,12 @@ from uuid import UUID, uuid4
 
 import asyncpg
 
-from .config import CATALOG_DATABASE_URL, DEFAULT_SHOPDECK_UPLOAD_QUANTITY
-from .models import PublicationArtifactEntity, ValidationErrorDetail
+try:
+    from .config import CATALOG_DATABASE_URL, DEFAULT_SHOPDECK_UPLOAD_QUANTITY
+    from .models import PublicationArtifactEntity, ValidationErrorDetail
+except ImportError:
+    from config import CATALOG_DATABASE_URL, DEFAULT_SHOPDECK_UPLOAD_QUANTITY
+    from models import PublicationArtifactEntity, ValidationErrorDetail
 
 # Authoritative 46-Column Headers from 05-shopdeck-channel.md & CatalogueBulkUploadSample.csv
 SHOPDECK_46_COLUMNS: List[str] = [

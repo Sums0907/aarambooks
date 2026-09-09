@@ -14,26 +14,51 @@ from uuid import UUID, uuid4
 
 import asyncpg
 
-from .config import CATALOG_DATABASE_URL, IDEMPOTENCY_TTL_SECONDS
-from .models import (
-    MutationResponse,
-    PriceHistoryEntity,
-    ProductEntity,
-    RenameProductCodePayload,
-    SKUEntity,
-    SaveProductFamilyPayload,
-    SaveProductInput,
-    SaveSkuInput,
-    TransitionLifecycleStatePayload,
-    ValidationErrorDetail,
-    ValidationReport,
-)
-from .validation import (
-    validate_product_code,
-    validate_product_family_payload,
-    validate_readiness_gate,
-    validate_sku_id,
-)
+# See api.py's top-of-file note: relative imports work only when this module is loaded as
+# part of a package; standalone deployment (uvicorn api:app run from inside this directory)
+# has no enclosing package, so this falls back to bare imports.
+try:
+    from .config import CATALOG_DATABASE_URL, IDEMPOTENCY_TTL_SECONDS
+    from .models import (
+        MutationResponse,
+        PriceHistoryEntity,
+        ProductEntity,
+        RenameProductCodePayload,
+        SKUEntity,
+        SaveProductFamilyPayload,
+        SaveProductInput,
+        SaveSkuInput,
+        TransitionLifecycleStatePayload,
+        ValidationErrorDetail,
+        ValidationReport,
+    )
+    from .validation import (
+        validate_product_code,
+        validate_product_family_payload,
+        validate_readiness_gate,
+        validate_sku_id,
+    )
+except ImportError:
+    from config import CATALOG_DATABASE_URL, IDEMPOTENCY_TTL_SECONDS
+    from models import (
+        MutationResponse,
+        PriceHistoryEntity,
+        ProductEntity,
+        RenameProductCodePayload,
+        SKUEntity,
+        SaveProductFamilyPayload,
+        SaveProductInput,
+        SaveSkuInput,
+        TransitionLifecycleStatePayload,
+        ValidationErrorDetail,
+        ValidationReport,
+    )
+    from validation import (
+        validate_product_code,
+        validate_product_family_payload,
+        validate_readiness_gate,
+        validate_sku_id,
+    )
 
 
 def _compute_request_hash(data: Dict[str, Any]) -> str:

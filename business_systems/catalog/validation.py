@@ -8,15 +8,26 @@ from decimal import Decimal
 from typing import List, Optional, Set, Tuple
 from urllib.parse import urlparse
 
-from .models import (
-    ProductEntity,
-    SKUEntity,
-    SaveProductFamilyPayload,
-    SaveProductInput,
-    SaveSkuInput,
-    ValidationErrorDetail,
-    ValidationReport,
-)
+try:
+    from .models import (
+        ProductEntity,
+        SKUEntity,
+        SaveProductFamilyPayload,
+        SaveProductInput,
+        SaveSkuInput,
+        ValidationErrorDetail,
+        ValidationReport,
+    )
+except ImportError:
+    from models import (
+        ProductEntity,
+        SKUEntity,
+        SaveProductFamilyPayload,
+        SaveProductInput,
+        SaveSkuInput,
+        ValidationErrorDetail,
+        ValidationReport,
+    )
 
 # Regex matching uppercase alphanumeric characters separated by single hyphens
 IDENTIFIER_REGEX = re.compile(r"^[A-Z0-9]+(-[A-Z0-9]+)*$")

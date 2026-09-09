@@ -26,13 +26,27 @@ from fastapi import FastAPI, HTTPException, Header
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .config import CATALOG_DATABASE_URL
-from .service import CatalogService
-from .models import (
-    SaveProductFamilyPayload,
-    TransitionLifecycleStatePayload,
-    MutationResponse,
-)
+# Relative imports work when this is loaded as a submodule of a package (e.g.
+# business_systems.catalog.api from within aarambooks' test suite). Standalone deployment
+# runs `uvicorn api:app` from inside this directory, where api.py has no enclosing package
+# and relative imports raise ImportError - same dual-context problem tests/conftest.py
+# already solves the same way for service.py.
+try:
+    from .config import CATALOG_DATABASE_URL
+    from .service import CatalogService
+    from .models import (
+        SaveProductFamilyPayload,
+        TransitionLifecycleStatePayload,
+        MutationResponse,
+    )
+except ImportError:
+    from config import CATALOG_DATABASE_URL
+    from service import CatalogService
+    from models import (
+        SaveProductFamilyPayload,
+        TransitionLifecycleStatePayload,
+        MutationResponse,
+    )
 
 CATALOG_INTERNAL_TOKEN = os.environ.get("CATALOG_INTERNAL_TOKEN", "")
 
