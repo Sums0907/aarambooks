@@ -381,19 +381,47 @@ then actually run, not just prepared:
    together, not just individually.
 7. `docker image prune -f` on the VPS afterward (342.9MB reclaimed).
 
-**One real issue found during this deploy, not yet fixed - low severity, does not block NDR
-calling**: the startup logs show `WARNING:src.azm.provider:AZM persistent provider
-unavailable (psycopg2 is required to connect to PostgreSQL. Please install psycopg2 or
-psycopg2-binary.). Falling back to bootstrap.` Brain's `requirements.txt` only has `asyncpg`
-(the async driver used everywhere else), not `psycopg2`/`psycopg2-binary` (a sync driver),
-which `src/azm/provider.py` apparently needs for its own persistent connection. It degrades
-gracefully (falls back to some in-memory/bootstrap mode rather than crashing), and AZM
-appears to be a separate semantic/knowledge subsystem (`azm_concepts`, `azm_aliases`,
-`azm_relationships` etc. tables seen in the dev DB) unrelated to the core NDR voice-calling
-path that was just proven working end-to-end - so this did not block going live, but AZM's
-persistent storage is not actually functioning in production right now. Needs a decision:
-add `psycopg2-binary` to `requirements.txt` (simple) or confirm AZM's bootstrap fallback is
-acceptable for now.
+**Issue found during this deploy - fixed the same session, verified against real Postgres,
+not just assumed working**: the startup logs showed
+`WARNING:src.azm.provider:AZM persistent provider unavailable (psycopg2 is required...).
+Falling back to bootstrap.` Two real, separate bugs were behind this, not one:
+
+1. `requirements.txt` never had `psycopg2`/`psycopg2-binary` - `src/azm/db.py`'s raw
+   `psycopg2.connect()` call (a sync connection AZM uses independently of the rest of the
+   app's asyncpg-based access) had no driver to use at all. Fixed by adding
+   `psycopg2-binary==2.9.9`.
+2. Even with the driver installed, AZM would still have failed: it reads its own separate
+   `AZM_DATABASE_URL` env var (not `DATABASE_URL` - completely independent), which defaults
+   to a dev-only address (`localhost:5434`) if unset, and was never set in the production
+   `.env` at all. Added the real internal value
+   (`postgresql://postgres:<password>@aarambooks-brain-db:5432/aarambooks_brain_core_prod`)
+   directly to the VPS's `.env`.
+3. Tracing this further surfaced a **third, independent bug**: `src/azm/azm_init.py` (the
+   actual tool needed to create AZM's tables) had its post-apply verification query
+   hardcoded to SQLite's `sqlite_master`, unconditionally, on both backends - meaning it
+   would have crashed with a real PostgreSQL error the first time anyone actually ran it
+   against `--db-url postgresql://...`, suggesting it had only ever been run against SQLite
+   in practice despite accepting a `--db-url` override. Fixed to branch on
+   `conn.is_sqlite` and query `information_schema.tables` for PostgreSQL, matching the
+   pattern `src/azm/db.py`'s own `is_initialized()` already used. **Verified against a
+   genuine fresh throwaway Postgres container before shipping** (schema creation confirmed,
+   then re-ran to confirm the idempotent "already applied" path also works) - not trusted on
+   code inspection alone.
+4. Rebuilt and redeployed with both fixes, then ran `python -m src.azm.azm_init` inside the
+   real production container for the first time - created all 10 real `azm_*` tables in
+   `aarambooks_brain_core_prod`. Confirmed the `AZM persistent provider unavailable` warning
+   is now completely gone from a fresh container's startup logs.
+
+**Self-inflicted incident during this fix, handled immediately**: `azm_init.py`'s own
+`print()` statement includes the full connection string, including the password - running it
+put the real `DB_PASSWORD` value in plaintext into this session's tool output. Treated as
+exposed rather than risking it: rotated `DB_PASSWORD` immediately (new random value, applied
+via `ALTER USER postgres WITH PASSWORD ...` against the real running Postgres, `.env` and
+`AZM_DATABASE_URL` updated to match, `aarambooks-brain-api` restarted to pick up the new
+credential), then re-confirmed the public health check still returned healthy afterward. This
+database is only reachable over the internal Docker network, never exposed to the internet,
+so the practical exposure window was narrow - rotated anyway rather than leaving a known-
+exposed credential in place.
 
 **Still not done - the smoke-test items below step 6 of the original rollout plan**: a real
 Exotel webhook round-trip, a real Sarvam webhook round-trip, and a real end-to-end NDR queue
