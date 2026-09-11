@@ -84,6 +84,9 @@ ssh $VPS_USER@$VPS_IP << EOF
     printf "\${BOLD}Running Alembic migrations...\${NC}\n"
     docker exec aarambooks-brain-api alembic upgrade head || true
 
+    printf "\${BOLD}Running AZM schema init (idempotent - safe to run every deploy)...\${NC}\n"
+    docker exec aarambooks-brain-api python -m src.azm.azm_init || true
+
     printf "\${BOLD}Cleaning up...\${NC}\n"
     docker image prune -f
 

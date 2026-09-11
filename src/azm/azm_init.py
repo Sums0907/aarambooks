@@ -17,9 +17,23 @@ from src.azm.db import get_connection, execute_schema, is_initialized
 from src.azm.config import AZM_DATABASE_URL
 
 
+def _redact(url: str) -> str:
+    """postgresql://user:password@host/db -> postgresql://user:***@host/db for safe logging."""
+    if "://" not in url or "@" not in url:
+        return url
+    scheme, rest = url.split("://", 1)
+    creds, host_part = rest.split("@", 1)
+    user = creds.split(":", 1)[0] if ":" in creds else creds
+    return f"{scheme}://{user}:***@{host_part}"
+
+
 def init_azm_db(db_url: str = None) -> None:
     url = db_url or AZM_DATABASE_URL
-    print(f"[azm_init] Initializing AZM knowledge database at: {url}")
+    # Never print the raw url - it contains the real password (found the hard way: this
+    # line previously logged it in full, which leaked a real production DB password into a
+    # Claude Code session transcript on 2026-09-12; see
+    # docs/claude/DEPLOYMENT_STRATEGY_BRAIN_VPS.md's "First real deploy" section).
+    print(f"[azm_init] Initializing AZM knowledge database at: {_redact(url)}")
 
     conn = get_connection(url)
     try:
