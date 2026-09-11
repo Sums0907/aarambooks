@@ -1,4 +1,4 @@
-Payment Terminology:
-- Prepaid: An order for which payment has already been made online.
-- Cash on Delivery (COD): An order where payment is due at delivery.
-- Collectable Amount: The exact amount due from the customer at delivery, when applicable.
+    Payment Terminology:
+    - Prepaid: An order for which payment has already been made online.
+    - Cash on Delivery (COD): An order where payment is due at delivery.
+    - Collectable Amount: The exact amount due from the customer at delivery, when applicable.

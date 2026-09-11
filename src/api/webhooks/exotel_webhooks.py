@@ -195,7 +195,7 @@ def generate_dynamic_greeting(engagement: Dict[str, Any]) -> str:
 
 
 # The hardcoded allow-list keys and every instruction_* string below are the ONLY thing
-# Priya's runtime ever receives - anything not listed here or not on CustomerConversationProjection
+# Priya's runtime ever receives - anything not listed here or not on NDRConversationProjection
 # never reaches the call. This function is the single source of truth for that payload, used by
 # both the real /session-start webhook and the offline behavioral test harness
 # (tests/test_ndr_behavioral_scenarios.py), so the harness evaluates the exact payload production
@@ -205,54 +205,19 @@ def build_session_constants(
     action_request_id: Optional[str],
     engagement: Dict[str, Any],
 ) -> Dict[str, str]:
-    session_constants: Dict[str, str] = {
-        "brand_name": "Aaram Homes",
-        "engagement_id": str(engagement_id),
-    }
-    if action_request_id:
-        session_constants["action_request_id"] = str(action_request_id)
+    # The allow-list loop (which NDRConversationProjection fields reach a provider) is
+    # shared with any other voice provider - see
+    # src/infrastructure/adapters/customer_engagement/context_variables.py. Only the
+    # instruction_* additions below are Exotel-specific (a second provider folds the
+    # equivalent rules into static system-prompt text instead).
+    from src.infrastructure.adapters.customer_engagement.context_variables import build_provider_call_variables, get_instructions_for_domain
+    from src.shared.domain_contracts import IntelligenceDomain
+    session_constants = build_provider_call_variables(engagement_id, action_request_id, engagement, domain=IntelligenceDomain.NDR)
 
-    call_context = engagement.get("call_context", {}) or {}
-    if engagement.get("awb_no") and engagement.get("awb_no") != "UNKNOWN":
-        session_constants["awb_no"] = str(engagement["awb_no"])
-
-    # NOTE: this is a hardcoded allow-list. A field added to CustomerConversationProjection
-    # but not listed here silently never reaches the call - the projection tests still pass
-    # while Priya receives nothing. Keep it in sync with ccc_contracts.py.
-    for key in [
-        "customer_name", "product_category", "category_confidence", "product_name", "product_description",
-        "payment_mode", "objective", "context_summary",
-        "domain_constraints", "core_safety_constraints", "allowed_actions",
-        "size", "color", "material", "features", "return_exchange_condition", "attr_style",
-        "attr_pattern", "attr_package_contents", "mrp",
-        "catalog_selling_price", "actual_item_price", "collectable_amount", "order_quantity", "order_date",
-        "courier_partner", "past_delivery_attempts", "destination_pincode", "prior_communication_summary",
-        "offered_reattempt_date_1", "offered_reattempt_date_2",
-        "diagnostic_priority_instruction",
-        # Conversation mission (see src/intelligence_domains/ndr/mission_factory.py)
-        "mission_conversation_mission", "mission_why_this_call", "mission_primary_objective",
-        "mission_success_condition", "mission_initial_state", "mission_allowed_next_states",
-        "mission_conversation_priority", "mission_return_to_mission",
-    ]:
-        if call_context.get(key) is not None:
-            if isinstance(call_context[key], list):
-                session_constants[key] = ", ".join(call_context[key])
-            else:
-                session_constants[key] = str(call_context[key])
-
-    session_constants["instruction_commercial_authority"] = "actual_item_price is the customer's actual transaction price. NEVER quote catalog_selling_price as the customer's transaction price."
-    session_constants["instruction_payment"] = "If payment_mode is prepaid or collectable_amount is 0, the order is already paid and the customer does not need to pay anything on delivery. If payment_mode is cod, they must pay the exact collectable_amount to the delivery executive."
-    session_constants["instruction_discounts"] = "NEVER invent discounts or coupons. If they are not in the context, say they are unavailable."
-    session_constants["instruction_missing_facts"] = "If any product attribute (size, color, material, policy) is missing, explicitly say it is unavailable. Never infer or guess."
-    session_constants["instruction_ndr"] = "Follow the exact context summary and objective. Do not deviate. Never claim an execution (like rescheduling) has already occurred."
-    session_constants["instruction_lookup_rule"] = "Never say you checked, looked up, or verified anything. You have no live system access during this call. You only know the facts already present in this context."
-    session_constants["instruction_no_stalling"] = 'Never say you will "check", "let me see", or ask the customer to wait. You already have all the information instantly available. Provide the answer immediately without narrating your thought process.'
-    session_constants["instruction_mission_retention"] = "You called for the reason in mission_why_this_call. Answering the customer's question NEVER changes that reason. After you answer, acknowledge their question and return to the delivery topic in the same turn."
-    session_constants["instruction_no_filler_loop"] = "Never ask a generic 'is there anything else I can help you with'. If the delivery matter is unresolved, return to it. If it is resolved, close the call politely."
-    session_constants["instruction_not_pushy"] = "Do not ask for a delivery date until the customer has responded to the reason for the call and you understand their constraints. Never repeat a request the customer has already declined. The customer may decline entirely, and that is an acceptable outcome."
-    session_constants["instruction_reattempt_dates"] = "You may ONLY offer the exact dates provided in offered_reattempt_date_1 and offered_reattempt_date_2 for redelivery. If the customer asks when they can reschedule, explicitly read both of these options to them. Never propose, calculate, or accept any other date. If neither date is present, no reschedule is allowed."
-    session_constants["instruction_pincode_lock"] = "The parcel has already reached the courier's distribution point for destination_pincode. If the customer requests an address change, you may only accept it if they confirm the new address is within the SAME pincode. If they state a different pincode, do not accept or confirm the change - explain that the courier cannot redeliver outside the current pincode for this attempt."
-    session_constants["instruction_prior_communication"] = "prior_communication_summary lists prior outreach attempts (calls, SMS, WhatsApp) and how the customer responded, if any. Use it to avoid repeating a question already answered, and to avoid asking the customer to repeat information they already gave in an earlier attempt."
+    # Instructions are domain-scoped config, not Exotel-specific — loaded from
+    # src/config/voicebot_variables/ndr_voicebot_instructions.json so that Sarvam
+    # and any future provider reads from the same source without duplication.
+    session_constants.update(get_instructions_for_domain(IntelligenceDomain.NDR))
     return session_constants
 
 
@@ -485,66 +450,15 @@ async def handle_transcript(
     # intelligence_results row per engagement, EVER - so the first submission would have
     # permanently locked in whatever the customer said first, even if they later changed
     # their answer, which real replay of a live call showed actually happens.
-    try:
-        if engagement_id:
-            raw_transcript = extract_customer_utterance(payload)
-            if raw_transcript:
-                from src.intelligence_domains.ndr.reply_parser import classify_reply_heuristic
-
-                intent, conversation_state = classify_reply_heuristic(raw_transcript)
-
-                if intent == "UNCLEAR":
-                    # An ambiguous turn is not an outcome and must never overwrite a real
-                    # prior answer with "I didn't understand."
-                    logger.info(
-                        "Transcript classified UNCLEAR for engagement %s; leaving prior "
-                        "pending NDR outcome (if any) untouched.",
-                        engagement_id,
-                    )
-                else:
-                    engagement = await repo.get_engagement(engagement_id)
-                    # CustomerEngagementRecord has no metadata field - queue_item_id is stored
-                    # in call_context by the poller (src/workers/ndr_queue_poller.py) at
-                    # dispatch time.
-                    call_context_for_lookup = (engagement or {}).get("call_context", {}) or {}
-                    queue_item_id = call_context_for_lookup.get("queue_item_id")
-                    awb_no = (engagement or {}).get("awb_no")
-
-                    if not queue_item_id or not awb_no or awb_no == "UNKNOWN":
-                        logger.error(
-                            "Cannot record NDR outcome for engagement %s: "
-                            "unresolved queue_item_id=%r awb_no=%r",
-                            engagement_id, queue_item_id, awb_no,
-                        )
-                    else:
-                        matched_reattempt_date = None
-                        if intent == "RESCHEDULE":
-                            from src.intelligence_domains.ndr.reply_parser import extract_matched_reattempt_date
-                            # offered_reattempt_date_1/2 live on CustomerConversationProjection,
-                            # which is what the poller now stores as call_context - not on
-                            # ccc_snapshot (the raw CCC, which never had these fields, so this
-                            # lookup previously always returned None regardless of what the
-                            # customer said).
-                            matched_reattempt_date = extract_matched_reattempt_date(
-                                raw_transcript,
-                                call_context_for_lookup.get("offered_reattempt_date_1"),
-                                call_context_for_lookup.get("offered_reattempt_date_2"),
-                            )
-                        await repo.record_pending_ndr_outcome(engagement_id, {
-                            "queue_item_id": queue_item_id,
-                            "awb_no": awb_no,
-                            "intent": intent,
-                            "conversation_state": conversation_state,
-                            "raw_transcript": raw_transcript,
-                            "matched_reattempt_date": matched_reattempt_date,
-                        })
-                        logger.info(
-                            "Recorded pending NDR outcome for engagement %s: state=%s "
-                            "(will submit at session-end if this is still current)",
-                            engagement_id, conversation_state,
-                        )
-    except Exception as e:
-        logger.exception("NDR outcome recording raised for engagement %s: %s", engagement_id, e)
+    # Classification/matching/recording logic lives in
+    # src/intelligence_domains/ndr/reply_parser.py (record_ndr_outcome_from_transcript) -
+    # extracted so a second voice-bot provider can share it instead of duplicating it.
+    # Behavior here is unchanged from the original inline version.
+    if engagement_id:
+        raw_transcript = extract_customer_utterance(payload)
+        if raw_transcript:
+            from src.intelligence_domains.ndr.reply_parser import record_ndr_outcome_from_transcript
+            await record_ndr_outcome_from_transcript(repo, engagement_id, raw_transcript)
 
     req_id = payload.get("request_id") or "test_req_123"
     return {
@@ -610,7 +524,7 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
       This guarantees: permanently lost outcome only if enqueue fails on EVERY webhook
       delivery, which is extremely unlikely against a local MongoDB.
     """
-    from src.intelligence_domains.ndr.reply_parser import to_shopdeck_vocabulary
+    from src.intelligence_domains.ndr.reply_parser import to_shopdeck_vocabulary, enqueue_ndr_intelligence_result
 
     engagement = await repo.get_engagement(engagement_id)
     pending = (engagement or {}).get("metadata", {}).get("pending_ndr_outcome")
@@ -625,55 +539,26 @@ async def _submit_pending_ndr_outcome(engagement_id: str, repo: CustomerEngageme
     conversation_state = pending["conversation_state"]
     recommended_action, customer_intent = to_shopdeck_vocabulary(intent)
 
-    NAMESPACE_NDR = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
-    result_id = f"res_{uuid.uuid5(NAMESPACE_NDR, f'{engagement_id}:{conversation_state}').hex}"
-
-    won_claim = await repo.claim_intelligence_writeback(engagement_id, result_id)
-    if not won_claim:
-        # Duplicate webhook: CAS already stamped in a prior delivery.
-        # Do NOT return — fall through and re-attempt enqueue. The unique result_id
-        # index makes this a safe no-op if the outbox record already exists, and
-        # succeeds if the prior delivery won the CAS but failed before enqueue.
-        logger.info(
-            "NDR writeback CAS already claimed: engagement_id=%s result_id=%s "
-            "(duplicate webhook) — attempting idempotent re-enqueue.",
-            engagement_id, result_id,
-        )
-
     action_parameters = {}
     matched_reattempt_date = pending.get("matched_reattempt_date")
     if matched_reattempt_date:
         action_parameters["reschedule_date"] = matched_reattempt_date
 
-    intelligence_payload = {
-        "result_id": result_id,
-        "queue_item_id": pending["queue_item_id"],
-        "engagement_id": engagement_id,
-        "awb_no": pending["awb_no"],
-        "recommended_action": recommended_action,
-        "customer_intent": customer_intent,
-        "diagnosis": conversation_state,
-        "confidence_level": "low",
-        "provenance": "brain.ndr.transcript_heuristic",
-        "reasoning": f"Heuristic classification of final transcript turn: {intent}",
-        "submitted_by": "brain_core_rabta",
-        "action_parameters": action_parameters,
-    }
-
-    # enqueue_intelligence_writeback raises on non-DuplicateKey Mongo failures.
+    # enqueue_ndr_intelligence_result raises on non-DuplicateKey Mongo failures.
     # Callers must NOT swallow that exception — let it propagate so Exotel retries.
     # Delivery to ShopDeck is handled asynchronously by OutboundWritebackWorker.
-    enqueued = await repo.enqueue_intelligence_writeback(intelligence_payload, engagement_id)
-    if enqueued:
-        logger.info(
-            "NDR writeback enqueued: engagement_id=%s result_id=%s state=%s action=%s",
-            engagement_id, result_id, conversation_state, recommended_action,
-        )
-    else:
-        logger.info(
-            "NDR writeback already enqueued (idempotent): engagement_id=%s result_id=%s",
-            engagement_id, result_id,
-        )
+    await enqueue_ndr_intelligence_result(
+        repo,
+        engagement_id=engagement_id,
+        queue_item_id=pending["queue_item_id"],
+        awb_no=pending["awb_no"],
+        recommended_action=recommended_action,
+        customer_intent=customer_intent,
+        diagnosis=conversation_state,
+        reasoning=f"Heuristic classification of final transcript turn: {intent}",
+        provenance="brain.ndr.transcript_heuristic",
+        action_parameters=action_parameters,
+    )
 
 
 @router.post("/session-end", dependencies=[Depends(verify_exotel_bearer)])

@@ -25,6 +25,7 @@ class OrderContext(BaseModel):
     # action_history, so Priya knows what's already been tried and how the customer
     # responded (or didn't), rather than starting the conversation with no memory of it.
     prior_communication_summary: Optional[str] = None
+    customer_full_address: Optional[str] = None
 
 class ProductContext(BaseModel):
     model_config = ConfigDict(frozen=True, extra='forbid')
@@ -40,9 +41,6 @@ class ProductContext(BaseModel):
     material: Optional[str] = None
     features: Optional[str] = None
     return_exchange_condition: Optional[str] = None
-    attr_style: Optional[str] = None
-    attr_pattern: Optional[str] = None
-    attr_package_contents: Optional[str] = None
     rich_attributes_available: bool = False
     product_category: Optional[str] = None
     category_confidence: Optional[str] = None
@@ -59,7 +57,7 @@ class CustomerConversationContext(BaseModel):
     
     directive: ConversationalDirective
 
-class CustomerConversationProjection(BaseModel):
+class NDRConversationProjection(BaseModel):
     """Governed, filtered subset permitted to reach SUNEHRI LLM."""
     model_config = ConfigDict(frozen=True, extra='forbid')
     
@@ -74,6 +72,7 @@ class CustomerConversationProjection(BaseModel):
     courier_partner: Optional[str] = None
     past_delivery_attempts: Optional[int] = None
     destination_pincode: Optional[str] = None
+    customer_full_address: Optional[str] = None
     prior_communication_summary: Optional[str] = None
     offered_reattempt_date_1: Optional[str] = None
     offered_reattempt_date_2: Optional[str] = None
@@ -96,9 +95,6 @@ class CustomerConversationProjection(BaseModel):
     material: Optional[str] = None
     features: Optional[str] = None
     return_exchange_condition: Optional[str] = None
-    attr_style: Optional[str] = None
-    attr_pattern: Optional[str] = None
-    attr_package_contents: Optional[str] = None
     product_category: Optional[str] = None
     category_confidence: Optional[str] = None
     

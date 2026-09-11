@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "customer_name": {
+      "type": "string",
+      "description": "The full name of the customer."
+    },
+    "customer_full_address": {
+      "type": "string",
+      "description": "The complete shipping address for the delivery."
+    },
+    "product_category": {
+      "type": "string",
+      "description": "The internal category classification of the ordered product."
+    },
+    "product_name": {
+      "type": "string",
+      "description": "The name of the ordered product."
+    },
+    "product_description": {
+      "type": "string",
+      "description": "A detailed description of the product."
+    },
+    "payment_mode": {
+      "type": "string",
+      "description": "The payment method used for the order (e.g., cod, prepaid)."
+    },
+    "objective": {
+      "type": "string",
+      "description": "The specific goal the voicebot must achieve on this call."
+    },
+    "context_summary": {
+      "type": "string",
+      "description": "A brief summary of the order or issue context for the voicebot."
+    },
+    "domain_constraints": {
+      "type": "string",
+      "description": "Specific behavioral constraints the voicebot must follow for this domain."
+    },
+    "allowed_actions": {
+      "type": "string",
+      "description": "The list of system actions the voicebot is authorized to take."
+    },
+    "size": {
+      "type": "string",
+      "description": "The size of the product."
+    },
+    "color": {
+      "type": "string",
+      "description": "The color of the product."
+    },
+    "material": {
+      "type": "string",
+      "description": "The material composition of the product."
+    },
+    "features": {
+      "type": "string",
+      "description": "Notable features of the product."
+    },
+    "return_exchange_condition": {
+      "type": "string",
+      "description": "The policies governing return and exchange of this product."
+    },
+    "actual_item_price": {
+      "type": "string",
+      "description": "The actual price the customer paid for the item."
+    },
+    "collectable_amount": {
+      "type": "string",
+      "description": "The amount to be collected from the customer upon delivery."
+    },
+    "order_quantity": {
+      "type": "string",
+      "description": "The number of items ordered."
+    },
+    "order_date": {
+      "type": "string",
+      "description": "The date the order was placed."
+    },
+    "courier_partner": {
+      "type": "string",
+      "description": "The logistics partner handling the delivery."
+    },
+    "past_delivery_attempts": {
+      "type": "string",
+      "description": "The number of times delivery has been attempted previously."
+    },
+    "destination_pincode": {
+      "type": "string",
+      "description": "The postal code for the delivery address."
+    },
+    "prior_communication_summary": {
+      "type": "string",
+      "description": "A summary of previous contact attempts and customer responses."
+    },
+    "offered_reattempt_date_1": {
+      "type": "string",
+      "description": "The first available date for scheduling a redelivery."
+    },
+    "offered_reattempt_date_2": {
+      "type": "string",
+      "description": "The second available date for scheduling a redelivery."
+    },
+    "diagnostic_priority_instruction": {
+      "type": "string",
+      "description": "An instruction directing the bot to diagnose reasons for past delivery failures."
+    },
+    "mission_conversation_mission": {
+      "type": "string",
+      "description": "The overarching conversational mission for the voicebot."
+    },
+    "mission_why_this_call": {
+      "type": "string",
+      "description": "The reason the bot is initiating contact with the customer."
+    },
+    "mission_primary_objective": {
+      "type": "string",
+      "description": "The main objective of the mission."
+    },
+    "mission_success_condition": {
+      "type": "string",
+      "description": "The condition that determines the mission's success."
+    },
+    "mission_initial_state": {
+      "type": "string",
+      "description": "The initial state of the conversation."
+    },
+    "mission_allowed_next_states": {
+      "type": "string",
+      "description": "The allowable state transitions in the conversation flow."
+    },
+    "mission_conversation_priority": {
+      "type": "string",
+      "description": "The priority level of this conversation mission."
+    },
+    "mission_return_to_mission": {
+      "type": "string",
+      "description": "Instruction on how to return to the mission if the conversation digresses."
+    },
+    "brand_name": {
+      "type": "string",
+      "description": "The name of the brand the bot is representing."
+    },
+    "engagement_id": {
+      "type": "string",
+      "description": "The unique identifier for the current customer engagement."
+    },
+    "action_request_id": {
+      "type": "string",
+      "description": "The unique identifier for the specific action request."
+    },
+    "awb_no": {
+      "type": "string",
+      "description": "The Air Waybill tracking number for the shipment."
+    }
+  },
+  "additionalProperties": false
+}

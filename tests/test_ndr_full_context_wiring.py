@@ -6,7 +6,7 @@ always offers exactly today+1 and today+2, regardless of attempt number).
 
 These tests build a real CCC through ccc_builder.build()/project() against a mocked
 evidence provider shaped exactly like ShopDeck's real NDRShipmentContext JSON response
-(not a hand-built CustomerConversationProjection), then verify the fields survive all the
+(not a hand-built NDRConversationProjection), then verify the fields survive all the
 way into build_session_constants()'s output - the same two-ended pattern
 test_ndr_mission_contracts.py already uses for the mission fields, applied to this new data.
 """

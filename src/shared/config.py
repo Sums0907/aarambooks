@@ -62,6 +62,29 @@ class Settings(BaseSettings):
     aaram_exotel_webhook_secret: str = "default_unsafe_secret_replace_in_prod"
     test_phone_override: str = ""
 
+    # Sarvam Configuration (voice bot migration - see docs/claude/)
+    # sarvam_app_version=4 is currently a DRAFT ("in-progress edits, not yet live" per
+    # Sarvam's own docs) - the user is still editing it and has not committed it. Real test
+    # calls should wait until it's committed to a real version number; update this value
+    # then. Do not assume a draft version is callable via Instant Outbound - unconfirmed
+    # either way in public docs.
+    sarvam_app_version: int = 4
+    # sarvam_api_key is a Voice Agents key specifically - separate from Sarvam's standard
+    # TTS/STT API keys, per Sarvam's own docs. Don't reuse a standard API key here.
+    sarvam_api_key: str = ""
+    sarvam_webhook_secret: str = ""
+    sarvam_org_id: str = "01a08c70-379c-7c1b-9877-f5126093cd4a"
+    sarvam_workspace_id: str = "01a08c70-37a9-7673-8463-eaaa05417451"
+    sarvam_agent_id: str = ""
+    sarvam_connection_id: str = ""
+    sarvam_phone_number: str = "+918065383367"
+    # Used to build webhook_config.url for Instant Outbound's completion webhook - Sarvam
+    # calls Brain from outside, same purpose as exotel_webhook_base_url. No Request object
+    # is available at dispatch time (this fires from the NDR queue poller's background
+    # flow, not inside an HTTP handler), so unlike Exotel's get_webhook_base_url() this
+    # can't be derived from request headers - it must be set explicitly.
+    sarvam_webhook_base_url: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings()

@@ -4,15 +4,22 @@ version: "3.8"
 # live-mounted ./src, host.docker.internal Ollama), every service here is self-contained
 # inside this stack - no dependency on the developer machine.
 #
+# This file has no `build:` for aarambooks-brain-api and is not paired with a git checkout
+# on the VPS - it pulls a pre-built image from GHCR, matching the proven pattern already live
+# for every other AaramBooks service (aarambooks-shopdeck, AaramIdentity, Aaram_Inventory,
+# AaramPackerApp - each its own repo, each publishing to GHCR via its own
+# docker-publish.yml). This file itself, plus .env and litellm_config.prod.yaml, are the only
+# things that need to exist on the VPS - no source checkout, matching this fleet's
+# images-only-VPS discipline (see docs/claude/VPS_CLEANUP_PLAN_BRAIN_MONOREPO_CLONE.md for
+# why an accidental git clone on the VPS was treated as something to clean up, not keep).
+#
 # Brain's two background workers (NDRQueuePoller, OutboundWritebackWorker) run as asyncio
 # tasks inside the FastAPI process's own event loop (see src/main.py's lifespan) - they are
 # not separate containers, and never will be as long as that stays true.
 
 services:
   aarambooks-brain-api:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
+    image: ghcr.io/sums0907/aarambooks-brain-core:main
     container_name: aarambooks-brain-api
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
     env_file:

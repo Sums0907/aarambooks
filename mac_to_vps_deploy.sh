@@ -1,83 +1,101 @@
 #!/bin/bash
 set -e
 
-# Brain lives at the root of this monorepo (unlike business_systems/shopdeck, which is a
-# subfolder deployed via its own mac_to_vps_deploy.sh) - so there is no APP_FOLDER cd here,
-# every command below runs from ~/aarambooks directly.
+# Mirrors Aaram_Inventory's mac_to_vps_deploy.sh structure exactly (read directly from
+# /Users/sumatidhingra/Documents/AaramBooks/Aaram_Inventory/mac_to_vps_deploy.sh to copy this
+# pattern, not guessed) - GitHub Actions builds and pushes the image to GHCR
+# (.github/workflows/docker-publish.yml), the VPS only ever pulls it. No `git pull`, no
+# `--build`, no source checkout on the VPS at all - Brain's docker-compose.prod.yml has no
+# `build:` for this exact reason.
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
+NC='\033[0m'
+
+section() { printf "\n${BOLD}${CYAN}════════════════════════════════════════════════════════${NC}\n${BOLD}${CYAN}  %s${NC}\n${BOLD}${CYAN}════════════════════════════════════════════════════════${NC}\n" "$1"; }
+step()    { printf "\n${BOLD}▶ %s${NC}\n" "$1"; }
+ok()      { printf "${GREEN}✅ %s${NC}\n" "$1"; }
+warn()    { printf "${YELLOW}⚠️  %s${NC}\n" "$1"; }
+fail()    { printf "${RED}❌ %s${NC}\n" "$1" >&2; }
+info()    { printf "${DIM}   %s${NC}\n" "$1"; }
+
+trap 'fail "Deployment failed at line $LINENO — stopped there, nothing after it ran."' ERR
+
+# Brain lives on the VPS at ~/aarambooks/brain/ - a small directory holding only
+# docker-compose.prod.yml, .env, and litellm_config.prod.yaml, matching the sibling
+# convention (~/aarambooks/identity, ~/aarambooks/inventory, ~/aarambooks/packing,
+# ~/aarambooks/business_systems/shopdeck) - never a full source checkout.
+APP_FOLDER="brain"
 VPS_USER="aaramhomes"
 VPS_IP="200.234.39.72"
 
-echo "========================================="
-echo " Starting Brain Full Deployment Pipeline"
-echo "========================================="
+section "Starting Full Deployment Pipeline — Brain"
 
-# Step 1: Push to GitHub
-echo ""
-echo "[1/3] Committing and pushing code to GitHub..."
+step "[1/3] Committing and pushing code to GitHub"
 if [ -n "$1" ]; then
     COMMIT_MSG="$1"
-    echo "Commit message: $COMMIT_MSG"
+    info "Commit message: $COMMIT_MSG"
 else
     read -p "Enter commit message: " COMMIT_MSG
 fi
-git add . || true
-git commit -m "$COMMIT_MSG" || echo "No new changes to commit."
-git push origin main || echo "No new changes to push."
+git add .
+git commit -m "$COMMIT_MSG" || warn "No new changes to commit."
+git push origin main || warn "No new changes to push."
 
-echo "GitHub Actions is now validating the production Docker build."
-echo ""
-echo "🕒 Giving GitHub a few seconds to trigger the Action..."
+info "GitHub Actions is now building your Docker image in the cloud."
+info "🕒 Giving GitHub a few seconds to trigger the Action..."
 sleep 5
 
-echo "=============================================="
-echo " Tracking Live Build Progress "
-echo "=============================================="
-RUN_ID=$(gh run list --limit 1 --json databaseId -q ".[0].databaseId")
+section "Tracking Live Build Progress"
+RUN_ID=$(gh run list --workflow=docker-publish.yml --limit 1 --json databaseId -q ".[0].databaseId")
 
 if [ -z "$RUN_ID" ]; then
-    echo "⚠️ Could not automatically detect the GitHub Action."
+    warn "Could not automatically detect the GitHub Action."
     read -p "Please wait a few minutes, then press Enter to trigger the VPS pull... "
 else
-    gh run watch $RUN_ID --exit-status
-    echo "✅ GitHub Action completed successfully!"
+    if gh run watch $RUN_ID --exit-status; then
+        ok "GitHub Action completed successfully!"
+    else
+        fail "GitHub Action failed — the VPS will NOT be touched."
+        exit 1
+    fi
 fi
 
-# Step 3: Trigger VPS Update
-echo ""
-echo "[3/3] Connecting to VPS to pull and restart..."
-ssh $VPS_USER@$VPS_IP << 'EOF'
-    cd ~/aarambooks
+step "[3/3] Connecting to VPS to pull and restart"
+ssh $VPS_USER@$VPS_IP << EOF
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    BOLD='\033[1m'
+    NC='\033[0m'
+    trap 'printf "\${RED}❌ VPS deploy failed at line \$LINENO — stopped there, nothing after it ran.\${NC}\n" >&2' ERR
+    set -e
+    cd ~/aarambooks/$APP_FOLDER
 
-    echo "Pulling latest source from GitHub..."
-    git pull origin main
+    printf "\${BOLD}Pulling latest images...\${NC}\n"
+    docker compose -f docker-compose.prod.yml pull
 
-    echo "Rebuilding and restarting Brain..."
-    docker compose -f docker-compose.prod.yml up -d --build
+    printf "\${BOLD}Restarting containers...\${NC}\n"
+    docker compose -f docker-compose.prod.yml up -d
 
-    echo "Waiting for Brain to report healthy..."
-    for i in $(seq 1 12); do
-        STATUS=$(docker inspect --format='{{.State.Health.Status}}' aarambooks-brain-api 2>/dev/null || echo "starting")
-        if [ "$STATUS" = "healthy" ]; then
-            echo "✅ Brain is healthy."
-            break
-        fi
-        echo "  ...still $STATUS ($i/12)"
-        sleep 5
-    done
+    printf "\${BOLD}Running Alembic migrations...\${NC}\n"
+    docker exec aarambooks-brain-api alembic upgrade head || true
 
-    echo "Cleaning up..."
+    printf "\${BOLD}Cleaning up...\${NC}\n"
     docker image prune -f
 
-    echo "✅ Brain VPS Deployment Complete!"
+    printf "\n\${BOLD}Verifying containers actually restarted just now:\${NC}\n"
+    docker compose -f docker-compose.prod.yml ps --format '{{.Name}}\t{{.RunningFor}}'
+
+    printf "\${GREEN}✅ VPS Deployment Complete!\${NC}\n"
 EOF
 
-echo ""
-echo "========================================="
-echo " All Done! Brain is live."
-echo "========================================="
+section "All Done! Brain is live."
 echo ""
 echo "Before real customers touch this, confirm:"
 echo "  - api-brain.aarambooks.cloud (or chosen domain) is wired to this VPS with TLS,"
-echo "    and Exotel's webhook + EXOTEL_WEBHOOK_BASE_URL point at it"
-echo "  - litellm_config.prod.yaml's model routing has been reviewed and approved"
+echo "    and Exotel's + Sarvam's webhooks point at it"
 echo "  - a real, non-mocked smoke test has been run (see docs/claude/ deployment strategy)"

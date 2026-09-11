@@ -1,7 +1,8 @@
-from typing import Optional, Any
+from typing import Optional, Any, Dict, Tuple
 from pydantic import BaseModel, Field
 from src.brain_core.gateway.interfaces import ModelGatewayProvider, GatewayGenerationRequest, GatewayMessage
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -225,3 +226,193 @@ def extract_matched_reattempt_date(
     if matches_1:
         return offered_date_1
     return None
+
+
+# ---------------------------------------------------------------------------
+# Shared, provider-agnostic NDR outcome recording
+# ---------------------------------------------------------------------------
+# Extracted out of Exotel's handle_transcript() webhook handler
+# (src/api/webhooks/exotel_webhooks.py) so a second voice-bot provider (e.g. Sarvam) can
+# reuse the exact same classification/matching/recording behavior instead of duplicating
+# it. Behavior is unchanged from the original inline version - same logging, same
+# last-decisive-turn-wins semantics (record_pending_ndr_outcome always overwrites; the
+# actual one-time submission to ShopDeck happens at session-end).
+#
+# Deliberately takes a plain repo + engagement_id + raw_transcript, not a provider-specific
+# payload shape - each provider's webhook handler is responsible for extracting the
+# transcript text out of its own payload format first (see extract_customer_utterance() for
+# Exotel's) and resolving engagement_id via its own provider correlation, then calling this.
+
+async def record_ndr_outcome_from_transcript(repo, engagement_id: str, raw_transcript: str) -> None:
+    """
+    Classifies a customer transcript turn and records it as the current pending NDR
+    outcome for this engagement, if it represents a decisive answer.
+
+    An UNCLEAR classification is a no-op: it must never overwrite a real prior answer with
+    "I didn't understand". Any exception is caught and logged, never raised, so a
+    classification failure cannot break the caller's webhook response.
+    """
+    try:
+        if not raw_transcript:
+            return
+
+        intent, conversation_state = classify_reply_heuristic(raw_transcript)
+
+        if intent == "UNCLEAR":
+            logger.info(
+                "Transcript classified UNCLEAR for engagement %s; leaving prior "
+                "pending NDR outcome (if any) untouched.",
+                engagement_id,
+            )
+            return
+
+        engagement = await repo.get_engagement(engagement_id)
+        # CustomerEngagementRecord has no metadata field - queue_item_id is stored
+        # in call_context by the poller (src/workers/ndr_queue_poller.py) at dispatch time.
+        call_context_for_lookup = (engagement or {}).get("call_context", {}) or {}
+        queue_item_id = call_context_for_lookup.get("queue_item_id")
+        awb_no = (engagement or {}).get("awb_no")
+
+        if not queue_item_id or not awb_no or awb_no == "UNKNOWN":
+            logger.error(
+                "Cannot record NDR outcome for engagement %s: "
+                "unresolved queue_item_id=%r awb_no=%r",
+                engagement_id, queue_item_id, awb_no,
+            )
+            return
+
+        matched_reattempt_date = None
+        if intent == "RESCHEDULE":
+            # offered_reattempt_date_1/2 live on NDRConversationProjection, which is
+            # what the poller now stores as call_context - not on ccc_snapshot (the raw
+            # CCC, which never had these fields).
+            matched_reattempt_date = extract_matched_reattempt_date(
+                raw_transcript,
+                call_context_for_lookup.get("offered_reattempt_date_1"),
+                call_context_for_lookup.get("offered_reattempt_date_2"),
+            )
+
+        await repo.record_pending_ndr_outcome(engagement_id, {
+            "queue_item_id": queue_item_id,
+            "awb_no": awb_no,
+            "intent": intent,
+            "conversation_state": conversation_state,
+            "raw_transcript": raw_transcript,
+            "matched_reattempt_date": matched_reattempt_date,
+        })
+        logger.info(
+            "Recorded pending NDR outcome for engagement %s: state=%s "
+            "(will submit at session-end if this is still current)",
+            engagement_id, conversation_state,
+        )
+    except Exception as e:
+        logger.exception("NDR outcome recording raised for engagement %s: %s", engagement_id, e)
+
+
+# ---------------------------------------------------------------------------
+# Shared, provider-agnostic ShopDeck writeback enqueue
+# ---------------------------------------------------------------------------
+# Extracted out of Exotel's _submit_pending_ndr_outcome() (src/api/webhooks/
+# exotel_webhooks.py) - the CAS-claim + idempotent-enqueue mechanics are identical
+# regardless of how the outcome was decided (Exotel: heuristic classification of the final
+# transcript turn; Sarvam: the voice agent's own LLM decides the outcome directly and
+# reports it via a tool call). Only the caller differs in how it arrives at
+# recommended_action/customer_intent/diagnosis/action_parameters - the durability contract
+# below (see _submit_pending_ndr_outcome's original docstring) is shared unchanged.
+
+_NDR_RESULT_NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
+
+
+async def enqueue_ndr_intelligence_result(
+    repo,
+    *,
+    engagement_id: str,
+    queue_item_id: str,
+    awb_no: str,
+    recommended_action: str,
+    customer_intent: str,
+    diagnosis: str,
+    reasoning: str,
+    provenance: str,
+    action_parameters: Optional[Dict[str, Any]] = None,
+) -> None:
+    """
+    The one shared path for enqueuing an NDR intelligence outcome for ShopDeck delivery,
+    used by every voice provider's webhook/hook handler. See _submit_pending_ndr_outcome
+    (exotel_webhooks.py) for the full durability invariant this implements: CAS claim is
+    atomic, enqueue is idempotent (unique result_id index), and any non-duplicate-key
+    failure must propagate so the caller's webhook returns a non-2xx and the provider
+    retries delivery.
+    """
+    result_id = f"res_{uuid.uuid5(_NDR_RESULT_NAMESPACE, f'{engagement_id}:{diagnosis}').hex}"
+
+    won_claim = await repo.claim_intelligence_writeback(engagement_id, result_id)
+    if not won_claim:
+        logger.info(
+            "NDR writeback CAS already claimed: engagement_id=%s result_id=%s "
+            "(duplicate delivery) - attempting idempotent re-enqueue.",
+            engagement_id, result_id,
+        )
+
+    intelligence_payload = {
+        "result_id": result_id,
+        "queue_item_id": queue_item_id,
+        "engagement_id": engagement_id,
+        "awb_no": awb_no,
+        "recommended_action": recommended_action,
+        "customer_intent": customer_intent,
+        "diagnosis": diagnosis,
+        "confidence_level": "low",
+        "provenance": provenance,
+        "reasoning": reasoning,
+        "submitted_by": "brain_core_rabta",
+        "action_parameters": action_parameters or {},
+    }
+
+    enqueued = await repo.enqueue_intelligence_writeback(intelligence_payload, engagement_id)
+    if enqueued:
+        logger.info(
+            "NDR writeback enqueued: engagement_id=%s result_id=%s state=%s action=%s",
+            engagement_id, result_id, diagnosis, recommended_action,
+        )
+    else:
+        logger.info(
+            "NDR writeback already enqueued (idempotent): engagement_id=%s result_id=%s",
+            engagement_id, result_id,
+        )
+
+
+# Sarvam's custom on-end tool reports call_outcome directly - the agent's own LLM already
+# decided the outcome, unlike Exotel's raw-transcript path which needs
+# classify_reply_heuristic() to derive one. This maps that outcome straight onto ShopDeck's
+# (recommended_action, customer_intent) vocabulary plus a diagnosis, by user decision
+# (2026-09-12):
+#   - address_updated/phone_no_update map to "reschedule", not "no_action" - even when only
+#     an address/phone correction was given (no date confirmed), the order still needs a
+#     real delivery attempt, so it belongs in the "needs action" bucket ops already
+#     monitors, not a bucket that reads as "nothing to do."
+#   - escalation_requested/no_resolution both fall back to escalate/unclear - ShopDeck's
+#     customer_intent vocabulary has no "wants a human" value, so unclear is the
+#     least-wrong fit (unreachable would be actively wrong - the customer was on the call).
+_SARVAM_CALL_OUTCOME_MAPPING: Dict[str, Tuple[str, str, str]] = {
+    "rescheduled": ("reschedule", "agreed", NDRConversationState.CONFIRM_RESOLUTION.value),
+    "customer_declined": ("accept_rto", "declined", NDRConversationState.CUSTOMER_REFUSED.value),
+    "address_updated": ("reschedule", "agreed", NDRConversationState.CONFIRM_RESOLUTION.value),
+    "phone_no_update": ("reschedule", "agreed", NDRConversationState.CONFIRM_RESOLUTION.value),
+    "escalation_requested": ("escalate", "unclear", NDRConversationState.UNCLEAR.value),
+    "no_resolution": ("escalate", "unclear", NDRConversationState.UNCLEAR.value),
+}
+
+
+def map_sarvam_call_outcome(call_outcome: str) -> Tuple[str, str, str]:
+    """
+    Returns (recommended_action, customer_intent, diagnosis) for a Sarvam call_outcome
+    value. An unrecognized value falls back to the same escalate/unclear pair as
+    no_resolution/escalation_requested - a malformed or unexpected value from the agent
+    must route to human review, not crash the outcome handler or silently mis-file the
+    order under a fabricated label.
+    """
+    return _SARVAM_CALL_OUTCOME_MAPPING.get(
+        call_outcome,
+        ("escalate", "unclear", NDRConversationState.UNCLEAR.value),
+    )

@@ -11,6 +11,11 @@ class ExotelVoiceBotAdapter:
     Physical execution adapter for Exotel Native VoiceBot.
     Implements POST /v1/accounts/{accountsid}/calls/connect to trigger outbound flow.
     """
+    # Declared so this adapter conforms to VoiceBotAdapter's structural protocol
+    # (src/infrastructure/adapters/customer_engagement/voicebot_adapter.py) and so
+    # CustomerEngagementExecutor's provider registry can key on it. No behavior change.
+    provider_name = "EXOTEL"
+
     def __init__(self, use_staging: bool = False):
         self.api_key = settings.exotel_api_key
         self.api_token = settings.exotel_api_token

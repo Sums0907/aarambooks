@@ -12,6 +12,7 @@ from src.shared.config import settings
 from src.brain_core.context_engine.router import router as context_router
 from src.event_bus.router import router as webhook_router, ndr_event_router, get_inbound_receiver, get_communication_engine
 from src.api.webhooks.exotel_webhooks import router as exotel_router
+from src.api.webhooks.sarvam_webhooks import router as sarvam_router
 
 # Infrastructure
 from src.infrastructure.adapters.litellm_gateway import LiteLLMGatewayAdapter
@@ -267,15 +268,20 @@ app.state.gateway = gateway
 # 6. Event Bus
 from src.infrastructure.adapters.customer_engagement.repository import CustomerEngagementRepository
 from src.infrastructure.adapters.customer_engagement.exotel_adapter import ExotelVoiceBotAdapter
+from src.infrastructure.adapters.customer_engagement.sarvam_adapter import SarvamVoiceBotAdapter
 from src.infrastructure.adapters.customer_engagement.executor import CustomerEngagementExecutor
 
-from src.brain_core.context_engine.ccc_builder import CustomerConversationContextBuilder
-ccc_builder = CustomerConversationContextBuilder(provider=shopdeck_cem, inventory_provider=inventory_cem)
+from src.brain_core.context_engine.ccc_builder import CustomerConversationContextBuilder, ShopDeckMasterCCCBuilder
+ccc_builder = ShopDeckMasterCCCBuilder(provider=shopdeck_cem, inventory_provider=inventory_cem)
 
 comm_repo = CommunicationRepository()
 engagement_repo = CustomerEngagementRepository()
 exotel_adapter = ExotelVoiceBotAdapter()
-executor = CustomerEngagementExecutor(repository=engagement_repo, exotel_adapter=exotel_adapter)
+sarvam_adapter = SarvamVoiceBotAdapter(repository=engagement_repo)
+executor = CustomerEngagementExecutor(
+    repository=engagement_repo,
+    adapters={"EXOTEL": exotel_adapter, "SARVAM": sarvam_adapter},
+)
 
 reply_parser = CustomerReplyParser(gateway=gateway)
 comm_engine = CommunicationEngine(repository=comm_repo, reply_parser=reply_parser, executor=executor, ccc_builder=ccc_builder)
@@ -311,6 +317,7 @@ app.include_router(webhook_router)
 app.include_router(ndr_event_router)
 app.include_router(openai_router)
 app.include_router(exotel_router)
+app.include_router(sarvam_router)
 
 from fastapi import HTTPException
 from fastapi.responses import Response

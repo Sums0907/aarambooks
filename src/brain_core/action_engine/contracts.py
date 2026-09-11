@@ -17,6 +17,10 @@ class ExecutionIntent(BaseModel):
     model_config = ConfigDict(frozen=True, extra='forbid')
     intent_type: str
     channel: ExecutionChannel
+    # Which voice provider adapter handles this call (e.g. "EXOTEL", "SARVAM"). None
+    # preserves the existing default (CustomerEngagementExecutor falls back to "EXOTEL"),
+    # so every caller written before this field existed keeps behaving identically.
+    voice_provider: Optional[str] = None
 
 class ConversationMissionContract(BaseModel):
     """

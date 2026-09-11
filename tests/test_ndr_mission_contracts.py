@@ -174,16 +174,19 @@ def test_projection_carries_every_mission_field_as_a_flat_scalar():
 
 def test_every_mission_field_reaches_the_exotel_session_constants_allow_list():
     """
-    The allow-list in exotel_webhooks.py is hardcoded. If a mission field is added to the
-    projection but not to that list, the mission silently never reaches Priya while every
-    other test still passes. This is that guard.
+    The allow-list in exotel_webhooks.py was hardcoded, now it is in a JSON config.
+    If a mission field is added to the projection but not to that list, the mission
+    silently never reaches Priya while every other test still passes. This is that guard.
     """
-    import inspect
-    from src.api.webhooks import exotel_webhooks
+    import json
+    from pathlib import Path
 
-    source = inspect.getsource(exotel_webhooks.build_session_constants)
+    config_path = Path(__file__).parent.parent / "src" / "config" / "voicebot_variables" / "ndr_voicebot_context_variables.json"
+    with open(config_path, "r") as f:
+        keys = json.load(f)
+
     for key in MISSION_KEYS:
-        assert f'"{key}"' in source, f"{key} is not in the session_constants allow-list"
+        assert key in keys, f"{key} is not in the JSON allow-list"
 
 
 # ---------------------------------------------------------------------------
