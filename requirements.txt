@@ -12,3 +12,8 @@ greenlet>=3.0.0
 motor
 python-dotenv==1.2.3
 alembic==1.20.0
+# Required by src/azm/db.py's raw psycopg2.connect() (a separate sync connection AZM uses
+# independently of the rest of the app's asyncpg-based access) - missing before, which made
+# AZM silently fall back to a non-persistent mode in production. See
+# docs/claude/DEPLOYMENT_STRATEGY_BRAIN_VPS.md's "First real deploy" section.
+psycopg2-binary==2.9.9

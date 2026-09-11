@@ -15,11 +15,28 @@ directly to derive this), plus `AaramLauncher/start_all.sh` for local dev. This 
 adapts that same proven pattern to Brain and calls out where Brain's actual current code
 would break it if deployed as-is today.
 
-**Status as of this update: still zero deploy attempts made against the real VPS.** The
-Docker/compose artifacts were committed on 2026-09-09 (`d4b2f39`); the Alembic setup below
-was added and locally verified on 2026-09-12 but is not yet committed. Treat everything here
-as reviewed-and-locally-tested-but-never-deployed until step 5 of the rollout actually
-happens.
+**Status as of 2026-09-12, ~20:35 UTC: Brain's first-ever production deploy succeeded.**
+`https://api-brain.aarambooks.cloud/health` returns
+`{"status":"ok","service":"aarambooks-brain-api","environment":"production"}` for real, over
+the public internet, through real nginx + Let's Encrypt TLS. Full account of what changed and
+what was verified is below (see "First real deploy" near the end of this doc) - this section
+is kept for the historical trail of what was found and fixed to get here, not because any of
+it is still hypothetical.
+
+**Correction made during the deploy, not before it**: everything in this doc through
+2026-09-12's earlier updates assumed Brain would deploy the same way it was *originally*
+built to - `git pull` + `docker compose up -d --build` on the VPS. That turned out to be
+already-abandoned: ShopDeck, Identity, Inventory, and Packing have each been extracted into
+their own separate GitHub repos, and each publishes a pre-built image to GHCR via its own
+`docker-publish.yml` - the VPS only ever pulls, never builds from source, and
+`~/aarambooks/brain` on the VPS is a small directory with just `docker-compose.prod.yml`,
+`.env`, and `litellm_config.prod.yaml` - no git checkout at all (matching why an accidental
+git clone there was worth cleaning up earlier this session, not keeping). Brain's own
+`.github/workflows/docker-publish.yml`, `docker-compose.prod.yml` (now `image:` not
+`build:`), and `mac_to_vps_deploy.sh` were rewritten to match this real, currently-live
+pattern before the first deploy was attempted - confirmed by directly reading
+`aarambooks-shopdeck`'s and `Aaram_Inventory`'s actual workflow/deploy-script content on
+GitHub, not assumed from memory.
 
 ## Database schema management: Alembic added 2026-09-12 - previously did not exist at all
 
@@ -317,3 +334,70 @@ worth clearing before Brain talks to real customers from the VPS:
 - `TEST_PHONE_OVERRIDE` safety hardening (making it environment-enforced rather than merely
   config-dependent, so a misconfigured production environment can't accidentally dial a real
   customer's number through a test path) was proposed but never authorized or implemented.
+
+## First real deploy - 2026-09-12, executed and verified, not just planned
+
+DNS (`api-brain.aarambooks.cloud`, Cloudflare-proxied, same VPS IP as every other service),
+nginx + Let's Encrypt TLS (certbot, same pattern as `api-shopdeck.aarambooks.cloud`), the
+GHCR publish workflow, and `~/aarambooks/brain/` (containing `docker-compose.prod.yml`,
+`litellm_config.prod.yaml`, and a hand-built production `.env`) were all set up and this was
+then actually run, not just prepared:
+
+1. Production `.env` built from the real local dev `.env`, changing only what needed to
+   change: `EXOTEL_WEBHOOK_BASE_URL` and `SARVAM_WEBHOOK_BASE_URL` from the dev ngrok tunnel
+   to `https://api-brain.aarambooks.cloud`; `PACKING_URL` from `localhost:8001` to the real
+   `https://api-packing.aarambooks.cloud`; freshly generated `LITELLM_MASTER_KEY` (dev's
+   `sk-1234` is a guessable placeholder) and `DB_PASSWORD` (never existed before - dev's
+   Postgres has no real password); `TEST_PHONE_OVERRIDE` deliberately dropped entirely -
+   confirmed via `grep` that if set, it silently redirects every outbound call (both Exotel
+   and Sarvam) to one fixed number instead of the real customer, which would have made
+   production NDR calling look like it worked while never reaching a single real customer.
+   `BRAIN_CLIENT_ID`/`SECRET` confirmed by the user to already be real production Identity
+   creds, not staging. `SARVAM_APP_VERSION` confirmed still not settled - left unset, same as
+   dev, matching the code's existing (marked-as-draft) default.
+2. Pushed to `main` (`ceb6029`) - CI and the new `docker-publish.yml` both succeeded.
+   Confirmed the image was real by pulling it directly on the VPS
+   (`ghcr.io/sums0907/aarambooks-brain-core:main`, digest
+   `sha256:156e84f9...`) rather than trusting the green checkmark alone.
+3. `docker compose -f docker-compose.prod.yml up -d` on the VPS: all 4 containers (api, db,
+   mongo, litellm) came up, db and mongo reported healthy within seconds, `aarambooks-brain-api`
+   reported `healthy` ~30s later.
+4. Read the app's own startup logs directly rather than trusting the healthcheck alone -
+   confirmed both background workers actually started (`Started NDR Queue Poller`,
+   `Started Outbound Writeback Worker` - the exact two things step 6 of the rollout plan
+   above said still needed proving in this specific environment), a real MongoDB connection,
+   a real successful Identity M2M token exchange (`POST
+   https://api-identity.aarambooks.cloud/auth/service-token` → `200 OK` - this is what
+   actually confirmed `BRAIN_CLIENT_ID`/`SECRET` are valid prod creds, not just the user's
+   say-so), and a real ShopDeck NDR queue claim call (`204 No Content` - queue was empty,
+   which is a valid non-error response, not a failure).
+5. `docker exec aarambooks-brain-api alembic upgrade head` against the real production
+   Postgres for the first time ever - ran clean, then independently confirmed via `psql
+   \dt` that all 4 tables plus `alembic_version` actually exist in
+   `aarambooks_brain_core_prod`.
+6. `curl https://api-brain.aarambooks.cloud/health` from outside the VPS entirely - real
+   `{"status":"ok","service":"aarambooks-brain-api","environment":"production"}`, proving
+   DNS, Cloudflare, nginx, Let's Encrypt TLS, Docker networking, and the app itself all work
+   together, not just individually.
+7. `docker image prune -f` on the VPS afterward (342.9MB reclaimed).
+
+**One real issue found during this deploy, not yet fixed - low severity, does not block NDR
+calling**: the startup logs show `WARNING:src.azm.provider:AZM persistent provider
+unavailable (psycopg2 is required to connect to PostgreSQL. Please install psycopg2 or
+psycopg2-binary.). Falling back to bootstrap.` Brain's `requirements.txt` only has `asyncpg`
+(the async driver used everywhere else), not `psycopg2`/`psycopg2-binary` (a sync driver),
+which `src/azm/provider.py` apparently needs for its own persistent connection. It degrades
+gracefully (falls back to some in-memory/bootstrap mode rather than crashing), and AZM
+appears to be a separate semantic/knowledge subsystem (`azm_concepts`, `azm_aliases`,
+`azm_relationships` etc. tables seen in the dev DB) unrelated to the core NDR voice-calling
+path that was just proven working end-to-end - so this did not block going live, but AZM's
+persistent storage is not actually functioning in production right now. Needs a decision:
+add `psycopg2-binary` to `requirements.txt` (simple) or confirm AZM's bootstrap fallback is
+acceptable for now.
+
+**Still not done - the smoke-test items below step 6 of the original rollout plan**: a real
+Exotel webhook round-trip, a real Sarvam webhook round-trip, and a real end-to-end NDR queue
+item flowing through to a dispatched call and back to ShopDeck have not been attempted
+against this live deployment yet. The health check and startup verification above prove
+Brain is running correctly; they do not yet prove a live customer-facing call works
+end-to-end in production.

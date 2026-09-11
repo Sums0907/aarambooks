@@ -29,11 +29,21 @@ def init_azm_db(db_url: str = None) -> None:
             execute_schema(conn)
             print("[azm_init] Schema applied successfully.")
 
-        # Verify all expected tables are present
-        cursor = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-        )
-        tables = [row["name"] for row in cursor.fetchall()]
+        # Verify all expected tables are present. sqlite_master has no PostgreSQL equivalent
+        # (this previously always ran the SQLite branch's query, unconditionally, on both
+        # backends - would have raised "relation sqlite_master does not exist" the first
+        # time this was actually run against a real PostgreSQL --db-url, per
+        # docs/claude/DEPLOYMENT_STRATEGY_BRAIN_VPS.md's "First real deploy" section).
+        if conn.is_sqlite:
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+            )
+            tables = [row["name"] for row in cursor.fetchall()]
+        else:
+            cursor = conn.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name"
+            )
+            tables = [row[0] for row in cursor.fetchall()]
         expected = {
             "azm_aliases", "azm_attr_mappings", "azm_concepts",
             "azm_external_mappings", "azm_ingestion_runs", "azm_namespaces",
