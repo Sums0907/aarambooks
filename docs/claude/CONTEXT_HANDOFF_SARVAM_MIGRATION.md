@@ -18,15 +18,16 @@ this up fresh, the sections after it are the original build history.
   the default - `default_voice_provider` is a real config value now
   (`src/shared/config.py`/`executor.py`), not a hardcoded constant, specifically so this can
   be flipped without a code change again in the future.
-- **The poller now enforces a real calling-hours window (9 AM-7 PM IST by default,
+- **The poller now enforces a real calling-hours window (11 AM-7 PM IST by default,
   `NDR_CALLING_HOURS_START_IST`/`NDR_CALLING_HOURS_END_IST`)** - added 2026-09-13 after
   realizing nothing previously stopped a real customer being called at 2 AM the moment an
-  NDR became eligible. Checked before the poller ever claims a queue item, not after - an
-  item outside the window is left completely untouched in ShopDeck's queue, not claimed and
-  given back (which would burn into the limited `max_retries` budget). This means: **a real
-  Sarvam test call will now only ever be placed between 9 AM and 7 PM IST**, regardless of
-  when ShopDeck actually enrolls a fresh eligible item - don't be surprised if nothing
-  happens outside those hours, that's the gate working correctly, not a stall.
+  NDR became eligible; start moved from 9 AM to 11 AM later the same day per business
+  decision. Checked before the poller ever claims a queue item, not after - an item outside
+  the window is left completely untouched in ShopDeck's queue, not claimed and given back
+  (which would burn into the limited `max_retries` budget). This means: **a real Sarvam test
+  call will now only ever be placed between 11 AM and 7 PM IST**, regardless of when ShopDeck
+  actually enrolls a fresh eligible item - don't be surprised if nothing happens outside those
+  hours, that's the gate working correctly, not a stall.
 - **A real end-to-end Sarvam call has still never actually completed** - not because
   anything is broken in Brain, but because ShopDeck's production NDR queue has been
   genuinely empty of eligible items every time it's been checked (see "The queue
@@ -160,11 +161,17 @@ tries to be explicit everywhere about what's actually confirmed vs. best-effort.
    previously Exotel). Fixed in `src/intelligence_domains/ndr/config.py`
    (`NDRSettings.is_within_calling_hours()`, real India-Standard-Time check via
    `zoneinfo`) and wired into `NDRQueuePoller._poll_loop()` *before* it ever attempts a claim
-   - an NDR outside the 9 AM-7 PM IST default window is left completely untouched in
+   - an NDR outside the calling-hours default window is left completely untouched in
    ShopDeck's queue, not claimed and given back. Verified with real boundary-time test cases
-   (2 AM/8 AM blocked, 9 AM/6 PM allowed, 7 PM/11 PM blocked) and the full regression suite
-   (26 failed/8 errors, identical to the standing pre-existing baseline - zero new
-   regressions). This applies to both Sarvam and Exotel equally, not a Sarvam-specific gate.
+   against the original 9 AM-7 PM default (2 AM/8 AM blocked, 9 AM/6 PM allowed, 7 PM/11 PM
+   blocked) and the full regression suite (26 failed/8 errors, identical to the standing
+   pre-existing baseline - zero new). The start hour was later moved from 9 AM to 11 AM
+   (same 2026-09-13, per business decision) by changing
+   `NDRSettings.calling_hours_start_ist`'s default from `9` to `11` - the gate logic itself
+   (`is_within_calling_hours()`) is unchanged, so this was a config-value change, not a
+   re-verification of the boundary logic (zero new regressions from that change either).
+   Current default window is **11 AM-7 PM IST**. This applies to both Sarvam and Exotel
+   equally, not a Sarvam-specific gate.
 
 ### The queue investigation - why a real Sarvam call still hasn't completed
 

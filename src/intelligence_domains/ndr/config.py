@@ -38,11 +38,12 @@ class NDRSettings(BaseSettings):
 
     # Calling-hours window, in India Standard Time, 24-hour clock. Nothing in this pipeline
     # checked this before 2026-09-13 - an NDR becoming eligible at 2 AM would have been
-    # called at 2 AM. Defaults to 9 AM-7 PM as a conservative starting point, not a confirmed
-    # legal/regulatory boundary - the user should adjust these via NDR_CALLING_HOURS_START_IST
-    # / NDR_CALLING_HOURS_END_IST if a different window is actually required (e.g. matching
-    # TRAI's commercial-communication hours, if this class of call falls under them).
-    calling_hours_start_ist: int = 9
+    # called at 2 AM. Start moved from 9 AM to 11 AM on 2026-09-13 per business decision -
+    # not a confirmed legal/regulatory boundary - the user should adjust these via
+    # NDR_CALLING_HOURS_START_IST / NDR_CALLING_HOURS_END_IST if a different window is
+    # actually required (e.g. matching TRAI's commercial-communication hours, if this class
+    # of call falls under them).
+    calling_hours_start_ist: int = 11
     calling_hours_end_ist: int = 19
 
     @field_validator("calling_hours_start_ist", "calling_hours_end_ist")

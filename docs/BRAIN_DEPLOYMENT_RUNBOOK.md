@@ -123,12 +123,13 @@ easy-to-miss gotcha:
 2. **`src/intelligence_domains/ndr/config.py`'s `NDRSettings` class** - separate class,
    separate env prefix (`NDR_`). Fields: `NDR_MAX_CONCURRENT_CALLS` (int, default `1`),
    `NDR_RESCHEDULE_WINDOW_DAYS` (JSON dict string, default `{"1": 2, "2": 2, "3": 0}`), and
-   (added 2026-09-13) `NDR_CALLING_HOURS_START_IST` / `NDR_CALLING_HOURS_END_IST` (int
-   hour-of-day 0-24, default `9`/`19` - a real, live-customer-facing 9 AM-7 PM IST window
-   enforced by `NDRQueuePoller._poll_loop()` before it ever claims a queue item; not a
-   confirmed regulatory boundary, just a conservative default - adjust if a specific legal
-   window actually applies to this class of call). None of these three are currently set in
-   production - all three run on their defaults.
+   (added 2026-09-13, start moved 9→11 same day per business decision)
+   `NDR_CALLING_HOURS_START_IST` / `NDR_CALLING_HOURS_END_IST` (int hour-of-day 0-24, default
+   `11`/`19` - a real, live-customer-facing 11 AM-7 PM IST window enforced by
+   `NDRQueuePoller._poll_loop()` before it ever claims a queue item; not a confirmed
+   regulatory boundary, just a business default - adjust if a specific legal window actually
+   applies to this class of call). None of these three are currently set in production - all
+   three run on their defaults.
 3. **Two raw `os.environ.get()` reads that bypass both Settings classes entirely**:
    - `AZM_DATABASE_URL` (`src/azm/config.py`) - **not** read from `settings.database_url`, a
      completely separate variable. Defaults to a dev-only SQLite-adjacent Postgres URL if
