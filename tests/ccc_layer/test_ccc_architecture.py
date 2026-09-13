@@ -90,7 +90,7 @@ async def test_gate_c_ccc_projection(action_request, mock_shopdeck_provider):
     # Essential conversational facts remain
     assert projection.customer_name == "John Doe"
     assert projection.product_name == "Premium Cotton Bedsheet"
-    assert projection.domain_constraints == ["Do not name courier"]
+    assert projection.domain_constraints == "Do not name courier"
     assert "Never execute a financial transaction." in projection.core_safety_constraints
 
 @pytest.mark.asyncio

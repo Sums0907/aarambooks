@@ -390,8 +390,8 @@ class NDRIntelligenceOrchestrator:
             primary_objective=strategy.target_objective,
             success_condition=(
                 "The customer has stated a delivery preference (a workable delivery arrangement, "
-                "or an explicit refusal) and it has been captured. Merely answering the customer's "
-                "questions is NOT success."
+                "an updated address/phone number, or an explicit refusal) and it has been captured. "
+                "Merely answering the customer's questions is NOT success."
             ),
             initial_state="INTRODUCE_REASON",
             allowed_actions=[

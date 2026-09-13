@@ -32,5 +32,6 @@
     "mission_initial_state",
     "mission_allowed_next_states",
     "mission_conversation_priority",
-    "mission_return_to_mission"
+    "mission_return_to_mission",
+    "instruction_product_description"
 ]

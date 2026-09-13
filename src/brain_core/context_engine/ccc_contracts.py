@@ -100,9 +100,9 @@ class NDRConversationProjection(BaseModel):
     
     objective: str
     context_summary: str
-    domain_constraints: List[str]
-    core_safety_constraints: List[str]
-    allowed_actions: List[str]
+    domain_constraints: str
+    core_safety_constraints: str
+    allowed_actions: str
 
     # Mission, flattened to scalars on purpose.
     # The Exotel session_constants payload is a flat string->string map and str()s whatever it

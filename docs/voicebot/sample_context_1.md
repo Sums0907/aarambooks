@@ -1,30 +1,35 @@
 ```json
 {
-  "customer_name": "SicyJohn",
-  "customer_full_address": "Palakkad, Kerala, 678001",
-  "product_name": "Midnight Blue Stripes 300 TC Pure Cotton Bedsheet Set",
-  "product_description": "Some designs never go out of style\u2014they simply become a part of your everyday comfort.\nInspired by the calm of the open sea after sunset, the Midnight Blue Stripes Bedsheet Set brings effortless elegance to your bedroom. The deep navy base paired with crisp white and subtle red stripes creates a timeless look that feels modern yet familiar.\nCrafted from 100% Pure Cotton with a luxurious 300 Thread Count, it feels exceptionally soft from the very first touch. The breathable fabric keeps you comfortable through every season while becoming even softer after every wash.\nWhether you're refreshing your bedroom or creating a peaceful retreat after a long day, this bedsheet is designed to offer hotel-like comfort with everyday practicality.\nBecause true luxury is the comfort you experience every single night.\n\nKey Features\n\u2714 100% Pure Cotton for natural softness and breathability\n\u2714 300 Thread Count premium weave for a smooth, luxurious feel\n\u2714 Soft, skin-friendly fabric suitable for year-round comfort\n\u2714 Fade-resistant reactive prints for long-lasting colour\n\u2714 Durable stitching with premium finishing\n\u2714 Perfect fit for King Size and Super King Size beds\n\nWhy You'll Love It:\n- Premium 300 TC cotton that feels luxuriously soft.\n- Timeless striped design that never goes out of style.\n- Breathable fabric for cool, comfortable sleep all year round.\n- Elegant colours that instantly elevate your bedroom d\u00e9cor.\n- Made for everyday luxury with long-lasting quality.\n\nWhat makes the Midnight Harbor Stripes Bedsheet special?\nMade from 100% Pure Cotton with a premium 300 Thread Count, this king-size bedsheet offers exceptional softness, breathability, and durability. \nIts timeless navy striped design complements modern bedrooms while providing hotel-like comfort for everyday living. \nThe set includes 1 King Size Bedsheet and 2 Large Pillow Covers, making it perfect for those who appreciate premium quality and effortless style.",
+  "customer_name": "Anushka Mishra",
+  "customer_full_address": "Trimulgherry, Telangana, 500049",
+  "product_category": "Bedsheet",
+  "product_name": "Pure Cotton Rajwada Patchwork Print King Size Bedsheet",
+  "product_description": "Bring home the beauty of Rajasthan with our Rajwada Patchwork Bedsheet Set. \nInspired by traditional Rajasthani art, this bedsheet features a stunning patchwork design filled with intricate motifs and rich cultural detailing. The soothing blend of pastel blue, mint green, and soft pink adds a calming, elegant, and beautifully ethnic charm to your bedroom.\nMade from 100% breathable cotton, this bedsheet feels soft, comfortable, and gentle on the skin. The lightweight fabric offers a cozy sleeping experience, while the durable, color-fast print ensures the design stays vibrant and fresh for years. The set includes a bedsheet with a stylish pink border and two matching pillow covers to complete the look effortlessly.\n\nWhy You\u2019ll Love It:\n- 100% breathable cotton\n- Soft, durable, and fade-resistant\n- Adds cultural elegance and a touch of charm to any room\n\n\n\nNote : We strive to present our products as accurately as possible; however, slight variations in colour may occur due to photography and individual screen settings.",
   "payment_mode": "cod",
   "objective": "Schedule a reattempt for tomorrow.",
   "context_summary": "Customer was unavailable today.",
-  "domain_constraints": [
-    "Do not name courier"
-  ],
-  "allowed_actions": [
-    "reschedule"
-  ],
-  "size": "108 x 108 inches",
+  "domain_constraints": "Do not name courier",
+  "allowed_actions": "explain_why_this_call; answer_question_from_authoritative_context_only; state_fact_unavailable_when_absent; capture_customer_delivery_preference; capture_refusal_reason; acknowledge_and_return_to_delivery_topic; close_call_politely; capture_alternate_phone_number; confirm_or_update_address_within_same_pincode_only",
+  "size": "100 x 108 Inches",
+  "color": "Multicolor",
   "return_exchange_condition": "Return and Exchange within three days and only for wrong or defective product",
-  "actual_item_price": 2499.0,
-  "collectable_amount": 2499.0,
+  "actual_item_price": 1249.0,
+  "collectable_amount": 1249.0,
   "order_quantity": 1,
-  "order_date": "2026-07-20T16:36:51Z",
-  "courier_partner": "Amazon DS",
-  "past_delivery_attempts": 2,
-  "destination_pincode": "678001",
-  "prior_communication_summary": "ivr_call -> no-answer; ivr_call -> no-answer; ivr_call -> no-answer; hsm -> no response recorded (message: \"Aaram Homes\nOrder Delivery Failed!\nYour order for Midnight Blue Stripes 300 TC Pure Cotton Bedsheet Set from Aaram Homes could not be delivered today by our delivery partner - Amazon DS.\nClick on the button to select a preferred delivery date or report an issue.\"); sms -> no response recorded (message: \"Your Order from Aaram Homes failed to be delivered. Please share your feedback to reattempt delivery: https://shopdeck.clickpost.ai/page?waybill=371070757553&cp_id=105\n-Blitzscale\"); ivr_call -> no-answer; ivr_call -> no-answer; ivr_call -> no-answer; hsm -> no response recorded (message: \"Aaram Homes\nOrder Delivery Failed!\nYour order for Midnight Blue Stripes 300 TC Pure Cotton Bedsheet Set from Aaram Homes could not be delivered today by our delivery partner - Amazon DS.\nClick on the button to select a preferred delivery date or report an issue.\"); sms -> no response recorded (message: \"Your Order from Aaram Homes failed to be delivered. Please share your feedback to reattempt delivery: https://shopdeck.clickpost.ai/page?waybill=371070757553&cp_id=105\n-Blitzscale\")",
-  "offered_reattempt_date_1": "Sunday (13-09-2026)",
-  "offered_reattempt_date_2": "Monday (14-09-2026)",
-  "diagnostic_priority_instruction": "This is not the first delivery attempt. Before discussing anything else, ask the customer directly why the earlier delivery attempt(s) did not succeed, in their own words, and make sure that reason is clearly stated in the conversation - this is a primary objective of this call, not a secondary detail. prior_communication_summary shows what was already attempted/recorded; use it to ask a specific, informed question rather than a generic one."
+  "order_date": "2026-08-30T05:14:23Z",
+  "courier_partner": "Delhivery",
+  "past_delivery_attempts": 1,
+  "destination_pincode": "500049",
+  "prior_communication_summary": "ivr_call -> completed; reattempt_requested -> no response recorded; ivr_call -> completed; reattempt_requested -> no response recorded",
+  "offered_reattempt_date_1": "Monday (14-09-2026)",
+  "offered_reattempt_date_2": "Tuesday (15-09-2026)",
+  "mission_conversation_mission": "NDR_RECOVERY",
+  "mission_why_this_call": "A delivery attempt for this order failed. Reason recorded by the courier: Customer Unavailable. This order has had 2 failed delivery attempts.",
+  "mission_primary_objective": "Schedule a reattempt for tomorrow.",
+  "mission_success_condition": "The customer has stated a delivery preference (a workable delivery arrangement, an updated address/phone number, or an explicit refusal) and it has been captured. Merely answering the customer's questions is NOT success.",
+  "mission_initial_state": "INTRODUCE_REASON",
+  "mission_allowed_next_states": "CUSTOMER_RESPONSE, ANSWER_CUSTOMER_QUESTION, RETURN_TO_NDR, CONFIRM_RESOLUTION, CUSTOMER_UNAVAILABLE, CUSTOMER_REFUSED, UNCLEAR, COMPLETED",
+  "mission_conversation_priority": "The customer's immediate question always takes priority in the moment. The NDR recovery objective acts as the pull of gravity to return to once the question is answered.",
+  "mission_return_to_mission": "RETURN_TO_NDR"
 }
 ```

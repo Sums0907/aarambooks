@@ -33,6 +33,11 @@ def _summarize_action_history(action_history: Optional[list]) -> Optional[str]:
         message_text = entry.get("message_text")
         if message_text:
             part += f" (message: \"{message_text}\")"
+            
+        remarks = entry.get("remarks")
+        if remarks:
+            part += f" (Remarks: \"{remarks}\")"
+            
         if entry.get("is_priority_escalate"):
             part += " [escalated]"
         lines.append(part)
@@ -44,6 +49,72 @@ class AbstractCCCBuilder(ABC):
     @abstractmethod
     async def build(self, action_request: ActionRequest) -> CustomerConversationContext:
         pass
+
+    @staticmethod
+    def _capitalize_name_token(token: str) -> str:
+        """
+        Name-aware capitalization - plain .capitalize() lowercases every letter after the
+        first, which corrupts real surnames with an intentional internal capital (McDonald ->
+        Mcdonald, O'Brien -> O'brien, D'Souza -> D'souza - the last one a common real Indian
+        surname, not a hypothetical edge case).
+        """
+        lower = token.lower()
+        if lower.startswith("mc") and len(lower) > 2:
+            return "Mc" + lower[2:].capitalize()
+        if "'" in token:
+            return "'".join(part.capitalize() for part in token.split("'"))
+        return token.capitalize()
+
+    @staticmethod
+    def _clean_customer_name(raw_name: str) -> str:
+        if not raw_name:
+            return ""
+
+        import re
+        # 1. Strip whitespace
+        name = raw_name.strip()
+        if not name:
+            return ""
+
+        # A name that already arrives space-separated (e.g. "Krishnan Nan") is not the bug
+        # being targeted here and must not go through the split/overlap heuristics below -
+        # those are only safe to apply to a single concatenated token like "DeepaGupta" or
+        # "AmanyadavYadav". Running them on already-separate real name parts produces false
+        # positives: "Krishnan Nan" would otherwise get wrongly truncated to "Krish Nan" by
+        # step 3 below, since "krishnan" coincidentally ends in "nan" - a common pattern in
+        # Indian names, not evidence of the concatenation bug.
+        had_pre_existing_spaces = " " in name
+
+        # 2. Split CamelCase (e.g. DeepaGupta -> Deepa Gupta) - only for a single glued-together
+        # token, and only at a boundary with a real word (3+ lowercase letters) immediately
+        # before the capital. This is what distinguishes the concatenation bug ("...deepa|Gupta",
+        # "...manyadav|Yadav") from a short, legitimate name-internal capital ("Mc|Donald",
+        # "Mac|Arthur" - only 1-2 lowercase letters before the capital) without needing a
+        # hardcoded prefix list.
+        if not had_pre_existing_spaces:
+            name = re.sub(r'([a-z]{3,})([A-Z])', r'\1 \2', name)
+
+        # 3. Split on spaces
+        tokens = [t for t in name.split() if t.strip()]
+        if not tokens:
+            return ""
+
+        # 4. Remove consecutive duplicates (case-insensitive)
+        cleaned_tokens = []
+        for t in tokens:
+            if not cleaned_tokens or cleaned_tokens[-1].lower() != t.lower():
+                cleaned_tokens.append(AbstractCCCBuilder._capitalize_name_token(t))
+
+        # 5. Handle "Amanyadav Yadav" overlapping bug - same restriction as step 2, only for
+        # a name that arrived as a single concatenated token.
+        if not had_pre_existing_spaces and len(cleaned_tokens) >= 2:
+            t1, t2 = cleaned_tokens[0].lower(), cleaned_tokens[1].lower()
+            if t1 != t2 and t1.endswith(t2):
+                first_name_part = t1[:-len(t2)]
+                if first_name_part: # Ensure it doesn't become empty
+                    cleaned_tokens[0] = AbstractCCCBuilder._capitalize_name_token(first_name_part)
+        
+        return " ".join(cleaned_tokens)
 
     def project(self, ccc: CustomerConversationContext) -> NDRConversationProjection:
 
@@ -88,7 +159,7 @@ class AbstractCCCBuilder(ABC):
             )
 
         return NDRConversationProjection(
-            customer_name=ccc.customer_profile.name,
+            customer_name=self._clean_customer_name(ccc.customer_profile.name),
             customer_phone=ccc.customer_profile.phone,
             awb_no=ccc.order_facts.awb_no,
             collectable_amount=ccc.order_facts.collectable_amount,
@@ -120,11 +191,11 @@ class AbstractCCCBuilder(ABC):
             return_exchange_condition=ccc.product_context.return_exchange_condition,
             objective=ccc.directive.objective,
             context_summary=ccc.directive.context_summary,
-            domain_constraints=ccc.directive.constraints,
-            core_safety_constraints=CORE_SAFETY_POLICY,
+            domain_constraints="; ".join(ccc.directive.constraints) if ccc.directive.constraints else "",
+            core_safety_constraints="; ".join(CORE_SAFETY_POLICY),
             # Single authority: the mission's list wins when a mission is attached, so only
             # one allowed-actions list ever reaches the conversational layer.
-            allowed_actions=ccc.directive.effective_allowed_actions,
+            allowed_actions="; ".join(ccc.directive.effective_allowed_actions) if ccc.directive.effective_allowed_actions else "",
             mission_conversation_mission=mission.conversation_mission if mission else None,
             mission_why_this_call=mission.why_this_call if mission else None,
             mission_primary_objective=mission.primary_objective if mission else None,

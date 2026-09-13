@@ -38,11 +38,22 @@ async def run(awb: str) -> None:
     builder = ShopDeckMasterCCCBuilder(provider=adapter)
 
     # 2. Build a realistic ActionRequest (directive matches what the dispatcher sends)
+    from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
+    
+    # Mocking a strategy just to generate the mission variables
+    class MockStrategy:
+        target_objective = "Schedule a reattempt for tomorrow."
+        rationale = "Customer was unavailable today."
+        
+    strategy = MockStrategy()
+    mission = NDRIntelligenceOrchestrator._build_mission_contract(strategy, "Customer Unavailable", 2)
+
     directive = ConversationalDirective(
         objective="Schedule a reattempt for tomorrow.",
         context_summary="Customer was unavailable today.",
         constraints=["Do not name courier"],
-        allowed_actions=["reschedule"],
+        allowed_actions=["reschedule", "address_change", "phone_no_change"],
+        mission=mission,
     )
     req = ActionRequest(
         action_request_id=f"act_{uuid.uuid4().hex[:8]}",

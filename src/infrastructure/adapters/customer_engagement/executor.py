@@ -7,6 +7,7 @@ import logging
 
 from src.brain_core.action_engine.contracts import ActionRequest, ExecutionChannel
 from src.infrastructure.adapters.customer_engagement.repository import CustomerEngagementRepository, NormalizationStatus
+from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,9 @@ from src.infrastructure.adapters.customer_engagement.models import (
     ObservationalOutcome
 )
 
+# Fixed to "EXOTEL" specifically - tied to the `exotel_adapter` back-compat constructor
+# param's own meaning (see __init__ below), not the configurable default. The actual
+# per-call dispatch default is settings.default_voice_provider (see prepare_engagement).
 DEFAULT_VOICE_PROVIDER = "EXOTEL"
 
 
@@ -64,7 +68,7 @@ class CustomerEngagementExecutor:
             awb_no=action_request.parameters.get("awb_no", "UNKNOWN"),
             channel=action_request.execution_intent.channel.value,
             provider=(
-                (action_request.execution_intent.voice_provider or DEFAULT_VOICE_PROVIDER)
+                (action_request.execution_intent.voice_provider or settings.default_voice_provider)
                 if action_request.execution_intent.channel == ExecutionChannel.VOICE
                 else "UNKNOWN"
             ),

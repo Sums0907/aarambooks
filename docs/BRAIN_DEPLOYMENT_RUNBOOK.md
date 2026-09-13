@@ -200,7 +200,7 @@ own `environment:` block sets for `aarambooks-brain-api` wins, regardless of `.e
 | `SARVAM_AGENT_ID`, `SARVAM_WORKSPACE_ID`, `SARVAM_ORG_ID`, `SARVAM_CONNECTION_ID` | From the Sarvam dashboard for the specific configured voice agent |
 | `SARVAM_WEBHOOK_SECRET` | Checked by `verify_sarvam_bearer()` against the `?secret=` query param Sarvam is configured to send (Sarvam's `webhook_config` has no header-auth field at all, so this is the only mechanism) |
 | `SARVAM_WEBHOOK_BASE_URL` | **Must be `https://api-brain.aarambooks.cloud` in production**, same reasoning as Exotel's |
-| `SARVAM_APP_VERSION` | **Not settled as of 2026-09-12** (confirmed directly with the user). Code defaults to `4`, explicitly marked in `src/shared/config.py` as an unconfirmed draft. Do not assume this default is correct - confirm with the user before placing a real Sarvam Instant Outbound call in production. |
+| `SARVAM_APP_VERSION` | **Settled 2026-09-13**: real value is `23`, confirmed directly by the user via a real Sarvam Instant Outbound curl example (not guessed). `src/shared/config.py` defaults to `23`; the production `.env` on the VPS was updated to match. If the Sarvam agent is edited again later, re-confirm this hasn't changed - Sarvam versions each edit, so a future edit will need this updated again before it goes live. |
 | `TEST_PHONE_OVERRIDE` | **Must be unset/absent in production.** If set, every single outbound call (both Exotel and Sarvam, confirmed via direct code read of both adapters plus `ccc_builder.py`) is silently redirected to this one fixed number instead of the real customer. This is dev's own safety mechanism for testing without dialing real numbers - it is not a feature to carry into production under any circumstances. |
 
 ### 4c. Fields that only exist for `docker-compose.prod.yml` itself, not for Brain's own Settings
@@ -270,7 +270,7 @@ SARVAM_ORG_ID=<real>
 SARVAM_CONNECTION_ID=<real>
 SARVAM_WEBHOOK_BASE_URL=https://api-brain.aarambooks.cloud
 SARVAM_WEBHOOK_SECRET=<real>
-# SARVAM_APP_VERSION intentionally omitted - not settled, confirm with the user first
+SARVAM_APP_VERSION=23
 AZM_DATABASE_URL=postgresql://postgres:<same value as DB_PASSWORD>@aarambooks-brain-db:5432/aarambooks_brain_core_prod
 # TEST_PHONE_OVERRIDE intentionally omitted - must never be set in production
 ```
@@ -439,8 +439,6 @@ none has ever been needed.
 
 - Catalog Business System has no VPS deployment at all yet - `CATALOG_URL` has no real target
   to point at.
-- `SARVAM_APP_VERSION` is still an unconfirmed draft (`4`) - confirm with the user before any
-  real Sarvam Instant Outbound call is placed from this deployment.
 - `ShopDeckMasterCCCBuilder`'s constructor accepts an unused `inventory_provider` argument -
   harmless, not fixed.
 - Three scripts (`dry_run_bnctest1.py`, `scripts/business_value_e2e_test.py`,

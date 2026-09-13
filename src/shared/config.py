@@ -63,12 +63,9 @@ class Settings(BaseSettings):
     test_phone_override: str = ""
 
     # Sarvam Configuration (voice bot migration - see docs/claude/)
-    # sarvam_app_version=4 is currently a DRAFT ("in-progress edits, not yet live" per
-    # Sarvam's own docs) - the user is still editing it and has not committed it. Real test
-    # calls should wait until it's committed to a real version number; update this value
-    # then. Do not assume a draft version is callable via Instant Outbound - unconfirmed
-    # either way in public docs.
-    sarvam_app_version: int = 4
+    # Real, committed app version confirmed by the user on 2026-09-13 via a real Sarvam
+    # Instant Outbound curl example. No longer the earlier draft value (4).
+    sarvam_app_version: int = 23
     # sarvam_api_key is a Voice Agents key specifically - separate from Sarvam's standard
     # TTS/STT API keys, per Sarvam's own docs. Don't reuse a standard API key here.
     sarvam_api_key: str = ""
@@ -84,6 +81,15 @@ class Settings(BaseSettings):
     # flow, not inside an HTTP handler), so unlike Exotel's get_webhook_base_url() this
     # can't be derived from request headers - it must be set explicitly.
     sarvam_webhook_base_url: str = ""
+
+    # Which voice adapter CustomerEngagementExecutor routes a call through when
+    # ActionRequest.execution_intent.voice_provider isn't set explicitly (true for every real
+    # NDR dispatch today - the orchestrator never sets it). Previously a hardcoded "EXOTEL"
+    # constant in executor.py; made configurable on 2026-09-13 so which provider a live
+    # deployment actually dials can be changed via .env without a code change - e.g. to let
+    # the VPS's own already-running poller dispatch real test calls through Sarvam instead of
+    # one-off manual scripts.
+    default_voice_provider: str = "EXOTEL"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

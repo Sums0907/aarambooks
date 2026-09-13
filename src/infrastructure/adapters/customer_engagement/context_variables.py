@@ -81,11 +81,21 @@ def build_provider_call_variables(
         variables["awb_no"] = str(engagement["awb_no"])
 
     call_context = engagement.get("call_context", {}) or {}
+    instructions = get_instructions_for_domain(domain)
     allowed_keys = _get_context_keys_for_domain(domain)
-    
+
     for key in allowed_keys:
+        # call_context (dynamic, per-call facts) takes priority; instruction_* keys are
+        # static per-domain text (src/config/voicebot_variables/*_voicebot_instructions.json)
+        # and only reach a provider if explicitly allow-listed here - most instruction_*
+        # strings are deliberately excluded and baked into a provider's own static system
+        # prompt instead (see docs/claude/ for Sarvam's persona). instruction_product_description
+        # is the one exception Sarvam's platform expects as a real per-call variable, since
+        # product descriptions vary by call unlike the rest of the (constant) behavioral rules.
         if call_context.get(key) is not None:
             value = call_context[key]
             variables[key] = ", ".join(value) if isinstance(value, list) else str(value)
+        elif key in instructions:
+            variables[key] = instructions[key]
 
     return variables
