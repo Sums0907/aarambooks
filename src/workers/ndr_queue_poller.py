@@ -7,6 +7,7 @@ from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter,
 from src.brain_core.context_engine.ccc_builder import CustomerConversationContextBuilder
 from src.intelligence_domains.ndr.communication_engine import CommunicationEngine
 from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
+from src.intelligence_domains.ndr.config import ndr_settings
 class NDRQueuePoller:
     """
     Brain Queue Consumer.
@@ -72,9 +73,19 @@ class NDRQueuePoller:
     async def _poll_loop(self):
         while self._running:
             try:
+                # Calling-hours gate, checked BEFORE touching ShopDeck at all - not after
+                # claiming. An NDR becoming eligible outside these hours must be left
+                # completely untouched in ShopDeck's queue (not claimed, held, or rejected),
+                # since claiming and then giving it back would burn into the limited
+                # max_retries budget for no real reason. Real customers must never be called
+                # outside this window regardless of when the underlying NDR occurred.
+                if not ndr_settings.is_within_calling_hours():
+                    await asyncio.sleep(self.poll_interval_seconds)
+                    continue
+
                 # Acquire a concurrency slot before attempting to claim work
                 await self._semaphore.acquire()
-                
+
                 # Check if we should stop while waiting for semaphore
                 if not self._running:
                     self._semaphore.release()
