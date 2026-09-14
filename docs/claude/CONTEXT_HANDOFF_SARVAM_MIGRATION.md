@@ -1,12 +1,13 @@
 # Context handoff — Exotel → Sarvam voice-bot migration
 
 Written by: Claude
-Originally written: 2026-09-11. Updated 2026-09-13 (twice) - Sarvam is no longer
-"mid-migration, blocked on missing details." It is code-complete, deployed to production,
-and the VPS's own live poller is configured to dispatch every new NDR through Sarvam
-automatically, only during a real, enforced calling-hours window. What's actually still open
-now is narrower and described in the new section below - read that first if you're picking
-this up fresh, the sections after it are the original build history.
+Originally written: 2026-09-11. Updated 2026-09-13 (twice), 2026-09-14 - Sarvam is no
+longer "mid-migration, blocked on missing details," and as of 2026-09-14 it is no longer
+even "never actually completed a real call." Multiple real end-to-end Sarvam calls have now
+completed successfully against a real backlog of NDRs, dispatched sequentially with no
+overlap, with outbound writeback confirmed firing correctly. What's actually still open now
+is narrower and described in the new section below - read that first if you're picking this
+up fresh, the sections after it are the original build history.
 
 ## TL;DR (current, as of 2026-09-13)
 
@@ -28,17 +29,37 @@ this up fresh, the sections after it are the original build history.
   call will now only ever be placed between 11 AM and 7 PM IST**, regardless of when ShopDeck
   actually enrolls a fresh eligible item - don't be surprised if nothing happens outside those
   hours, that's the gate working correctly, not a stall.
-- **A real end-to-end Sarvam call has still never actually completed** - not because
-  anything is broken in Brain, but because ShopDeck's production NDR queue has been
-  genuinely empty of eligible items every time it's been checked (see "The queue
-  investigation" below for the full, verified reason why).
-- **Four real bugs were found and fixed since this doc was first written** - see "Bugs
-  found and fixed" below - a name-corruption bug, a missing per-call instruction variable,
-  the `default_voice_provider` gap, and the missing calling-hours gate.
+- **Real end-to-end Sarvam calls have now completed, verified in the live logs (2026-09-14).**
+  Once the NDR ingestion pipeline caught up and a backlog of eligible items appeared, the VPS
+  poller claimed and dispatched them one at a time: `TEST MODE: Overriding customer phone to
+  +918168583367` → Sarvam `200 OK` → the `call-completed` webhook fired → engagement flipped
+  to `COMPLETED` (or `FAILED` for a `busy` outcome, which also correctly freed the dispatch
+  slot) → `OutboundWritebackWorker` claimed and pushed the result back to ShopDeck. Four calls
+  went out this way in one run, none overlapping.
+- **Six real bugs were found and fixed since this doc was first written** - see "Bugs found
+  and fixed" below - a name-corruption bug, a missing per-call instruction variable, the
+  `default_voice_provider` gap, the missing calling-hours gate, a retry-idempotency bug that
+  was silently killing NDRs after their first failure, and a wrong phone-number format
+  (`TEST_PHONE_OVERRIDE` needed E.164, not Indian local format) that was the actual root
+  cause blocking the first real call.
+- **The dispatch pipeline now waits for a call to actually end before dispatching the next
+  one** - added 2026-09-14 (`NDRQueuePoller._wait_for_call_completion`), because
+  `max_concurrent_calls=1` alone only bounded how many claim/dispatch *pipelines* ran at
+  once; it released its slot the instant a call was dispatched, not when it finished. With a
+  backlog of eligible NDRs this could have fired several real calls back-to-back onto the
+  same test number. Now the poller polls the engagement's status until Exotel/Sarvam's
+  webhook marks it terminal (`COMPLETED`/`FAILED`/`ESCALATED`), bounded by
+  `NDR_CALL_COMPLETION_MAX_WAIT_SECONDS` (default 600s) so a missed webhook can't hang the
+  poller forever. Verified live: exactly one claim in flight at a time, confirmed via logs.
+- **One thing to keep in mind, not a bug**: ShopDeck's `ndr_queue.queue_status` goes back to
+  `action_ready` after a call completes (rather than something like `call_completed`), which
+  reads as if the item became claimable again. It isn't - `claimed_by` stays set, so
+  ShopDeck's own atomic claim won't re-select it. Likely `action_ready` is being reused to
+  mean "reattempt window open," not "available to claim." Worth clarifying with the ShopDeck
+  side if this ever needs to be told apart programmatically, but it isn't causing duplicate
+  calls today.
 - **Do not run more manual one-off test scripts for this.** The VPS's own poller is already
-  correctly configured and running continuously - the only things blocking a real test are
-  ShopDeck's queue having nothing eligible, and now also the calling-hours window - not
-  anything Brain needs done to it again.
+  correctly configured, running continuously, and has now proven it works end to end.
 
 ## Why this exists (origin of the migration)
 
@@ -170,13 +191,64 @@ tries to be explicit everywhere about what's actually confirmed vs. best-effort.
    `NDRSettings.calling_hours_start_ist`'s default from `9` to `11` - the gate logic itself
    (`is_within_calling_hours()`) is unchanged, so this was a config-value change, not a
    re-verification of the boundary logic (zero new regressions from that change either).
-   Current default window is **11 AM-7 PM IST**. This applies to both Sarvam and Exotel
+   Current default window is **11 AM-7 PM IST** (extended to 11 PM via a VPS-only
+   `NDR_CALLING_HOURS_END_IST=23` override in `.env` on 2026-09-14 specifically to allow
+   real testing against a backlog; not committed to the repo default, remove the `.env` line
+   to fall back to 7 PM once testing is done). This applies to both Sarvam and Exotel
    equally, not a Sarvam-specific gate.
+6. **Retry idempotency bug silently killing NDRs after their first failure, for any
+   reason.** `CustomerEngagementRepository.create_engagement` raised `ValueError` whenever a
+   retry's `action_request_id` didn't match the one stored from the first attempt - which it
+   never would, since the orchestrator regenerates a fresh random `action_request_id` on
+   every single run (`orchestrator.py`, `f"act_{uuid.uuid4().hex[:8]}"`), while
+   `NDRQueuePoller` derives `engagement_id` deterministically from `queue_item_id`
+   specifically so retries converge on one record. Found by tracing a real permanently-failed
+   queue item (AWB `142285243044206`) back through VPS logs: its first attempt actually
+   reached Sarvam and failed for an unrelated reason (see bug 7 below); its one retry then
+   died instantly on this idempotency check instead of ever reaching Sarvam again. 5 of 14
+   permanently-failed items on the VPS at the time carried this exact failure signature -
+   the single most common failure reason, ahead of any real provider-side cause. Fixed in
+   `src/infrastructure/adapters/customer_engagement/repository.py` - a colliding
+   `engagement_id` is now always treated as the same logical engagement and returned as-is,
+   since `action_request_id` isn't a meaningful dedup key at this call site. Added a
+   regression test (`test_create_engagement_retry_with_different_action_request_id_reuses_existing`)
+   exercising the real `DuplicateKeyError` path via `setup_indexes()` - previously this path
+   had zero test coverage.
+7. **`TEST_PHONE_OVERRIDE` was in the wrong phone format for Sarvam - the actual root cause
+   blocking the first real call.** Sarvam's API requires E.164 (`+91...`); the VPS's (and
+   local's) `.env` had it as Indian local format (`08168583367`), so Sarvam rejected every
+   real dispatch attempt with a 422 (`Invalid phone number format`). This is a `.env`-only
+   value (not committed, contains a real phone number), fixed directly in both the VPS and
+   local `.env` files to `+918168583367`. This was found only by reading full VPS log
+   history for a specific queue item, since bug 6 above meant the retry's failure (the
+   misleading idempotency error) was the only one visible from ShopDeck's queue table itself.
+8. **The poller could dispatch the next call before the previous one's live conversation
+   ended.** `max_concurrent_calls=1` only bounded how many claim/dispatch *pipelines* could
+   run at once - the semaphore released the instant a call was dispatched, not when it
+   finished, so a backlog of eligible NDRs could have produced several real calls in quick
+   succession onto the same test number. Raised directly by the user before testing began
+   ("once the call ends then only brain should dispatch another call... I don't want brain
+   firing 20 calls simultaneously on my number"). Fixed by having
+   `NDRQueuePoller._process_claimed_item` return the dispatched `engagement_id`, and having
+   `_process_task_wrapper` (the live poll-loop path only - `process_next_item()`'s
+   test/certification single-shot path is deliberately untouched, since it bypasses the
+   semaphore and tests don't simulate a webhook arriving) await
+   `_wait_for_call_completion` before releasing the semaphore. That method polls the
+   engagement every `NDR_CALL_COMPLETION_POLL_SECONDS` (default 5s) until Exotel/Sarvam's
+   webhook flips it to `COMPLETED`/`FAILED`/`ESCALATED`, capped by
+   `NDR_CALL_COMPLETION_MAX_WAIT_SECONDS` (default 600s) so a missed webhook can't hang the
+   poller forever. Verified live on the VPS: across 4 real dispatched calls, exactly one
+   claim was ever in flight at a time, with the next claim only appearing in the logs after
+   the previous engagement reached a terminal state.
 
-### The queue investigation - why a real Sarvam call still hasn't completed
+### The queue investigation - why a real Sarvam call took this long to complete (historical - resolved 2026-09-14)
 
-Not a Brain bug. Traced end to end, with real evidence at every step, together with the
-ShopDeck-side agent:
+This section documents why no real Sarvam call had completed as of 2026-09-13. It has since
+been resolved (see the TL;DR and bugs 6-8 above) - real calls now complete successfully.
+Kept here as-is because the underlying investigation (queue enrollment, the COD filter,
+courier ingestion lag) is still accurate background for how ShopDeck's NDR queue behaves,
+independent of Brain's own bugs. Traced end to end, with real evidence at every step,
+together with the ShopDeck-side agent:
 
 1. The VPS's `claim_ndr_work` call returned `204 No Content` on every attempt for 24+ hours
    straight, with zero errors - ruling out a Brain-side claim bug immediately (a broken
@@ -315,7 +387,7 @@ platform) - i.e. the agent's variable list and this dict's keys need manual sync
   persona's nuance (interruption handling, empathy rules, response-length discipline, etc.)
   folded in properly.
 
-## Recommended next steps, in order (updated 2026-09-13)
+## Recommended next steps, in order (updated 2026-09-14)
 
 1. ~~Get `org_id`, `workspace_id`, `agent_id`, `connection_id`, `phone_number`, `api_key`~~ -
    **Done.**
@@ -326,16 +398,26 @@ platform) - i.e. the agent's variable list and this dict's keys need manual sync
 5. ~~Set a real `SARVAM_WEBHOOK_SECRET` and `SARVAM_WEBHOOK_BASE_URL`~~ - **Done.**
 6. ~~Fix `default_voice_provider` so real dispatches actually go to Sarvam~~ - **Done**,
    `DEFAULT_VOICE_PROVIDER=SARVAM` live on the VPS as of 2026-09-13.
-7. **Still open: let one real, genuinely eligible NDR actually reach the VPS's poller and
-   complete a real Sarvam call.** Nothing further needs doing on Brain's side for this -
-   the poller is running, correctly configured, and will pick up the next eligible item on
-   its own. This is now blocked purely on ShopDeck's enrollment producing a fresh eligible
-   item (see "The queue investigation" above), not on anything in this repo. When it does
-   happen, check: real call latency, whether the completion webhook payload matches what
-   `sarvam_webhooks.py` expects, and whether `agent_variables` keys still match the agent's
-   currently-configured variable list (the agent has been edited since this was last
-   confirmed).
-8. Full production system-prompt port (not the condensed test version in
-   `SARVAM_MOCK_TEST_SETUP.md`) once step 7 is proven end-to-end.
-9. Only after full parallel verification: any decision to move real production call traffic
-   off Exotel - not a hard cutover on day one, given this is live customer-facing calling.
+7. ~~Let one real, genuinely eligible NDR actually reach the VPS's poller and complete a
+   real Sarvam call~~ - **Done, 2026-09-14.** Multiple real calls completed successfully
+   (and one `busy`/`FAILED` outcome handled correctly too), dispatched sequentially, with
+   outbound writeback confirmed firing. See the TL;DR and bugs 6-8 above for what it took to
+   get here (idempotency bug, phone-format bug, sequential-dispatch gate).
+8. **Now open: review real call quality.** A call actually happening is not the same as a
+   *good* call - listen to/read the actual transcript(s) from today's real Sarvam calls (via
+   Sarvam's own dashboard) and check: did the agent stay on-script, handle interruptions
+   reasonably, and produce a sensible `call_outcome`? Also worth checking, since it was
+   raised earlier in the build history and never explicitly re-verified after all the
+   `agent_variables` fixes: does the webhook payload Sarvam actually sent match what
+   `sarvam_webhooks.py` expects field-for-field, with no silently-dropped or defaulted
+   values?
+9. **Reminder: `NDR_CALLING_HOURS_END_IST=23` on the VPS is a temporary testing override**
+   (see bug 5's note above) - remove that line from the VPS `.env` once testing is done, so
+   the real 7 PM default (`calling_hours_end_ist` in `config.py`) takes back over. Nothing
+   else needs reverting - the sequential-dispatch gate and the idempotency/phone-format
+   fixes are permanent, committed fixes, not test-only changes.
+10. Full production system-prompt port (not the condensed test version in
+    `SARVAM_MOCK_TEST_SETUP.md`) - the 835-line real persona still hasn't been folded in;
+    today's calls ran on the condensed test-version prompt.
+11. Only after full parallel verification: any decision to move real production call traffic
+    off Exotel - not a hard cutover on day one, given this is live customer-facing calling.
