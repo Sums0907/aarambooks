@@ -44,6 +44,38 @@ async def test_create_engagement(repo, mock_db):
     assert doc["status"] == EngagementState.REQUESTED
 
 @pytest.mark.asyncio
+async def test_create_engagement_retry_with_different_action_request_id_reuses_existing(repo, mock_db):
+    """
+    Regression test: the NDR Queue Poller derives engagement_id deterministically from
+    queue_item_id so retries of the same queue item converge on one engagement, but the
+    orchestrator regenerates a fresh action_request_id on every run. A retry must not be
+    treated as a conflicting, different engagement just because action_request_id differs -
+    it must reuse the existing record instead of raising (see repository.py's create_engagement).
+    """
+    await repo.setup_indexes()  # unique index on engagement_id is what makes the retry collide
+
+    first = CustomerEngagementRecord(
+        engagement_id="eng_fixed_retry_key",
+        action_request_id="req-1",
+        awb_no="AWB1",
+        channel="VOICE",
+        provider="EXOTEL"
+    )
+    await repo.create_engagement(first)
+
+    retry = CustomerEngagementRecord(
+        engagement_id="eng_fixed_retry_key",
+        action_request_id="req-2",
+        awb_no="AWB1",
+        channel="VOICE",
+        provider="EXOTEL"
+    )
+    result = await repo.create_engagement(retry)
+
+    assert result.engagement_id == "eng_fixed_retry_key"
+    assert result.action_request_id == "req-1"  # the original, not overwritten
+
+@pytest.mark.asyncio
 async def test_transition_state_valid(repo, mock_db):
     record = CustomerEngagementRecord(
         action_request_id="req-1",
