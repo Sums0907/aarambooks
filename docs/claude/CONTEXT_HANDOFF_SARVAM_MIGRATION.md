@@ -1,15 +1,29 @@
 # Context handoff — Exotel → Sarvam voice-bot migration
 
 Written by: Claude
-Originally written: 2026-09-11. Updated 2026-09-13 (twice), 2026-09-14 - Sarvam is no
-longer "mid-migration, blocked on missing details," and as of 2026-09-14 it is no longer
+Originally written: 2026-09-11. Updated 2026-09-13 (twice), 2026-09-14 (twice) - Sarvam is
+no longer "mid-migration, blocked on missing details," and as of 2026-09-14 it is no longer
 even "never actually completed a real call." Multiple real end-to-end Sarvam calls have now
 completed successfully against a real backlog of NDRs, dispatched sequentially with no
-overlap, with outbound writeback confirmed firing correctly. What's actually still open now
-is narrower and described in the new section below - read that first if you're picking this
-up fresh, the sections after it are the original build history.
+overlap, with outbound writeback confirmed firing correctly. **`TEST_PHONE_OVERRIDE` has
+since been removed from the VPS** (2026-09-14, explicit user decision - see the TL;DR below)
+- Brain now calls real customers live, in production, with no test-number safety net. Read
+the TL;DR first if you're picking this up fresh, the sections after it are the original
+build history.
 
-## TL;DR (current, as of 2026-09-13)
+## TL;DR (current, as of 2026-09-14)
+
+- **`TEST_PHONE_OVERRIDE` has been removed from the VPS - Brain now calls real customers
+  live.** Every NDR the poller claims within the calling-hours window now dispatches a real
+  Sarvam call to the real customer's phone number, fully autonomously, with no human review
+  step. This was a deliberate, explicitly-confirmed user decision made *despite* two known
+  open risks at the time: (1) nobody had yet reviewed the actual transcripts/quality of the
+  real calls that completed earlier that day, and (2) production calls are running on the
+  condensed test-version system prompt, not the full 835-line persona (`docs/voicebot/
+  bot_persona.txt`) - see "Recommended next steps" below, both are still open. Local `.env`
+  still has `TEST_PHONE_OVERRIDE` set (deliberately left alone - no poller runs locally, so
+  there was no operational reason to touch it) - if a local Brain process is ever started
+  against production data, it will NOT call real customers; only the VPS will.
 
 - **Sarvam is live in production**, not a draft. `DEFAULT_VOICE_PROVIDER=SARVAM` is set on
   the VPS - real NDR dispatches go through Sarvam automatically via the normal poller, no
@@ -32,7 +46,9 @@ up fresh, the sections after it are the original build history.
 - **Real end-to-end Sarvam calls have now completed, verified in the live logs (2026-09-14).**
   Once the NDR ingestion pipeline caught up and a backlog of eligible items appeared, the VPS
   poller claimed and dispatched them one at a time: `TEST MODE: Overriding customer phone to
-  +918168583367` → Sarvam `200 OK` → the `call-completed` webhook fired → engagement flipped
+  +918168583367` (this line is historical - `TEST_PHONE_OVERRIDE` has since been removed from
+  the VPS, see the TL;DR above; a fresh log excerpt taken now would show the real customer's
+  number instead) → Sarvam `200 OK` → the `call-completed` webhook fired → engagement flipped
   to `COMPLETED` (or `FAILED` for a `busy` outcome, which also correctly freed the dispatch
   slot) → `OutboundWritebackWorker` claimed and pushed the result back to ShopDeck. Four calls
   went out this way in one run, none overlapping.
@@ -403,21 +419,30 @@ platform) - i.e. the agent's variable list and this dict's keys need manual sync
    (and one `busy`/`FAILED` outcome handled correctly too), dispatched sequentially, with
    outbound writeback confirmed firing. See the TL;DR and bugs 6-8 above for what it took to
    get here (idempotency bug, phone-format bug, sequential-dispatch gate).
-8. **Now open: review real call quality.** A call actually happening is not the same as a
-   *good* call - listen to/read the actual transcript(s) from today's real Sarvam calls (via
-   Sarvam's own dashboard) and check: did the agent stay on-script, handle interruptions
-   reasonably, and produce a sensible `call_outcome`? Also worth checking, since it was
-   raised earlier in the build history and never explicitly re-verified after all the
-   `agent_variables` fixes: does the webhook payload Sarvam actually sent match what
-   `sarvam_webhooks.py` expects field-for-field, with no silently-dropped or defaulted
-   values?
-9. **Reminder: `NDR_CALLING_HOURS_END_IST=23` on the VPS is a temporary testing override**
-   (see bug 5's note above) - remove that line from the VPS `.env` once testing is done, so
-   the real 7 PM default (`calling_hours_end_ist` in `config.py`) takes back over. Nothing
-   else needs reverting - the sequential-dispatch gate and the idempotency/phone-format
-   fixes are permanent, committed fixes, not test-only changes.
-10. Full production system-prompt port (not the condensed test version in
-    `SARVAM_MOCK_TEST_SETUP.md`) - the 835-line real persona still hasn't been folded in;
-    today's calls ran on the condensed test-version prompt.
-11. Only after full parallel verification: any decision to move real production call traffic
-    off Exotel - not a hard cutover on day one, given this is live customer-facing calling.
+8. ~~`NDR_CALLING_HOURS_END_IST=23` temporary testing override on the VPS~~ - **Reverted,
+   2026-09-14.** The VPS `.env` no longer sets this; the real 7 PM default
+   (`calling_hours_end_ist` in `config.py`) is back in effect and confirmed live.
+9. **`TEST_PHONE_OVERRIDE` has been removed from the VPS - Brain is now calling real
+   customers, live, in production (2026-09-14, explicit user decision).** This is the single
+   biggest state change in this doc's history: every prior real call described above went to
+   a fixed test number; from this point on, every NDR the poller claims within calling hours
+   calls the actual customer. This was done *before* the two items below were addressed, as
+   a deliberate, informed choice - not an oversight. Anyone picking this doc up should know
+   Brain is no longer in a safe-to-experiment state.
+10. **Urgent given item 9: review real call quality.** A call actually happening is not the
+    same as a *good* call, and now every call is a real customer, not a test number - listen
+    to/read the actual transcript(s) from the real Sarvam calls that already ran (via
+    Sarvam's own dashboard) and check: did the agent stay on-script, handle interruptions
+    reasonably, and produce a sensible `call_outcome`? Also worth checking, since it was
+    raised earlier in the build history and never explicitly re-verified after all the
+    `agent_variables` fixes: does the webhook payload Sarvam actually sent match what
+    `sarvam_webhooks.py` expects field-for-field, with no silently-dropped or defaulted
+    values?
+11. **Urgent given item 9: full production system-prompt port.** Real customers are now
+    being reached with the condensed test-version prompt, not the full 835-line persona
+    (`docs/voicebot/bot_persona.txt` - interruption handling, empathy rules,
+    response-length discipline, etc.). This was previously a "before wider rollout" item;
+    it no longer has that buffer, since rollout already happened.
+12. Only after the above: any decision to move real production call traffic off Exotel
+    entirely - Exotel still exists and still works, this hasn't been forced by anything
+    above.
