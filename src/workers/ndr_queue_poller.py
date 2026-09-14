@@ -8,6 +8,7 @@ from src.brain_core.context_engine.ccc_builder import CustomerConversationContex
 from src.intelligence_domains.ndr.communication_engine import CommunicationEngine
 from src.intelligence_domains.ndr.orchestrator import NDRIntelligenceOrchestrator
 from src.intelligence_domains.ndr.config import ndr_settings
+from src.infrastructure.adapters.customer_engagement.models import EngagementState
 class NDRQueuePoller:
     """
     Brain Queue Consumer.
@@ -116,9 +117,21 @@ class NDRQueuePoller:
                 await asyncio.sleep(self.poll_interval_seconds)
 
     async def _process_task_wrapper(self, item: dict):
-        """Wraps the processing logic to guarantee semaphore release."""
+        """
+        Wraps the processing logic to guarantee semaphore release. Only this live-poll-loop
+        path waits for the dispatched call to actually finish before releasing its dispatch
+        slot (see _wait_for_call_completion) - process_next_item() deliberately does not, since
+        it bypasses the semaphore entirely and is used by tests/certification scripts that
+        don't simulate a webhook ever arriving.
+        """
         try:
-            await self._process_claimed_item(item)
+            engagement_id = await self._process_claimed_item(item)
+            if engagement_id:
+                await self._wait_for_call_completion(
+                    engagement_id,
+                    item.get("queue_item_id", "unknown"),
+                    item.get("awb_no", "unknown"),
+                )
         except Exception as e:
             logging.error(f"Unhandled exception in background dispatch task: {e}")
         finally:
@@ -146,10 +159,14 @@ class NDRQueuePoller:
             logging.error(f"Error in synchronous process_next_item: {e}")
             return False
 
-    async def _process_claimed_item(self, item: dict):
+    async def _process_claimed_item(self, item: dict) -> Optional[str]:
         """
         Executes the full hydration, orchestration, and Exotel dispatch lifecycle
-        for a single, already-claimed queue item.
+        for a single, already-claimed queue item. Returns the engagement_id if a call was
+        actually dispatched, or None if it wasn't (no-action decision, already dispatched
+        earlier, or a dispatch failure) - callers that need to wait for the live call to
+        finish (see _process_task_wrapper) use this to know whether there is anything to wait
+        for at all.
         """
         queue_item_id = item.get("queue_item_id", "unknown")
         awb_no = item.get("awb_no", "unknown")
@@ -254,6 +271,7 @@ class NDRQueuePoller:
                 call_sid=call_sid
             )
             logging.info(f"[{queue_item_id} | {awb_no} | {engagement_id} | {call_sid}] Successfully dispatched call")
+            return engagement_id
 
         except Exception as dispatch_err:
             logging.error(f"[{queue_item_id} | {awb_no}] Failed to dispatch call: {dispatch_err}")
@@ -268,3 +286,33 @@ class NDRQueuePoller:
             except Exception as update_err:
                 logging.error(f"[{queue_item_id} | {awb_no}] Failed to record retryable state in ShopDeck: {update_err}")
 
+    async def _wait_for_call_completion(self, engagement_id: str, queue_item_id: str, awb_no: str) -> None:
+        """
+        Blocks until the given engagement reaches a terminal state (COMPLETED, FAILED, or
+        ESCALATED - set by the Exotel/Sarvam webhook handler when the live call truly ends),
+        or until NDR_CALL_COMPLETION_MAX_WAIT_SECONDS elapses, whichever comes first. The
+        caller (a task holding the dispatch semaphore) awaits this before returning, so the
+        next queue item cannot be claimed until either the call finishes or this safety
+        ceiling is hit.
+        """
+        terminal_states = {
+            EngagementState.COMPLETED.value,
+            EngagementState.FAILED.value,
+            EngagementState.ESCALATED.value,
+        }
+        elapsed = 0
+        while elapsed < ndr_settings.call_completion_max_wait_seconds:
+            engagement = await self.comm_engine.executor.repository.get_engagement(engagement_id)
+            status = engagement.get("status") if engagement else None
+            if status in terminal_states:
+                logging.info(f"[{queue_item_id} | {awb_no} | {engagement_id}] Call reached terminal state ({status}); dispatch slot free.")
+                return
+            await asyncio.sleep(ndr_settings.call_completion_poll_seconds)
+            elapsed += ndr_settings.call_completion_poll_seconds
+
+        logging.warning(
+            f"[{queue_item_id} | {awb_no} | {engagement_id}] Call did not reach a terminal state within "
+            f"{ndr_settings.call_completion_max_wait_seconds}s; freeing dispatch slot anyway to avoid "
+            f"deadlocking the poller. This likely means the call's true outcome was never recorded "
+            f"(e.g. a missed or dropped webhook) - worth checking this engagement manually."
+        )

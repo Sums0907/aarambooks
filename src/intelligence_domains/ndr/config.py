@@ -36,6 +36,29 @@ class NDRSettings(BaseSettings):
             raise ValueError("NDR_MAX_CONCURRENT_CALLS must be >= 1")
         return v
 
+    # After a call is dispatched, the poller's dispatch slot (see max_concurrent_calls) is
+    # held until the live conversation actually reaches a terminal state (COMPLETED/FAILED/
+    # ESCALATED, set by the Exotel/Sarvam webhook handler when the call really ends) - not
+    # just until the dispatch API call returns. Added 2026-09-14: previously the slot freed
+    # immediately after dispatch, so with a backlog of eligible NDRs the poller could fire
+    # the next call within one poll_interval_seconds of the last, while the previous call was
+    # still ringing or in progress on the same phone (a real risk when TEST_PHONE_OVERRIDE
+    # routes every call to one test number). NDR_CALL_COMPLETION_POLL_SECONDS is how often the
+    # poller re-checks the engagement's status while waiting; NDR_CALL_COMPLETION_MAX_WAIT_SECONDS
+    # is a safety ceiling so a webhook that never arrives (e.g. dropped call, provider outage)
+    # can't hang the dispatch slot forever - after this, the wait gives up and the slot frees
+    # regardless, logged as a warning since it likely means a live call's true outcome was
+    # never recorded.
+    call_completion_poll_seconds: int = 5
+    call_completion_max_wait_seconds: int = 600
+
+    @field_validator("call_completion_poll_seconds", "call_completion_max_wait_seconds")
+    @classmethod
+    def validate_positive(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("Call-completion wait settings must be >= 1 second")
+        return v
+
     # Calling-hours window, in India Standard Time, 24-hour clock. Nothing in this pipeline
     # checked this before 2026-09-13 - an NDR becoming eligible at 2 AM would have been
     # called at 2 AM. Start moved from 9 AM to 11 AM on 2026-09-13 per business decision -
