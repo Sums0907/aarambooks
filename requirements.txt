@@ -17,3 +17,6 @@ alembic==1.20.0
 # AZM silently fall back to a non-persistent mode in production. See
 # docs/claude/DEPLOYMENT_STRATEGY_BRAIN_VPS.md's "First real deploy" section.
 psycopg2-binary==2.9.9
+# Cloudflare R2 client for storing Sarvam call recordings - R2 exposes an S3-compatible API,
+# so the standard AWS SDK works against it directly (just point endpoint_url at R2).
+boto3==1.34.162

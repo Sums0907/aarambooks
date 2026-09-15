@@ -84,6 +84,22 @@ class Settings(BaseSettings):
     # can't be derived from request headers - it must be set explicitly.
     sarvam_webhook_base_url: str = ""
 
+    # Cloudflare R2 storage for Sarvam call recordings (added 2026-09-16). R2 exposes an
+    # S3-compatible API, so a standard boto3 client works against it directly by pointing
+    # endpoint_url at r2_s3_client_endpoint. Recordings are fetched from Sarvam's separate
+    # analytics/recordings endpoint (not delivered via the completion webhook itself - its
+    # own recording_url field has been observed null on every real call) and re-hosted here
+    # so ShopDeck gets a plain, unauthenticated public URL rather than raw audio bytes.
+    r2_aaram_ndr_call_recording_bucket: str = ""
+    r2_aaram_ndr_call_recording_access_id: str = ""
+    r2_aaram_ndr_call_recording_access_key: str = ""
+    r2_s3_client_endpoint: str = ""
+    # Public base URL for the custom domain connected to the bucket (e.g.
+    # https://recordings.aarambooks.cloud) - objects are reachable at
+    # {this}/sarvam_call_recordings/{awb_no}/{engagement_id}.wav with no auth required,
+    # verified 2026-09-15 with a real byte-for-byte round trip.
+    r2_aaram_ndr_call_recording_url: str = ""
+
     # Which voice adapter CustomerEngagementExecutor routes a call through when
     # ActionRequest.execution_intent.voice_provider isn't set explicitly (true for every real
     # NDR dispatch today - the orchestrator never sets it). Previously a hardcoded "EXOTEL"
