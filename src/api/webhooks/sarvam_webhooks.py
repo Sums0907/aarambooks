@@ -15,6 +15,20 @@ router = APIRouter(prefix="/api/customer-engagement/voice/sarvam", tags=["sarvam
 security = HTTPBearer(auto_error=False)
 
 
+def _is_affirmative(value: Any) -> bool:
+    """
+    True for either representation Sarvam is known to use for a yes/no agent variable:
+    a genuine JSON boolean (True), or the string "yes" (case-insensitive) - the form the
+    agent-config docs describe but which has not actually been observed in real payloads.
+    Do not compare with `== "yes"` alone; every real value seen so far is a real boolean.
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() == "yes"
+    return False
+
+
 def verify_sarvam_bearer(
     request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Security(security)
@@ -132,15 +146,24 @@ async def handle_call_completed(
     # call_outcome, not as alternatives to it - a single call can both agree to a
     # reattempt date AND provide a new address, and both facts must land in ShopDeck
     # together rather than one crowding out the other (by user decision, 2026-09-12).
+    #
+    # _is_affirmative handles both representations Sarvam is known to use: the original
+    # agent-config docs describe these fields as the string "yes"/"no", but every real
+    # payload actually observed in production sends a genuine JSON boolean instead. The
+    # original `== "yes"` check only matched the documented string form, so `True == "yes"`
+    # was always False - meaning new_address_details/new_phone_number were silently dropped
+    # from every single call, even when the customer explicitly provided one. Found
+    # 2026-09-15 by checking a real call (AWB 24899810621600) where the customer gave a new
+    # phone number that Sarvam correctly captured, but never reached ndr_intelligence_results.
     action_parameters: Dict[str, Any] = {}
     reattempt_date_selected = final_agent_variables.get("reattempt_date_selected")
     if reattempt_date_selected:
         action_parameters["reschedule_date"] = reattempt_date_selected
-    if final_agent_variables.get("address_change_requested") == "yes":
+    if _is_affirmative(final_agent_variables.get("address_change_requested")):
         new_address_details = final_agent_variables.get("new_address_details")
         if new_address_details:
             action_parameters["new_address_details"] = new_address_details
-    if final_agent_variables.get("phone_no_change_requested") == "yes":
+    if _is_affirmative(final_agent_variables.get("phone_no_change_requested")):
         new_phone_number = final_agent_variables.get("new_phone_number")
         if new_phone_number:
             action_parameters["new_phone_number"] = new_phone_number

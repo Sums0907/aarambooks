@@ -98,6 +98,36 @@ def test_rescheduled_and_address_change_both_land_in_action_parameters_together(
     assert payload["action_parameters"]["new_address_details"] == "Flat 4B, MG Road, Bengaluru, 560001"
 
 
+def test_new_phone_number_lands_in_action_parameters_when_flag_is_a_real_boolean():
+    """
+    Regression test for a real production bug found 2026-09-15: every real Sarvam payload
+    sends address_change_requested/phone_no_change_requested as a genuine JSON boolean
+    (Python True/False after parsing), not the string "yes"/"no" the agent-config docs
+    describe and the other tests in this file use. The original `== "yes"` check silently
+    dropped new_phone_number/new_address_details on every single real call - confirmed by
+    checking a real production result row where the customer gave a new phone number that
+    Sarvam correctly captured, but which never reached ndr_intelligence_results.
+    """
+    client, mock_repo = _client_with_mock_repo(_base_engagement())
+    response = _post(client, {
+        "attempt_id": "attempt_3",
+        "status": "connected",
+        "webhook_config": {"metadata": {"engagement_id": "eng_1", "action_request_id": "act_1"}},
+        "final_agent_variables": {
+            "call_summary": "Customer agreed to Friday delivery with an updated phone number.",
+            "call_outcome": "rescheduled",
+            "reattempt_date_selected": "Friday (12-09-2026)",
+            "address_change_requested": False,
+            "phone_no_change_requested": True,
+            "new_phone_number": "7988373566",
+        },
+    })
+    assert response.status_code == 200
+    payload = mock_repo.enqueue_intelligence_writeback.call_args[0][0]
+    assert payload["action_parameters"]["new_phone_number"] == "7988373566"
+    assert "new_address_details" not in payload["action_parameters"]
+
+
 def test_address_updated_alone_maps_to_reschedule_not_no_action():
     """
     The core mapping decision (2026-09-12): even with no date confirmed, an address-only
