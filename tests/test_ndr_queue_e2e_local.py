@@ -80,14 +80,22 @@ async def test_ndr_queue_e2e_4_items():
     # 4. Assertions for Poller Phase
     assert mock_adapter.claim_ndr_work.call_count == 5
     assert mock_adapter.register_engagement.call_count == 4
-    assert mock_adapter.update_queue_status.call_count == 4
+    # 2 update_queue_status calls per item now: the explicit 'engagement_registered'
+    # transition (added 2026-09-15, no longer relying on register_engagement's own
+    # undocumented, retry-unsafe side effect) plus the final 'call_dispatched' transition.
+    assert mock_adapter.update_queue_status.call_count == 8
 
     for i in range(1, 5):
-        # Verify status update was called with call_dispatched
-        call_args = mock_adapter.update_queue_status.call_args_list[i-1][1]
-        assert call_args["queue_item_id"] == f"q_{i}"
-        assert call_args["status"] == "call_dispatched"
-        assert call_args["call_sid"] == "mock_call_123"
+        # Each item now makes 2 update_queue_status calls in order: the explicit
+        # 'engagement_registered' transition, then 'call_dispatched'.
+        registered_call_args = mock_adapter.update_queue_status.call_args_list[2 * (i - 1)][1]
+        assert registered_call_args["queue_item_id"] == f"q_{i}"
+        assert registered_call_args["status"] == "engagement_registered"
+
+        dispatched_call_args = mock_adapter.update_queue_status.call_args_list[2 * (i - 1) + 1][1]
+        assert dispatched_call_args["queue_item_id"] == f"q_{i}"
+        assert dispatched_call_args["status"] == "call_dispatched"
+        assert dispatched_call_args["call_sid"] == "mock_call_123"
 
     print("✅ Poller successfully claimed, registered, and dispatched 4 distinct items.")
 

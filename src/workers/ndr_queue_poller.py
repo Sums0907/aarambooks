@@ -3,6 +3,8 @@ import logging
 import uuid
 from typing import Optional
 
+import httpx
+
 from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter, ShopdeckQueueEvidenceMapper
 from src.brain_core.context_engine.ccc_builder import CustomerConversationContextBuilder
 from src.intelligence_domains.ndr.communication_engine import CommunicationEngine
@@ -249,7 +251,37 @@ class NDRQueuePoller:
                 idempotency_key=f"idem_{engagement_id}"
             )
             logging.info(f"[{queue_item_id} | {awb_no} | {engagement_id}] Registered engagement in ShopDeck BS")
-            
+
+            # 2b. Explicitly drive ShopDeck's queue_status to 'engagement_registered'.
+            # Found 2026-09-15: ShopDeck's own /engagements endpoint appears to perform this
+            # transition as a side effect on a genuinely fresh registration, but does NOT
+            # repeat it when register_engagement is called again for an engagement_id that
+            # already exists there - which is exactly what happens on a retry, since
+            # engagement_id is deterministic per queue_item_id (see the NAMESPACE_NDR hash
+            # above), by design, for Brain's own local idempotency. That left queue_status
+            # stuck at 'claimed' on retry, and the later call_dispatched transition below
+            # then failed with a real 409 ("Invalid transition: claimed -> call_dispatched")
+            # AFTER Sarvam had already accepted and placed the real call - meaning the retry
+            # would otherwise burn its last attempt and mark a genuinely-succeeded dispatch
+            # as failed, risking a duplicate real call to the same customer on any earlier
+            # retry that still had attempts left. Made explicit here instead of relying on
+            # that undocumented, retry-unsafe side effect. A 409 here specifically means
+            # "already at or past this status" (we just successfully registered above, so
+            # there's no other plausible reason) - safe to continue, not a real failure.
+            try:
+                await self.shopdeck_adapter.update_queue_status(
+                    queue_item_id=queue_item_id,
+                    status="engagement_registered",
+                    engagement_id=engagement_id,
+                )
+            except httpx.HTTPStatusError as status_err:
+                if status_err.response.status_code != 409:
+                    raise
+                logging.info(
+                    f"[{queue_item_id} | {awb_no} | {engagement_id}] Queue already at "
+                    f"engagement_registered (or later) - continuing."
+                )
+
             # 3. Exotel Dispatch
             dispatch_result = await self.comm_engine.executor.dispatch_provider_call(engagement, action)
             call_sid = dispatch_result.get("provider_interaction_id") or dispatch_result.get("call_id") or f"mock_call_{uuid.uuid4().hex}"
