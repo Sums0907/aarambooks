@@ -63,9 +63,11 @@ class Settings(BaseSettings):
     test_phone_override: str = ""
 
     # Sarvam Configuration (voice bot migration - see docs/claude/)
-    # Real, committed app version confirmed by the user on 2026-09-13 via a real Sarvam
-    # Instant Outbound curl example. No longer the earlier draft value (4).
-    sarvam_app_version: int = 23
+    # Real, committed app version - originally confirmed by the user on 2026-09-13 via a
+    # real Sarvam Instant Outbound curl example (value 23, no longer the earlier draft
+    # value 4), bumped to 25 on 2026-09-15 per user instruction as the agent's own
+    # published version moved forward on Sarvam's side.
+    sarvam_app_version: int = 25
     # sarvam_api_key is a Voice Agents key specifically - separate from Sarvam's standard
     # TTS/STT API keys, per Sarvam's own docs. Don't reuse a standard API key here.
     sarvam_api_key: str = ""
