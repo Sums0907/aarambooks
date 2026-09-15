@@ -3,6 +3,7 @@ import logging
 from typing import Any, Dict
 
 from src.shared.config import settings
+from src.shared.phone_format import to_e164_india
 from src.brain_core.action_engine.contracts import ActionRequest
 from src.infrastructure.adapters.customer_engagement.repository import CustomerEngagementRepository
 from src.infrastructure.adapters.customer_engagement.context_variables import build_provider_call_variables
@@ -56,6 +57,14 @@ class SarvamVoiceBotAdapter:
         if getattr(settings, "test_phone_override", ""):
             customer_phone = settings.test_phone_override
             logger.info(f"TEST MODE: Overriding customer phone to {customer_phone}")
+
+        # ShopDeck's customer_number is stored as a plain Indian local number (e.g.
+        # "9876543210"), completely unformatted - Sarvam's Instant Outbound API strictly
+        # requires E.164 and rejects anything else with a 422. Confirmed via real
+        # production failures on 2026-09-15: every real customer dispatch failed this way
+        # once TEST_PHONE_OVERRIDE (which happened to already be in E.164) was removed.
+        if customer_phone:
+            customer_phone = to_e164_india(customer_phone)
 
         if not customer_phone:
             raise ValueError("Customer phone number missing in parameters.")
