@@ -1,18 +1,17 @@
 # Context handoff — Exotel → Sarvam voice-bot migration
 
 Written by: Claude
-Originally written: 2026-09-11. Updated 2026-09-13 (twice), 2026-09-14 (twice), 2026-09-15 -
-Sarvam is no longer "mid-migration, blocked on missing details." Multiple real end-to-end
-Sarvam calls completed successfully on 2026-09-14 against a test number, dispatched
-sequentially with no overlap, with outbound writeback confirmed firing correctly.
-`TEST_PHONE_OVERRIDE` was then removed from the VPS the same day (explicit user decision) -
-but a real bug (bug 9 below) meant this alone did NOT mean real customers were being
-reached: every real dispatch on 2026-09-15 failed until that bug was fixed. Read the TL;DR
-first if you're picking this up fresh - it has the current, accurate state, not just "the
-override is gone so it must be working." The sections after it are the original build
+Originally written: 2026-09-11. Updated 2026-09-13 (twice), 2026-09-14 (twice), 2026-09-15,
+2026-09-16 (twice) - Sarvam is no longer "mid-migration, blocked on missing details." Real
+customers are being called autonomously and their outcomes are reaching ShopDeck's
+`ndr_intelligence_results` correctly (verified 2026-09-16 against real transcripts and real
+DB rows, not just logs). The newest work is a call-recording capture pipeline (Sarvam → R2 →
+ShopDeck's `ndr_engagements.recording_url`) which itself needed a same-day reliability fix -
+see bugs 11-12 and the dedicated section below. Read the TL;DR first if you're picking this
+up fresh - it has the current, accurate state. The sections after it are the original build
 history.
 
-## TL;DR (current, as of 2026-09-15)
+## TL;DR (current, as of 2026-09-16)
 
 - **`TEST_PHONE_OVERRIDE` was removed from the VPS on 2026-09-14 - but a real bug meant
   ZERO real customers were actually reached until this was fixed on 2026-09-15.** Every
@@ -39,8 +38,28 @@ history.
 
 - **Sarvam is live in production**, not a draft. `DEFAULT_VOICE_PROVIDER=SARVAM` is set on
   the VPS - real NDR dispatches go through Sarvam automatically via the normal poller, no
-  manual script needed. `sarvam_app_version=23` is the real, user-confirmed committed value
-  (no longer the draft `4` described further down this doc).
+  manual script needed. `sarvam_app_version=25` is the real, user-confirmed committed value
+  (bumped from `23` on 2026-09-15 as the agent's own published version moved forward on
+  Sarvam's side; no longer the draft `4` described further down this doc).
+- **The calling-hours window is currently 11 AM-9 PM IST on the VPS**, not the 7 PM repo
+  default - `NDR_CALLING_HOURS_END_IST=21` is a deliberate `.env`-only override left in place
+  for live testing (the setting only supports whole hours, so 21 rather than 20:30). Unlike
+  the earlier 2026-09-14 `=23` override, this one has not been reverted as of 2026-09-16 -
+  check the VPS `.env` directly before assuming either value.
+- **Two more real production bugs found and fixed 2026-09-15/16** on top of the nine below
+  (see bugs 10-11): an `engagement_registered` queue-status race that mis-tracked real
+  dispatches, and a boolean-vs-string comparison bug that silently dropped
+  `new_address_details`/`new_phone_number` from every single real call since the feature was
+  written, undetected by the existing tests because they used the documented string form
+  while every real Sarvam payload actually sends a JSON boolean.
+- **A call-recording capture pipeline was built 2026-09-16** (Sarvam recordings → Cloudflare
+  R2 → ShopDeck's `ndr_engagements.recording_url`, for the courier partner's priority
+  escalation process) - and needed its own same-day reliability fix once tested against real
+  live traffic (bug 12). See "Call recording capture pipeline" section below for full detail,
+  including a real ShopDeck-side quirk this fix depends on. **The fix (bug 12) is committed
+  but not yet deployed to the VPS as of this writing** - the live webhook path is still
+  running the version that fails silently on every call; don't assume recordings are being
+  captured in production until this is confirmed deployed.
 - **Exotel still exists and still works** (nothing about it was removed), but it is no longer
   the default - `default_voice_provider` is a real config value now
   (`src/shared/config.py`/`executor.py`), not a hardcoded constant, specifically so this can
@@ -292,6 +311,34 @@ tries to be explicit everywhere about what's actually confirmed vs. best-effort.
    (`failed_retryable`) when this was fixed, past calling hours for the day - they'll be
    picked up automatically once the window reopens (11 AM IST) if still eligible then; watch
    whether they succeed as the first real proof this fix works end-to-end.
+10. **`engagement_registered` queue-status transition was skipped on retry, mis-tracking real
+    dispatches.** ShopDeck's `/engagements` POST endpoint's implicit queue-status side effect
+    only fires on genuinely fresh registration, not on an idempotent re-registration during a
+    retry (Brain's `engagement_id` is deterministic per `queue_item_id`, by design - see bug
+    6). This left `queue_status` stuck at `claimed` for retried items, causing a real `409
+    Conflict` on the later `call_dispatched` transition *after* Sarvam had already placed a
+    real call - the call itself succeeded, but ShopDeck's own queue record didn't reflect it.
+    Fixed with an explicit, 409-tolerant `update_queue_status(status="engagement_registered",
+    ...)` call in `ndr_queue_poller.py` right after registration, before dispatch.
+11. **`address_change_requested`/`phone_no_change_requested` boolean-vs-string bug silently
+    dropped `new_address_details`/`new_phone_number` from every real call.** The original
+    check was `== "yes"`, matching the string form the agent-config docs describe - but every
+    real Sarvam payload actually observed in production sends a genuine JSON boolean instead
+    (`True`/`False`), so `True == "yes"` was always `False`. Found 2026-09-15 by checking a
+    real production result row (AWB `24899810621600`) where the customer gave a new phone
+    number that Sarvam correctly captured in the transcript, but which never reached
+    `ndr_intelligence_results`. This bug existed from when the feature was first written -
+    it had simply never been caught, because the existing tests used the documented string
+    form and passed unchanged even after the fix (proving they'd never have caught the real
+    bug). Fixed in `src/api/webhooks/sarvam_webhooks.py` with an `_is_affirmative()` helper
+    that accepts both representations; added a new boolean-based regression test
+    (`test_new_phone_number_lands_in_action_parameters_when_flag_is_a_real_boolean`).
+12. **Call recording fetch 404'd on every real call - see "Call recording capture pipeline"
+    section below for full detail.** Summarized here for the bug list: fetching the
+    recording from Sarvam's analytics endpoint synchronously inside this same webhook failed
+    with a 404 for every single real call on 2026-09-16, because the recording isn't
+    processed and available on Sarvam's side the instant the completion webhook fires.
+    Fixed by moving the fetch into a background retry worker instead of one inline attempt.
 
 ### The queue investigation - why a real Sarvam call took this long to complete (historical - resolved 2026-09-14)
 
@@ -336,6 +383,82 @@ together with the ShopDeck-side agent:
    been the goal, instead of silently going out via Exotel and burning its retries. The VPS's
    own poller is running unattended right now and will pick up the next real eligible item on
    its own - no further manual action needed on Brain's side.
+
+## 2026-09-16 update: call recording capture pipeline
+
+**Why this exists**: the shipping partner needs call recordings for priority escalation on
+difficult NDRs, and ShopDeck had nowhere to store them. Sarvam's completion webhook itself
+never carries a usable recording - its `recording_url` field has been observed `null` on
+every real call. The actual recording is retrievable from a separate, pull-based endpoint:
+`GET https://apps.sarvam.ai/api/analytics/v1/{org_id}/{workspace_id}/{app_id}/recordings/
+{interaction_id}` (`X-API-Key` header), which returns the raw WAV binary directly, not JSON
+(contradicts Sarvam's own doc sample code, which calls `response.json()` - confirmed
+empirically, with and without `Accept: application/json`, both times binary).
+
+**What was built**: `src/infrastructure/adapters/customer_engagement/recording_storage.py`
+(`fetch_and_store_recording()`) fetches the WAV from Sarvam and re-hosts it on Cloudflare R2
+(`boto3` against R2's S3-compatible API, `endpoint_url` = the account's R2 endpoint,
+`region_name="auto"`) at `sarvam_call_recordings/{awb_no}/{engagement_id}.wav`, behind a
+custom domain (`https://recordings.aarambooks.cloud`) rather than the `r2.dev` subdomain
+(Cloudflare's own docs say that one isn't suitable for production). The resulting public URL
+is reported to ShopDeck via `ShopdeckCemAdapter.update_queue_status(status="call_completed",
+recording_url=...)` - **deliberately not** via `ndr_intelligence_results.action_parameters`,
+by explicit user decision (2026-09-16): a recording is reference/audit material, not
+something a human needs to act on, so it belongs on ShopDeck's `ndr_engagements.recording_url`
+column (which ShopDeck's side added specifically for this) instead of mixing with the
+action-required fields. This must fire even for calls with no decisive `call_outcome`, since
+the recording is still real, useful evidence regardless.
+
+**Bug 12, found the same day it was wired to real live traffic**: fetching the recording
+synchronously inside the call-completed webhook handler 404'd for every real call on
+2026-09-16 - confirmed directly in brain-api logs. Re-fetching the exact same URL minutes
+later succeeded (`200 audio/wav`, correct byte count) - Sarvam's analytics endpoint simply
+isn't ready to serve the recording the instant its own completion webhook fires; there's an
+unspecified processing delay on Sarvam's side. As a side effect, this also silently blocked
+`update_queue_status` from ever firing for the 4-of-6 real calls that day with no decisive
+`call_outcome`, since the recording-success path had accidentally become the only thing that
+advances `queue_status` past `call_dispatched` for those calls.
+
+**Fix**: moved the fetch out of the synchronous webhook entirely into a new
+`RecordingFetchWorker` (`src/workers/recording_fetch_worker.py`), backed by a new
+`recording_fetch_queue` Mongo collection with the exact same claim/lease/backoff pattern as
+the existing `OutboundWritebackWorker` (`repository.py`'s `enqueue_recording_fetch` /
+`claim_pending_recording_fetch` / `mark_recording_fetch_success` /
+`mark_recording_fetch_transient_retry` / `mark_recording_fetch_dead_letter`). The webhook
+handler now only calls `repo.enqueue_recording_fetch(...)` - no more Sarvam/R2/ShopDeck HTTP
+calls inline. The queue item's first attempt is deliberately delayed 90s (not tried
+immediately, since an immediate attempt just reproduces the same 404), then retries with
+exponential backoff (1, 2, 4, 8, 16, 32, 60, 60 min - roughly 2 hours of window) before
+dead-lettering.
+
+**A real ShopDeck-side quirk this fix depends on, worth knowing if this ever needs
+revisiting**: read directly from ShopDeck's own route source
+(`business_systems/shopdeck/backend/api/routers/ndr_queue.py`, local checkout at
+`/Users/sumatidhingra/Documents/AaramBooks/business_systems/shopdeck/`) - the PATCH
+`.../queue/{id}/status` handler writes `ndr_engagements.recording_url` **unconditionally**
+whenever `status == "call_completed"` is sent, via its own connection, **before** it
+validates the queue_status transition itself. So when the recording worker's report arrives
+late (after some other event, like the outcome writeback, has already advanced the queue
+past `call_dispatched` to `action_ready`), the transition validation correctly rejects
+`call_completed` with a 409 - but the `recording_url` write has already landed regardless.
+`RecordingFetchWorker` treats that specific 409 as success, not a reason to retry (confirmed
+directly against real production data: AWB `142285242291216`'s recording_url landed despite
+a live 409 in the exact predicted shape). **This depends on ShopDeck's current (loose)
+ordering of those two DB operations** - if they later wrap both in one transaction, a late
+report would start failing silently again and would need a genuinely separate endpoint
+instead (decoupled from the queue status-transition validator entirely, which is closer to
+the original architectural intent - recording_url isn't queue state).
+
+**Verified end-to-end against real production data, 2026-09-16**: unit tests (15/15,
+`tests/api/webhooks/test_sarvam_call_completed.py` +
+`tests/workers/test_recording_fetch_worker.py`), plus a real local run against production
+Sarvam/R2/ShopDeck that backfilled both of that day's two real missing recordings (AWB
+`142285242291216` and `142285242800562`) as a side effect - both now show a real
+`recording_url` in ShopDeck's production `ndr_engagements` table and a real WAV file in R2.
+**Not yet deployed to the VPS** - committed locally only, pending explicit deploy
+permission per standing project rule (see `no-deploy-without-explicit-permission` in
+Claude's session memory). Until deployed, the live webhook path is still running the old
+inline-fetch code, which will keep failing silently on every real call.
 
 ## What's NOT built yet, and why
 
@@ -466,22 +589,32 @@ platform) - i.e. the agent's variable list and this dict's keys need manual sync
     itself. **Not yet independently confirmed with a successful real call** - 3 queue items
     with a retry left will be picked up automatically once calling hours reopen; check
     whether they succeed as the first real proof.
-11. **Urgent: review real call quality on whatever succeeds under item 10.** A call
-    actually happening is not the same as a *good* call, and now every call is a real
-    customer - listen to/read the actual transcript(s) (via Sarvam's own dashboard) and
-    check: did the agent stay on-script, handle interruptions reasonably, produce a sensible
-    `call_outcome`? `SARVAM_CALL_QUALITY_REVIEW_2026-09-14.md` already reviewed the prior
-    test-number calls and found real issues (repetitive phrasing a caller complained about,
-    calls hard-cut at the 300s cap with no goodbye, contradictory claims accepted without
-    pushback) - worth checking whether those same patterns show up on real-customer calls
-    too. Also still open: does the webhook payload Sarvam actually sends match what
-    `sarvam_webhooks.py` expects field-for-field, with no silently-dropped or defaulted
-    values?
-12. **Urgent: full production system-prompt port.** Real customers are now being reached
-    (once item 10's fix actually lands a call) with the condensed test-version prompt, not
-    the full 835-line persona (`docs/voicebot/bot_persona.txt` - interruption handling,
-    empathy rules, response-length discipline, etc.). This was previously a "before wider
-    rollout" item; it no longer has that buffer.
-13. Only after the above: any decision to move real production call traffic off Exotel
+11. ~~Review real call quality on real-customer calls~~ - **Partially done.** Real customer
+    transcripts (via a CSV export from Sarvam's bot platform) were read directly on
+    2026-09-16 as part of investigating the recording-capture bug - the two calls that
+    reached a decisive outcome that day both produced coherent, correctly-parsed reschedule
+    dates matching what the customer actually said. `SARVAM_CALL_QUALITY_REVIEW_2026-09-14.md`
+    still only covers the earlier test-number calls, not a dedicated review of real-customer
+    call quality specifically. Still open: does the webhook payload Sarvam actually sends
+    match what `sarvam_webhooks.py` expects field-for-field, with no silently-dropped or
+    defaulted values? (Bug 11 above is one real example where the answer was "no.")
+12. **Still open, urgent: full production system-prompt port.** Real customers are being
+    reached with the condensed test-version prompt, not the full 835-line persona
+    (`docs/voicebot/bot_persona.txt` - interruption handling, empathy rules, response-length
+    discipline, etc.).
+13. **New, from 2026-09-16: deploy the recording-fetch reliability fix (bug 12) to the VPS.**
+    Committed locally, verified end-to-end against real production data, but the live webhook
+    path is still running the old code that silently fails on every call - needs explicit
+    deploy permission per standing project rule before this is fixed in production, not just
+    on record.
+14. **New, from 2026-09-16: clarify with ShopDeck whether `ndr_status` downstream consumption
+    of `action_ready` items is expected to lag.** Checked two real same-day rescheduled calls
+    with identical Brain-side writeback correctness: one showed `shipment_ndr_reports.
+    ndr_status = 'reattempt_requested'` (fully consumed downstream), the other still showed
+    `'pending'` despite `ndr_queue.queue_status` reaching `action_ready` for both at roughly
+    the same time. Brain's own writeback is confirmed correct in both cases (checked directly
+    against `ndr_intelligence_results`); this looks like a ShopDeck-side downstream
+    inconsistency, not a Brain bug - worth raising with ShopDeck rather than assuming.
+15. Only after the above: any decision to move real production call traffic off Exotel
     entirely - Exotel still exists and still works, this hasn't been forced by anything
     above.
