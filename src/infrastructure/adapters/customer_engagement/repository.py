@@ -54,6 +54,12 @@ class CustomerEngagementRepository:
         await outbound.create_index([("status", pymongo.ASCENDING), ("next_attempt_at", pymongo.ASCENDING)])
         await outbound.create_index([("status", pymongo.ASCENDING), ("claimed_at", pymongo.ASCENDING)])
 
+        # Recording Fetch Queue Indexes
+        recordings = db.recording_fetch_queue
+        await recordings.create_index("engagement_id", unique=True)
+        await recordings.create_index([("status", pymongo.ASCENDING), ("next_attempt_at", pymongo.ASCENDING)])
+        await recordings.create_index([("status", pymongo.ASCENDING), ("claimed_at", pymongo.ASCENDING)])
+
     async def create_engagement(self, record: CustomerEngagementRecord) -> CustomerEngagementRecord:
         db = await self._get_db()
         doc = record.model_dump()
@@ -401,6 +407,118 @@ class CustomerEngagementRepository:
         db = await self._get_db()
         res = await db.outbound_writeback_queue.update_one(
             {"result_id": result_id, "claim_token": claim_token},
+            {
+                "$set": {
+                    "status": "DEAD_LETTER",
+                    "last_error": error_msg,
+                    "updated_at": datetime.utcnow(),
+                }
+            }
+        )
+        return res.modified_count > 0
+
+    async def enqueue_recording_fetch(
+        self,
+        engagement_id: str,
+        interaction_id: str,
+        awb_no: str,
+        queue_item_id: str,
+        initial_delay_seconds: float = 90.0,
+    ) -> bool:
+        """
+        Idempotently enqueues a call recording for background fetch-and-report, instead of
+        fetching it inline inside the call-completed webhook. Found 2026-09-16: Sarvam's
+        analytics/recordings endpoint reliably 404s if queried the instant the completion
+        webhook fires - the recording isn't processed/available yet on Sarvam's side. An
+        initial delay plus retry-with-backoff (see RecordingFetchWorker) survives that,
+        where a single inline attempt did not - it was silently failing for every real call.
+
+        One recording per engagement, so engagement_id is the natural unique key (unlike
+        outbound_writeback_queue, which is keyed by result_id since one engagement can
+        produce multiple writeback attempts across retries).
+        """
+        db = await self._get_db()
+        now = datetime.utcnow()
+        doc = {
+            "engagement_id": engagement_id,
+            "interaction_id": interaction_id,
+            "awb_no": awb_no,
+            "queue_item_id": queue_item_id,
+            "status": "PENDING",
+            "attempt_count": 0,
+            "next_attempt_at": now + timedelta(seconds=initial_delay_seconds),
+            "claimed_at": None,
+            "claim_token": None,
+            "last_error": None,
+            "created_at": now,
+            "updated_at": now,
+        }
+        try:
+            await db.recording_fetch_queue.insert_one(doc)
+            return True
+        except DuplicateKeyError:
+            # Duplicate engagement_id - already enqueued. Idempotent success.
+            return False
+
+    async def claim_pending_recording_fetch(self, claim_token: str, lease_seconds: int = 300) -> Optional[Dict[str, Any]]:
+        db = await self._get_db()
+        now = datetime.utcnow()
+        lease_cutoff = now - timedelta(seconds=lease_seconds)
+        query = {
+            "$or": [
+                {"status": "PENDING", "next_attempt_at": {"$lte": now}},
+                {"status": "PROCESSING", "claimed_at": {"$lte": lease_cutoff}},
+            ]
+        }
+        update = {
+            "$set": {
+                "status": "PROCESSING",
+                "claimed_at": now,
+                "claim_token": claim_token,
+                "updated_at": now,
+            }
+        }
+        return await db.recording_fetch_queue.find_one_and_update(
+            query,
+            update,
+            sort=[("next_attempt_at", pymongo.ASCENDING)],
+            return_document=pymongo.ReturnDocument.AFTER,
+        )
+
+    async def mark_recording_fetch_success(self, engagement_id: str, claim_token: str) -> bool:
+        db = await self._get_db()
+        res = await db.recording_fetch_queue.update_one(
+            {"engagement_id": engagement_id, "claim_token": claim_token},
+            {"$set": {"status": "DELIVERED", "updated_at": datetime.utcnow()}}
+        )
+        return res.modified_count > 0
+
+    async def mark_recording_fetch_transient_retry(
+        self, engagement_id: str, claim_token: str, error_msg: str, next_attempt_at: datetime
+    ) -> bool:
+        db = await self._get_db()
+        if next_attempt_at.tzinfo is not None:
+            next_attempt_at = next_attempt_at.replace(tzinfo=None)
+        res = await db.recording_fetch_queue.update_one(
+            {"engagement_id": engagement_id, "claim_token": claim_token},
+            {
+                "$set": {
+                    "status": "PENDING",
+                    "last_error": error_msg,
+                    "next_attempt_at": next_attempt_at,
+                    "claim_token": None,
+                    "claimed_at": None,
+                    "updated_at": datetime.utcnow(),
+                },
+                "$inc": {"attempt_count": 1},
+            }
+        )
+        return res.modified_count > 0
+
+    async def mark_recording_fetch_dead_letter(self, engagement_id: str, claim_token: str, error_msg: str) -> bool:
+        db = await self._get_db()
+        res = await db.recording_fetch_queue.update_one(
+            {"engagement_id": engagement_id, "claim_token": claim_token},
             {
                 "$set": {
                     "status": "DEAD_LETTER",

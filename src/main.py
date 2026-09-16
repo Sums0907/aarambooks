@@ -69,9 +69,15 @@ async def lifespan(app: FastAPI):
     outbound_worker.start()
     logging.info("Started Outbound Writeback Worker")
 
+    # Start the Recording Fetch Worker (separate from ndr_queue_poller)
+    recording_fetch_worker.start()
+    logging.info("Started Recording Fetch Worker")
+
     yield
 
     # Shutdown
+    logger.info("Shutting down Recording Fetch Worker...")
+    await recording_fetch_worker.stop()
     logger.info("Shutting down Outbound Writeback Worker...")
     await outbound_worker.stop()
     logger.info("Shutting down NDR Queue Poller...")
@@ -300,6 +306,9 @@ ndr_poller = NDRQueuePoller(
 
 from src.workers.outbound_writeback_worker import OutboundWritebackWorker
 outbound_worker = OutboundWritebackWorker(repo=engagement_repo, shopdeck_cem=shopdeck_cem)
+
+from src.workers.recording_fetch_worker import RecordingFetchWorker
+recording_fetch_worker = RecordingFetchWorker(repo=engagement_repo, shopdeck_cem=shopdeck_cem)
 receiver = InboundReceiver(
     query_orchestrator=cq_orch, 
     ndr_orchestrator=ndr_orch,

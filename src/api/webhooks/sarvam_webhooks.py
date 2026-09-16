@@ -6,8 +6,6 @@ import logging
 
 from src.infrastructure.adapters.customer_engagement.repository import CustomerEngagementRepository
 from src.infrastructure.adapters.customer_engagement.models import CustomerEngagementEvent, EngagementState
-from src.infrastructure.adapters.customer_engagement.recording_storage import fetch_and_store_recording
-from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -71,20 +69,10 @@ def get_repository():
     return CustomerEngagementRepository()
 
 
-def get_shopdeck_adapter():
-    return ShopdeckCemAdapter(
-        base_url=getattr(settings, "shopdeck_url", "http://localhost:8002"),
-        identity_url=settings.identity_url,
-        client_id=settings.brain_client_id,
-        client_secret=settings.brain_client_secret,
-    )
-
-
 @router.post("/call-completed", dependencies=[Depends(verify_sarvam_bearer)])
 async def handle_call_completed(
     request: Request,
     repo: CustomerEngagementRepository = Depends(get_repository),
-    shopdeck_adapter: ShopdeckCemAdapter = Depends(get_shopdeck_adapter),
 ):
     """
     Real endpoint for Instant Outbound's completion webhook (webhook_config.url, set by
@@ -137,24 +125,20 @@ async def handle_call_completed(
     # ndr_intelligence_results.action_parameters (which is for the opposite: things a human
     # is meant to act on). This must run even for calls that never produced a decisive
     # call_outcome, since the recording still exists and is still useful evidence.
+    #
+    # Enqueued for background processing (RecordingFetchWorker), not fetched inline here -
+    # found 2026-09-16 that Sarvam's analytics/recordings endpoint reliably 404s if queried
+    # the instant this webhook fires, since the recording isn't processed on Sarvam's side
+    # yet. Every real call that day silently failed to store a recording as a result. The
+    # worker retries with backoff instead of this handler making one doomed attempt.
     interaction_id = payload.get("interaction_id")
     if interaction_id and queue_item_id and awb_no and awb_no != "UNKNOWN":
-        recording_url = await fetch_and_store_recording(interaction_id, awb_no=awb_no, engagement_id=engagement_id)
-        if recording_url:
-            try:
-                await shopdeck_adapter.update_queue_status(
-                    queue_item_id=queue_item_id,
-                    status="call_completed",
-                    engagement_id=engagement_id,
-                    recording_url=recording_url,
-                )
-            except Exception as report_err:
-                # A recording failing to report to ShopDeck must never block the existing
-                # outcome-writeback logic below - log loudly and move on.
-                logger.error(
-                    "Failed to report recording_url to ShopDeck for engagement %s: %s",
-                    engagement_id, report_err,
-                )
+        await repo.enqueue_recording_fetch(
+            engagement_id=engagement_id,
+            interaction_id=interaction_id,
+            awb_no=awb_no,
+            queue_item_id=queue_item_id,
+        )
 
     status = payload.get("status", "")
     final_state = EngagementState.FAILED if status in ("no_answer", "busy", "failed") else EngagementState.COMPLETED
