@@ -4,8 +4,11 @@ from typing import Any, Dict, Optional
 import hmac
 import logging
 
+import httpx
+
 from src.infrastructure.adapters.customer_engagement.repository import CustomerEngagementRepository
 from src.infrastructure.adapters.customer_engagement.models import CustomerEngagementEvent, EngagementState
+from src.infrastructure.adapters.shopdeck_cem_adapter import ShopdeckCemAdapter
 from src.shared.config import settings
 
 logger = logging.getLogger(__name__)
@@ -69,10 +72,20 @@ def get_repository():
     return CustomerEngagementRepository()
 
 
+def get_shopdeck_adapter():
+    return ShopdeckCemAdapter(
+        base_url=getattr(settings, "shopdeck_url", "http://localhost:8002"),
+        identity_url=settings.identity_url,
+        client_id=settings.brain_client_id,
+        client_secret=settings.brain_client_secret,
+    )
+
+
 @router.post("/call-completed", dependencies=[Depends(verify_sarvam_bearer)])
 async def handle_call_completed(
     request: Request,
     repo: CustomerEngagementRepository = Depends(get_repository),
+    shopdeck_adapter: ShopdeckCemAdapter = Depends(get_shopdeck_adapter),
 ):
     """
     Real endpoint for Instant Outbound's completion webhook (webhook_config.url, set by
@@ -118,8 +131,48 @@ async def handle_call_completed(
     call_context = engagement.get("call_context", {}) or {}
     queue_item_id = call_context.get("queue_item_id")
     awb_no = engagement.get("awb_no")
+    status = payload.get("status", "")
+    final_agent_variables = payload.get("final_agent_variables") or {}
 
-    # Recording storage + reporting is deliberately independent of call_outcome below - by
+    # Report call_completed to ShopDeck unconditionally, independent of whether Sarvam's
+    # agent produced a decisive call_outcome. Found 2026-09-16 tracing 3 real calls that
+    # connected, produced an empty transcript (customer hung up immediately / wrong number /
+    # similar), and were left permanently stuck at queue_status=call_dispatched - nothing in
+    # this handler had ever reported them as finished, because the only status-advancing call
+    # that existed (the recording-report block below) only fires as a side effect of a
+    # recording successfully attaching. ShopDeck's own schema
+    # (QueueStatusUpdateRequest.call_outcome, backend/api/schemas/ndr_queue.py) expects
+    # exactly this: a raw telephony outcome (answered/no_answer/failed/cancelled - here
+    # Sarvam's own `status` string is passed through as-is) reported for every call that
+    # ends, separate from ndr_intelligence_results' NDR-level recommendation. Safe to do even
+    # when a decisive outcome also gets written back below: ShopDeck's intelligence-submission
+    # path (persist_intelligence_atomic) sets queue_status=action_ready unconditionally,
+    # regardless of current status, so it doesn't care whether call_completed was set first.
+    if queue_item_id and awb_no and awb_no != "UNKNOWN":
+        try:
+            await shopdeck_adapter.update_queue_status(
+                queue_item_id=queue_item_id,
+                status="call_completed",
+                engagement_id=engagement_id,
+                call_outcome=status or None,
+                transcript_summary=final_agent_variables.get("call_summary") or None,
+            )
+        except httpx.HTTPStatusError as status_err:
+            if status_err.response.status_code != 409:
+                logger.error(
+                    "Failed to report call_completed to ShopDeck for engagement %s: HTTP %d",
+                    engagement_id, status_err.response.status_code,
+                )
+            # A 409 here means the queue already moved past call_dispatched (e.g. a
+            # duplicate webhook delivery, or this handler racing an earlier successful
+            # report) - not a real failure, nothing further to do.
+        except Exception as report_err:
+            logger.error(
+                "Failed to report call_completed to ShopDeck for engagement %s: %s",
+                engagement_id, report_err,
+            )
+
+    # Recording storage + reporting is deliberately independent of call_outcome above - by
     # user decision (2026-09-16), a recording is reference/audit material, not something to
     # be acted upon, so it belongs on ShopDeck's ndr_engagements.recording_url column, not in
     # ndr_intelligence_results.action_parameters (which is for the opposite: things a human
@@ -140,11 +193,8 @@ async def handle_call_completed(
             queue_item_id=queue_item_id,
         )
 
-    status = payload.get("status", "")
     final_state = EngagementState.FAILED if status in ("no_answer", "busy", "failed") else EngagementState.COMPLETED
     await repo.transition_state(engagement_id, final_state)
-
-    final_agent_variables = payload.get("final_agent_variables") or {}
     call_outcome = final_agent_variables.get("call_outcome")
     if not call_outcome:
         logger.info(
