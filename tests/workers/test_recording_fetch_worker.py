@@ -20,6 +20,8 @@ def _queue_record(**overrides) -> dict:
         "interaction_id": "20260916/abcd-10:00:00-efgh",
         "awb_no": "AWB123",
         "queue_item_id": "q_1",
+        "call_outcome": "connected",
+        "transcript_summary": "Customer agreed to Thursday delivery.",
         "attempt_count": 0,
         "status": "PROCESSING",
         "claim_token": "token123",
@@ -46,7 +48,12 @@ async def test_successful_fetch_reports_recording_and_marks_delivered():
         status="call_completed",
         engagement_id="eng_1",
         recording_url="https://recordings.aarambooks.cloud/sarvam_call_recordings/AWB123/eng_1.wav",
+        call_outcome="connected",
+        transcript_summary="Customer agreed to Thursday delivery.",
     )
+    # ShopDeck's call_completed handler overwrites call_outcome/transcript_summary/
+    # recording_url together (no COALESCE) - the worker must resend the first two or it
+    # nulls what the webhook's immediate report set (seen 2026-09-18, 11 of 15 calls).
     # The worker mints its own claim_token per process_next() call (same pattern as
     # OutboundWritebackWorker) - assert it's whatever token was used to claim, not a literal.
     claimed_token = repo.claim_pending_recording_fetch.call_args.kwargs["claim_token"]

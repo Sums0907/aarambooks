@@ -223,6 +223,8 @@ def test_recording_fetch_enqueued_for_background_processing_not_fetched_inline()
         interaction_id="20260916/abcd-10:00:00-efgh",
         awb_no="AWB123",
         queue_item_id="q_1",
+        call_outcome="connected",
+        transcript_summary=None,
     )
     # No call_outcome was present, so the existing outcome-writeback path correctly does
     # nothing - the recording enqueue above must not depend on it or leak into it.

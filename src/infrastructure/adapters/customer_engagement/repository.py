@@ -424,6 +424,8 @@ class CustomerEngagementRepository:
         awb_no: str,
         queue_item_id: str,
         initial_delay_seconds: float = 90.0,
+        call_outcome: Optional[str] = None,
+        transcript_summary: Optional[str] = None,
     ) -> bool:
         """
         Idempotently enqueues a call recording for background fetch-and-report, instead of
@@ -444,6 +446,8 @@ class CustomerEngagementRepository:
             "interaction_id": interaction_id,
             "awb_no": awb_no,
             "queue_item_id": queue_item_id,
+            "call_outcome": call_outcome,
+            "transcript_summary": transcript_summary,
             "status": "PENDING",
             "attempt_count": 0,
             "next_attempt_at": now + timedelta(seconds=initial_delay_seconds),

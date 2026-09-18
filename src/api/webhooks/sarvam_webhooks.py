@@ -184,6 +184,11 @@ async def handle_call_completed(
     # the instant this webhook fires, since the recording isn't processed on Sarvam's side
     # yet. Every real call that day silently failed to store a recording as a result. The
     # worker retries with backoff instead of this handler making one doomed attempt.
+    #
+    # call_outcome/transcript_summary ride along because ShopDeck's call_completed handler
+    # overwrites call_outcome, transcript_id, transcript_summary AND recording_url together
+    # (no COALESCE), so the worker's later report must resend them or it nulls what the
+    # immediate report above just set - observed 2026-09-18, 11 of 15 completed calls.
     interaction_id = payload.get("interaction_id")
     if interaction_id and queue_item_id and awb_no and awb_no != "UNKNOWN":
         await repo.enqueue_recording_fetch(
@@ -191,6 +196,8 @@ async def handle_call_completed(
             interaction_id=interaction_id,
             awb_no=awb_no,
             queue_item_id=queue_item_id,
+            call_outcome=status or None,
+            transcript_summary=final_agent_variables.get("call_summary") or None,
         )
 
     final_state = EngagementState.FAILED if status in ("no_answer", "busy", "failed") else EngagementState.COMPLETED

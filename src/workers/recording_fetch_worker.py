@@ -109,6 +109,8 @@ class RecordingFetchWorker:
         interaction_id = record["interaction_id"]
         awb_no = record["awb_no"]
         queue_item_id = record["queue_item_id"]
+        call_outcome = record.get("call_outcome")
+        transcript_summary = record.get("transcript_summary")
         attempt_count = record.get("attempt_count", 0)
 
         logger.info(
@@ -130,6 +132,8 @@ class RecordingFetchWorker:
                 status="call_completed",
                 engagement_id=engagement_id,
                 recording_url=recording_url,
+                call_outcome=call_outcome,
+                transcript_summary=transcript_summary,
             )
             await self.repo.mark_recording_fetch_success(engagement_id, claim_token)
             logger.info("Recording reported to ShopDeck: engagement_id=%s url=%s", engagement_id, recording_url)
