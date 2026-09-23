@@ -118,6 +118,35 @@ async def test_catalog_enrichment_fields_are_extracted_from_the_real_nested_shap
 
 
 @pytest.mark.asyncio
+async def test_clubbed_order_reports_per_item_price_not_first_items_price():
+    """
+    Regression test for a real production bug found 2026-09-23: for a clubbed order
+    (multiple distinct line items on one AWB), actual_item_price silently took the FIRST
+    item's price and presented it as if it were the price for the whole order. Real case:
+    AWB 14217131991594, item 1 Rs.2499, item 2 Rs.1049 - the agent would have quoted
+    Rs.2499 for a two-item order. By user decision, a clubbed order must not collapse to
+    one misleading price - the customer is told each item's own quantity and price
+    (in the product-name string), and actual_item_price is left absent rather than wrong,
+    so the persona's own state_fact_unavailable_when_absent guardrail applies. A single-item
+    order (the common case) is unaffected - see test_build_does_not_crash_on_a_realistic_response_with_items
+    and friends above, which still assert the single-item shape works unchanged.
+    """
+    evidence = dict(SHOPDECK_EVIDENCE_WITH_CATALOG_DATA)
+    evidence["items"] = [
+        {"sku_id": "103CS", "product_name": "Coastal Blue Dreams Reversible Bedding Set- with Comforter", "quantity": 1, "selling_price": 2499.0},
+        {"sku_id": "102BDH", "product_name": "Pure Mulmul Kids Dohar for Babies & Toddlers", "quantity": 1, "selling_price": 1049.0},
+    ]
+    builder = ShopDeckMasterCCCBuilder(provider=_mock_provider(evidence))
+    ccc = await builder.build(_action_request())
+    projection = builder.project(ccc)
+
+    assert projection.actual_item_price is None
+    assert "1x Coastal Blue Dreams Reversible Bedding Set- with Comforter at Rs.2499 each" in projection.product_name
+    assert "1x Pure Mulmul Kids Dohar for Babies & Toddlers at Rs.1049 each" in projection.product_name
+    assert projection.order_quantity == 2
+
+
+@pytest.mark.asyncio
 async def test_missing_catalog_enrichment_data_is_absent_not_crashing():
     """
     When ShopDeck's response has items but no catalog_context key at all (e.g. a genuinely

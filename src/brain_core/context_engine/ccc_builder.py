@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 from src.brain_core.action_engine.contracts import ActionRequest, ConversationalDirective
 from src.brain_core.context_engine.ccc_contracts import (
     CustomerConversationContext, 
@@ -13,6 +13,42 @@ from src.shared.evidence_request_contracts import AbstractEvidenceRequest, Busin
 from src.shared.rabta_interfaces import ContextExecutionAdapter
 from types import SimpleNamespace
 from abc import ABC, abstractmethod
+
+
+def _format_clubbed_items(items: List[Dict[str, Any]]) -> tuple[str, Optional[float]]:
+    """
+    Builds the product-name string and the authoritative actual_item_price for the bot.
+
+    For a single item (the common case), behavior is unchanged: the item's own name and
+    its own price. For a clubbed order (multiple distinct line items on one AWB),
+    actual_item_price used to silently take the FIRST item's price and present it as if
+    it were the price for the whole order - actively misleading once a real clubbed order
+    was checked (2026-09-23, AWB 14217131991594: first item Rs.2499, second item Rs.1049,
+    but the agent would have quoted Rs.2499 for a two-item order). The bot_persona.txt
+    instruction ("the only price the agent ever knows is actual_item_price... the
+    customer's actual transaction price for this order") assumes one truthful scalar,
+    which a clubbed order genuinely doesn't have - by user decision, the fix is to tell
+    the customer each item's own quantity and price rather than collapsing to one number.
+
+    actual_item_price is left None for a clubbed order (a valid, already-modeled value -
+    see OrderContext.actual_item_price: Optional[float] = None) so the persona's own
+    state_fact_unavailable_when_absent guardrail applies instead of quoting a wrong price.
+    collectable_amount (ShopDeck's own real order total, unaffected by this) remains the
+    one number the agent quotes for what the customer owes; the per-item price now lives
+    in the product-name string itself, alongside each item's own quantity.
+    """
+    if len(items) == 1:
+        item = items[0]
+        return item.get("product_name", "Item"), float(item.get("selling_price", 0.0))
+
+    item_strs = []
+    for it in items:
+        qty = it.get("quantity", 1)
+        name = it.get("product_name", "Item")
+        price = it.get("selling_price")
+        price_str = f" at Rs.{float(price):.0f} each" if price is not None else ""
+        item_strs.append(f"{qty}x {name}{price_str}")
+    return ", ".join(item_strs), None
 
 
 def _summarize_action_history(action_history: Optional[list]) -> Optional[str]:
@@ -278,19 +314,8 @@ class CustomerConversationContextBuilder(AbstractCCCBuilder):
             first_item = items[0]
             sku_id = first_item.get("sku_id")
             
-            # Extract actual order commercial truth from ShopDeck item
-            actual_item_price = float(first_item.get("selling_price", 0.0))
             order_quantity = sum(int(it.get("quantity", 1)) for it in items)
-            
-            # Format clubbed orders
-            final_product_name = first_item.get("product_name")
-            if len(items) > 1:
-                item_strs = []
-                for it in items:
-                    qty = it.get("quantity", 1)
-                    name = it.get("product_name", "Item")
-                    item_strs.append(f"{qty}x {name}")
-                final_product_name = ", ".join(item_strs)
+            final_product_name, actual_item_price = _format_clubbed_items(items)
             
             # Reconstruct OrderContext with item details
             order_ctx = OrderContext(
@@ -451,17 +476,8 @@ class ShopDeckMasterCCCBuilder(AbstractCCCBuilder):
             first_item = items[0]
             sku_id = first_item.get("sku_id")
             
-            actual_item_price = float(first_item.get("selling_price", 0.0))
             order_quantity = sum(int(it.get("quantity", 1)) for it in items)
-            
-            final_product_name = first_item.get("product_name")
-            if len(items) > 1:
-                item_strs = []
-                for it in items:
-                    qty = it.get("quantity", 1)
-                    name = it.get("product_name", "Item")
-                    item_strs.append(f"{qty}x {name}")
-                final_product_name = ", ".join(item_strs)
+            final_product_name, actual_item_price = _format_clubbed_items(items)
             
             order_ctx = OrderContext(
                 awb_no=order_ctx.awb_no,
